@@ -280,7 +280,7 @@
         }
 
 
-        function atLista() {
+       function atLista() {
             let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = '';
             if(!bd) return; let chaves = Object.keys(bd).filter(id => bd[id] !== null);
             if(chaves.length === 0) { div.innerHTML = "<p style='color:gray;font-size:13px;'>Nenhum registro.</p>"; return; }
@@ -298,30 +298,55 @@
                 }
             });
         }
+
+        // 🌟 FUNÇÃO FINANCEIRA CORRIGIDA: Puxa o ID limpo do aluno para o controle
         function abrirFinanceiro(id) {
-            alunoFinId = id; let f = bd[id]; if(!f) return;
+            let cPura = id.replace(/\D/g, ""); // Garante o uso do CPF puro
+            if(!bd[cPura]) { alert('Aluno não localizado!'); return; }
+            
+            alunoFinId = cPura; 
+            let f = bd[cPura];
             document.getElementById('financeiro-nome-titulo').innerText = `💰 Pagamentos de: ${f.nome}`;
             document.getElementById('painel-financeiro-aluno').classList.remove('hidden');
+            
             let meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            let grid = document.getElementById('grid-meses-corpo'); grid.innerHTML = ''; let pLocal = f.pagamentos || {};
+            let grid = document.getElementById('grid-meses-corpo'); grid.innerHTML = ''; 
+            let pLocal = f.pagamentos || {};
+            
             meses.forEach(mes => {
-                let status = pLocal[mes] ? "pago" : ""; let txtBotao = pLocal[mes] ? "✅ Pago (Estornar)" : "💵 Receber";
+                let status = pLocal[mes] ? "pago" : ""; 
+                let txtBotao = pLocal[mes] ? "✅ Pago (Estornar)" : "💵 Receber";
                 grid.innerHTML += `
                     <div class="mes-card ${status}">
                         <label><b>${mes}</b></label><br>
-                        <button type="button" onclick="alternarMes('${id}', '${mes}')" style="font-size:10px; cursor:pointer;">${txtBotao}</button>
-                        <button type="button" onclick="gerarRecibo('${id}', '${mes}')" style="font-size:10px; cursor:pointer; background:#10b981; color:white; border:none; margin-top:4px; padding:2px 4px; border-radius:2px; display:${pLocal[mes]?'inline-block':'none'};">🖨️ Recibo</button>
+                        <button type="button" onclick="alternarMes('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer;">${txtBotao}</button>
+                        <button type="button" onclick="gerarRecibo('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer; background:#10b981; color:white; border:none; margin-top:4px; padding:2px 4px; border-radius:2px; display:${pLocal[mes]?'inline-block':'none'};">🖨️ Recibo</button>
                     </div>`;
             });
         }
-        function alternarMes(idAluno, mes) {
-            let f = bd[idAluno]; if(!f) return; if(!f.pagamentos) f.pagamentos = {}; f.pagamentos[mes] = !f.pagamentos[mes];
-            bd[idAluno] = f; localStorage.setItem('fichas_v2', JSON.stringify(bd));
-            if(!urlNuvemBase.includes("seu-projeto-default")) {
-                fetch(obterUrlMatricula(idAluno), { method: 'PUT', body: JSON.stringify(f) }).then(() => sincronizarMatriculasFirebase());
-            } else { abrirFinanceiro(idAluno); }
-        }
 
+        // 🌟 ALTERNAR MÊS CORRIGIDO: Força a gravação em tempo real na nuvem do Firebase
+        function alternarMes(idAluno, mes) {
+            let cPura = idAluno.replace(/\D/g, "");
+            let f = bd[cPura]; if(!f) return; 
+            
+            if(!f.pagamentos) f.pagamentos = {}; 
+            f.pagamentos[mes] = !f.pagamentos[mes]; // Muda o status (Verde / Branco)
+
+            bd[cPura] = f; 
+            localStorage.setItem('fichas_v2', JSON.stringify(bd));
+            
+            if(!urlNuvemBase.includes("seu-projeto-default")) {
+                fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) })
+                .then(() => {
+                    sincronizarMatriculasFirebase(); // Força o Firebase a recarregar e pintar a tela na hora
+                }).catch(err => {
+                    alert("Erro ao salvar na nuvem! Verifique a internet.");
+                });
+            } else { 
+                abrirFinanceiro(cPura); 
+            }
+        }
 
         function gerarRecibo(idAluno, mes) {
             let f = bd[idAluno]; if(!f) return; let val = f.mensalidade || "100.00";
