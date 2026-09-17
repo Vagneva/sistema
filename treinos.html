@@ -3,69 +3,86 @@
 <head> 
     <meta charset="UTF-8"><title>Painel de Treinos</title> 
     <style> 
-        body{background:#f1f5f9;color:#1e293b;font-family:system-ui,sans-serif;padding:20px} 
+        body{background:#f1f5f9;color:#1e293b;font-family:system-ui,sans-serif;padding:10px;margin:0} 
         .container{max-width:600px;margin:0 auto}
         .box{background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:20px} 
-        .menu-navegacao{display:flex;gap:10px;background:#1e3a8a;padding:10px;border-radius:6px;margin-bottom:20px} 
-        .menu-navegacao a{color:#fff;text-decoration:none;font-weight:bold;font-size:14px;padding:6px 12px;border-radius:4px;background:rgba(255,255,255,0.1)} 
+        .menu-navegacao{display:flex;gap:8px;background:#1e3a8a;padding:8px;border-radius:6px;margin-bottom:15px} 
+        .menu-navegacao a{color:#fff;text-decoration:none;font-weight:bold;font-size:12px;padding:6px 10px;border-radius:4px;background:rgba(255,255,255,0.1);text-align:center;flex:1} 
         .menu-navegacao a:hover{background:rgba(255,255,255,0.25)} 
         .menu-navegacao a.ativo{background:#2563eb} 
         .menu-navegacao a.aba-amarela{background:#facc15;color:#1e293b}
         .menu-navegacao a.aba-amarela:hover{background:#fde047}
-        .btn{background:#2563eb;color:#fff;border:none;padding:10px;border-radius:4px;cursor:pointer;width:100%;font-weight:bold} 
+        .btn{background:#2563eb;color:#fff;border:none;padding:12px;border-radius:4px;cursor:pointer;width:100%;font-weight:bold;font-size:15px} 
         .btn-danger{background:#ef4444}.hidden{display:none !important} 
         .row{display:flex;gap:5px;margin-bottom:5px} .row input,.row select{padding:6px;border:1px solid #cbd5e1;border-radius:4px} 
-        .tabs{display:flex;gap:5px;margin-bottom:10px} .tab{flex:1;padding:8px;background:#cbd5e1;border:none;cursor:pointer;font-weight:bold} 
-        .tab.active{background:#2563eb;color:#fff} .imc-box{background:#eff6ff;border-left:4px solid #2563eb;padding:12px;margin-top:15px;border-radius:4px;font-size:14px} 
-        .exercicio-item{padding:12px;border:1px solid #cbd5e1;margin-bottom:5px;background:#f8fafc;border-radius:4px;display:flex;align-items:center;gap:10px} 
+        .tabs{display:flex;gap:5px;margin-bottom:15px} 
+        .tab{flex:1;padding:6px 4px;background:#cbd5e1;border:none;cursor:pointer;font-weight:bold;font-size:12px;border-radius:4px} 
+        .tab.active{background:#2563eb;color:#fff} 
+        .imc-box{background:#eff6ff;border-left:4px solid #2563eb;padding:12px;margin-top:15px;border-radius:4px;font-size:14px} 
+        .exercicio-item{padding:14px;border:1px solid #cbd5e1;margin-bottom:8px;background:#f8fafc;border-radius:6px;display:flex;align-items:center;gap:12px;font-size:16px} 
         .exercicio-item.concluido{background:#dcfce7;border-color:#10b981;text-decoration:line-through;color:#15803d} 
-        .exercicio-item input[type="checkbox"]{width:18px;height:18px;cursor:pointer} 
-        .topo-sistema{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-        .titulo-academia{color:#ef4444;display:flex;align-items:center;gap:12px;margin:0}
-        .titulo-academia h2{margin:0;color:#ef4444} .icone-quimono-svg{width:36px;height:36px;fill:#ef4444}
+        .exercicio-item input[type="checkbox"]{width:22px;height:22px;cursor:pointer} 
+        .topo-sistema{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+        .titulo-academia{color:#ef4444;display:flex;align-items:center;gap:10px;margin:0}
+        .titulo-academia h2{margin:0;color:#ef4444;font-size:18px} .icone-quimono-svg{width:30px;height:36px;fill:#ef4444}
+        .btn-voltar-flutuante{background:#475569;color:white;border:none;padding:10px;border-radius:4px;font-weight:bold;cursor:pointer;width:100%;margin-top:15px}
     </style> 
-</head> 
+</head>
+
+
 <body> 
     <div class="container"> 
-        <div class="menu-navegacao"> 
-            <a href="matricula.html">📋 Matrícula e Avaliação</a> 
-            <a href="#" class="ativo aba-amarela">🏋️‍♂️ Painel de Treinos dos Alunos</a> 
-            <a href="termo.html">📄 Termos e Autorizações</a>
-        </div> 
-        <div class="topo-sistema">
-            <div class="titulo-academia">
-                <svg class="icone-quimono-svg" viewBox="0 0 24 24"><path d="M12,2L4,6V12L12,22L20,12V6L12,2M12,4.3L17.7,7.2L12,12L6.3,7.2L12,4.3M6,8.5L11,12.2V19.3L6,13V8.5M18,8.5V13L13,19.3V12.2L18,8.5Z"/></svg>
-                <h2>Nome da Sua Academia Aqui</h2>
-            </div>
-            <button onclick="irAdmin()" style="padding:5px 10px;cursor:pointer;font-weight:bold">Acessar Painel Admin</button> 
+        <!-- Div estrutural para podermos esconder todo o topo no celular -->
+        <div id="cabecalho-completo">
+            <div class="menu-navegacao"> 
+                <a href="matricula.html">📋 Matrícula</a> 
+                <a href="#" class="ativo aba-amarela">🏋️‍♂️ Treinos</a> 
+                <a href="termo.html">📄 Termos</a>
+            </div> 
+            <div class="topo-sistema">
+                <div class="titulo-academia">
+                    <svg class="icone-quimono-svg" viewBox="0 0 24 24"><path d="M12,2L4,6V12L12,22L20,12V6L12,2M12,4.3L17.7,7.2L12,12L6.3,7.2L12,4.3M6,8.5L11,12.2V19.3L6,13V8.5M18,8.5V13L13,19.3V12.2L18,8.5Z"/></svg>
+                    <h2>FERAS TAEKWONDO 🥋</h2>
+                </div>
+                <button onclick="irAdmin()" style="padding:6px 10px;cursor:pointer;font-weight:bold;font-size:12px">Admin</button> 
         </div>
+        </div>
+
         <div id="tela-login" class="box"> 
             <h3>Login do Aluno</h3><br> 
-            <input type="text" id="user-aluno" placeholder="Usuário (ID)" style="width:100%;padding:8px;margin-bottom:10px;"> 
-            <input type="password" id="senha-aluno" placeholder="Senha" style="width:100%;padding:8px;margin-bottom:10px;"> 
+            <input type="text" id="user-aluno" placeholder="Usuário (ID)" style="width:100%;padding:10px;margin-bottom:10px;box-sizing:border-box"> 
+            <input type="password" id="senha-aluno" placeholder="Senha" style="width:100%;padding:10px;margin-bottom:10px;box-sizing:border-box"> 
             <button class="btn" onclick="logarAluno()">Entrar no Sistema</button> 
         </div>
 
         <div id="tela-aluno" class="box hidden"> 
-            <button onclick="sairAluno()" style="background:#ef4444;color:#fff;border:none;padding:5px;margin-bottom:10px;cursor:pointer">Desconectar</button> 
-            <h3 id="nome-aluno-titulo">Ficha</h3> <p id="obj-aluno-titulo" style="color:#64748b;margin-bottom:10px"></p> 
+            <div id="botoes-topo-aluno" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <h3 id="nome-aluno-titulo" style="margin:0">Ficha</h3>
+                <button onclick="sairAluno()" style="background:#ef4444;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px">Desconectar</button> 
+            </div>
+            <p id="obj-aluno-titulo" style="color:#64748b;margin:0;margin-bottom:15px;font-size:14px"></p> 
+            
             <div class="tabs"> 
                 <button id="tA" class="tab active" onclick="verAba('A')">FICHA A</button> 
                 <button id="tB" class="tab" onclick="verAba('B')">FICHA B</button> 
                 <button id="tC" class="tab" onclick="verAba('C')">FICHA C</button> 
             </div> 
-            <div id="lista-exercicios"></div> <div id="info-imc" class="imc-box"></div> 
+            
+            <div id="lista-exercicios"></div> 
+            <div id="info-imc" class="imc-box"></div>
+            <button type="button" id="btn-restaurar-menu" class="btn-voltar-flutuante hidden" onclick="restaurarMenuCompleto()">↩️ Voltar Menu</button>
         </div> 
+
         <div id="tela-admin" class="box hidden"> 
-            <div style="display:flex;justify-content:space-between;margin-bottom:15px"> <h3>Painel do Administrador</h3> <button onclick="sairAdmin()" style="cursor:pointer">Voltar ao Início</button> </div> 
+            <div style="display:flex;justify-content:space-between;margin-bottom:15px"> <h3>Painel do Administrador</h3> <button onclick="sairAdmin()" style="cursor:pointer">Voltar</button> </div> 
             <label>🔎 Buscar Aluno para Editar:</label>
             <input type="text" id="busca-admin-treino" oninput="filtrarAlunosAdmin()" placeholder="Digite as primeiras letras..." style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:4px;margin-bottom:10px;box-sizing:border-box">
-            <label>Selecione para Editar ou Criar:</label> <select id="select-admin" onchange="carregarEdicao()" style="width:100%;padding:8px;margin-bottom:15px"></select> 
-            <input type="text" id="adm-nome" placeholder="Nome Completo" style="width:100%;padding:8px;margin-bottom:5px;"> 
-            <input type="text" id="adm-user" placeholder="Usuário Único" style="width:100%;padding:8px;margin-bottom:5px;"> 
-            <input type="text" id="adm-senha" placeholder="Senha do Aluno" style="width:100%;padding:8px;margin-bottom:5px;"> 
-            <input type="text" id="adm-obj" placeholder="Objetivo" style="width:100%;padding:8px;margin-bottom:10px;"> 
-            <div class="row"> <input type="text" id="adm-peso" placeholder="Peso" style="flex:1"> <input type="text" id="adm-altura" placeholder="Altura" style="flex:1"> </div> 
+            <label>Selecione para Editar ou Criar:</label> <select id="select-admin" onchange="carregarEdicao()" style="width:100%;padding:8px;margin-bottom:15px;width:100%"></select> 
+            <input type="text" id="adm-nome" placeholder="Nome Completo" style="width:100%;padding:8px;margin-bottom:5px;box-sizing:border-box"> 
+            <input type="text" id="adm-user" placeholder="Usuário Único" style="width:100%;padding:8px;margin-bottom:5px;box-sizing:border-box"> 
+            <input type="text" id="adm-senha" placeholder="Senha do Aluno" style="width:100%;padding:8px;margin-bottom:5px;box-sizing:border-box"> 
+            <input type="text" id="adm-obj" placeholder="Objetivo" style="width:100%;padding:8px;margin-bottom:10px;box-sizing:border-box"> 
+            <div class="row"> <input type="text" id="adm-peso" placeholder="Peso" style="flex:1;width:50%"> <input type="text" id="adm-altura" placeholder="Altura" style="flex:1;width:50%"> </div> 
             <div style="font-weight:bold;margin:15px 0 5px 0">Exercícios por Ficha:</div> 
             <div class="tabs"> 
                 <button id="adm-tA" class="tab active" onclick="mudarAbaAdmin('A')">FICHA A</button> 
@@ -73,42 +90,55 @@
                 <button id="adm-tC" class="tab" onclick="mudarAbaAdmin('C')">FICHA C</button> 
             </div> 
             <div id="linhas-edit"></div> 
-            <button onclick="addLinhaAdminDoBotao()" style="background:#10b981;color:#fff;border:none;padding:5px;margin-bottom:15px;width:100%;cursor:pointer">+ Adicionar Exercício</button> 
+            <button onclick="addLinhaAdminDoBotao()" style="background:#10b981;color:#fff;border:none;padding:8px;margin-bottom:15px;width:100%;cursor:pointer;font-weight:bold">+ Adicionar Exercício</button> 
             <button class="btn" onclick="salvarAluno()">Gravar Ficha do Aluno</button><br><br> 
             <button class="btn btn-danger" onclick="excluirAlunoAtual()">Excluir Aluno</button> 
         </div> 
     </div>
-
     <script> 
-        // ⚠️ RECOLOQUE O LINK DO SEU BANCO DE DADOS DO FIREBASE AQUI
-        const urlNuvem = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+        const urlNuvem = "https://firebaseio.com"; 
         let bdLocal = { alunos: {} }, logadoId = null, abaAtiva = 'A', admAbaAtiva = 'A', exerciciosEmEdicao = []; 
         function obterUrlFicha(id){ let u = urlNuvem.replace('.json', ''); if(u.endsWith('/')){u=u.slice(0,-1)} return u+"/"+id+".json"; }
         function sincronizarEcarregar() { 
             let c = localStorage.getItem('backup_academia_v9'); if(c){bdLocal.alunos=JSON.parse(c)} atualizarSelect(); 
             if(!urlNuvem.includes("seu-projeto-default")){ fetch(urlNuvem).then(r=>r.json()).then(d=>{ if(d){bdLocal.alunos=d;localStorage.setItem('backup_academia_v9',JSON.stringify(d));atualizarSelect();if(logadoId)mostrarFicha()} }).catch(e=>console.log("Offline")); }
         } 
-        function atualizarSelect() { let s = document.getElementById('select-admin'); if(!s)return; s.innerHTML='<option value="novo">-- Cadastrar Novo Aluno --</option>'; Object.keys(bdLocal.alunos).forEach(id=>{if(bdLocal.alunos[id]){s.innerHTML+=`<option value="${id}">${bdLocal.alunos[id].nome} (${id})</option>`}}); } 
+        function atualizarSelect() { let s = document.getElementById('select-admin'); if(!s)return; s.innerHTML='<option value="novo">-- Cadastrar Novo Aluno --</option>'; Object.keys(bdLocal.alunos).forEach(id=>{if(bdLocal.alunos[id]){s.innerHTML+=`<option value="${id}">${bdLocal.alunos[id].nome}</option>`}}); } 
         function logarAluno() { 
             let u=document.getElementById('user-aluno').value.trim().toLowerCase(), p=document.getElementById('senha-aluno').value.trim(); 
-            if(bdLocal.alunos[u]&&bdLocal.alunos[u].senha===p){logadoId=u;abaAtiva='A';exib('tela-login',0);exib('tela-aluno',1);mostrarFicha()}else{alert('Incorreto!')}
+            if(bdLocal.alunos[u] && bdLocal.alunos[u].senha === p) { logadoId=u; abaAtiva='A'; exib('tela-login',0); exib('tela-aluno',1); mostrarFicha(); AtivarTelaCheiaCelular(); } else { alert('Incorreto!') }
         } 
-        function sairAluno(){logadoId=null;document.getElementById('user-aluno').value='';document.getElementById('senha-aluno').value='';exib('tela-aluno',0);exib('tela-login',1);sincronizarEcarregar()} 
-        function verAba(l){abaAtiva=l;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('t'+l).classList.add('active');mostrarFicha()} 
+        function sairAluno(){ restaurarMenuCompleto(); logadoId=null; document.getElementById('user-aluno').value=''; document.getElementById('senha-aluno').value=''; exib('tela-aluno',0); exib('tela-login',1); sincronizarEcarregar(); } 
+        function verAba(l){ abaAtiva=l; document.querySelectorAll('#tela-aluno .tab').forEach(t=>t.classList.remove('active')); document.getElementById('t'+l).classList.add('active'); mostrarFicha(); AtivarTelaCheiaCelular(); } 
+        
+        // 🌟 FUNÇÕES EXCLUSIVAS DE TELA CHEIA PARA O CELULAR
+        function AtivarTelaCheiaCelular() {
+            if(window.innerWidth <= 768) { // Só ativa se for no formato celular
+                document.getElementById('cabecalho-completo').classList.add('hidden');
+                document.getElementById('botoes-topo-aluno').classList.add('hidden');
+                document.getElementById('btn-restaurar-menu').classList.remove('hidden');
+            }
+        }
+        function restaurarMenuCompleto() {
+            document.getElementById('cabecalho-completo').classList.remove('hidden');
+            document.getElementById('botoes-topo-aluno').classList.remove('hidden');
+            document.getElementById('btn-restaurar-menu').classList.add('hidden');
+        }
+
         function mostrarFicha() { 
             let a=bdLocal.alunos[logadoId];if(!a)return; let div=document.getElementById('lista-exercicios');div.innerHTML=''; 
             document.getElementById('nome-aluno-titulo').innerText="Treino: "+a.nome; document.getElementById('obj-aluno-titulo').innerText="Foco: "+(a.objetivo||'Geral'); 
             let t=a.exercicios||[], f=t.filter(e=>e.f===abaAtiva); 
-            if(f.length===0){div.innerHTML='<p style="color:gray;padding:10px;">Nenhum exercício hoje nesta ficha.</p>'}else{ f.forEach(e=>{ let idx=t.findIndex(o=>o.n===e.n&&o.f===e.f), ck=e.concluido?'checked':'', cl=e.concluido?'concluido':''; div.innerHTML+=`<div class="exercicio-item ${cl}"><input type="checkbox" ${ck} onchange="altSt(${idx},this)"><div><strong>${e.n}</strong> - ${e.s}x${e.r} | <span style="color:#1e3a8a;font-weight:bold">${e.p} Kg</span></div></div>` }) }
-            let p=parseFloat(a.peso), alt=parseFloat(a.altura); if(p&&alt){let imc=(p/(alt * alt)).toFixed(1),cat="Normal";if(imc<18.5)cat="Abaixo";else if(imc>=25&&imc<30)cat="Sobrepeso";else if(imc>=30)cat="Obesidade";document.getElementById('info-imc').innerHTML=`📊 <b>Avaliação Física:</b> ${p}kg | ${alt}m <br><b>IMC:</b> ${imc} (${cat})`;exib('info-imc',1)}else{document.getElementById('info-imc').innerHTML='';exib('info-imc',0)} 
+            if(f.length===0){div.innerHTML='<p style="color:gray;padding:10px;text-align:center">Nenhum exercício hoje nesta ficha.</p>'}else{ f.forEach(e=>{ let idx=t.findIndex(o=>o.n===e.n&&o.f===e.f), ck=e.concluido?'checked':'', cl=e.concluido?'concluido':''; div.innerHTML+=`<div class="exercicio-item ${cl}"><input type="checkbox" ${ck} onchange="altSt(${idx},this)"><div><strong>${e.n}</strong> - ${e.s}x${e.r} | <span style="color:#1e3a8a;font-weight:bold">${e.p} Kg</span></div></div>` }) }
+            let p=parseFloat(a.peso), alt=parseFloat(a.altura); if(p&&alt){let imc=(p/(alt * alt)).toFixed(1),cat="Normal";if(imc<18.5)cat="Abaixo";else if(imc>=25&&imc<30)cat="Sobrepeso";else if(imc>=30)cat="Obesidade";document.getElementById('info-imc').innerHTML=`📊 <b>Avaliação:</b> ${p}kg | ${alt}m <br><b>IMC:</b> ${imc} (${cat})`;exib('info-imc',1)}else{document.getElementById('info-imc').innerHTML='';exib('info-imc',0)} 
         }
         function altSt(idx,cb){ let a=bdLocal.alunos[logadoId];if(!a||!a.exercicios)return; a.exercicios[idx].concluido=cb.checked;localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos));cb.parentElement.classList.toggle('concluido',cb.checked);if(!urlNuvem.includes("seu-projeto-default")){fetch(obterUrlFicha(logadoId),{method:'PUT',body:JSON.stringify(a)})} }
-        function irAdmin(){if(prompt('Senha Admin:')==='admin123'){sincronizarEcarregar();exib('tela-login',0);exib('tela-aluno',0);exib('tela-admin',1);admAbaAtiva='A';carregarEdicao()}} 
+        function irAdmin(){if(prompt('Senha:')==='2004'){sincronizarEcarregar();exib('cabecalho-completo',1);exib('tela-login',0);exib('tela-aluno',0);exib('tela-admin',1);admAbaAtiva='A';carregarEdicao()}} 
         function sairAdmin(){exib('tela-admin',0);exib('tela-login',1);document.getElementById('busca-admin-treino').value=''} 
         function mudarAbaAdmin(l){salvarExAba();admAbaAtiva=l;document.querySelectorAll('#tela-admin .tab').forEach(t=>t.classList.remove('active'));document.getElementById('adm-t'+l).classList.add('active');renderizarExerciciosAdmin()}
         function salvarExAba(){ exerciciosEmEdicao=exerciciosEmEdicao.filter(e=>e.f!==admAbaAtiva); document.querySelectorAll('.layout-linha').forEach(r=>{let nV=r.querySelector('.ln').value.trim(),sV=r.querySelector('.ls').value.trim(),rV=r.querySelector('.lr').value.trim(),pV=r.querySelector('.lp').value.trim();if(nV){exerciciosEmEdicao.push({f:admAbaAtiva,n:nV,s:sV,r:rV,p:pV,concluido:false})}}) }
         function renderizarExerciciosAdmin(){ let div=document.getElementById('linhas-edit');div.innerHTML='';let f=exerciciosEmEdicao.filter(e=>e.f===admAbaAtiva);if(f.length===0){addLinhaSuporte('','','','')}else{f.forEach(e=>addLinhaSuporte(e.n,e.s,e.r,e.p))} }
-        function addLinhaSuporte(n='',s='',r='',p=''){document.getElementById('linhas-edit').insertAdjacentHTML('beforeend',`<div class="row layout-linha"><input type="text" class="ln" placeholder="Exercício" value="${n}" style="flex:2;"><input type="text" class="ls" placeholder="S" value="${s}" style="width:40px;text-align:center;"><input type="text" class="lr" placeholder="R" value="${r}" style="width:40px;text-align:center;"><input type="text" class="lp" placeholder="Kg" value="${p}" style="width:50px;text-align:center;"><button type="button" onclick="this.parentElement.remove()" style="color:red;background:none;border:none;font-weight:bold;cursor:pointer">X</button></div>`)}
+        function addLinhaSuporte(n='',s='',r='',p=''){document.getElementById('linhas-edit').insertAdjacentHTML('beforeend',`<div class="row layout-linha"><input type="text" class="ln" placeholder="Exercício" value="${n}" style="flex:2;width:40%"><input type="text" class="ls" placeholder="S" value="${s}" style="width:35px;text-align:center"><input type="text" class="lr" placeholder="R" value="${r}" style="width:35px;text-align:center"><input type="text" class="lp" placeholder="Kg" value="${p}" style="width:45px;text-align:center"><button type="button" onclick="this.parentElement.remove()" style="color:red;background:none;border:none;font-weight:bold;cursor:pointer">X</button></div>`)}
         function addLinhaAdminDoBotao(){addLinhaSuporte('','','','')}
         function filtrarAlunosAdmin(){ let t=document.getElementById('busca-admin-treino').value.toLowerCase().trim(), s=document.getElementById('select-admin'); if(t==='')return; for(let i=0;i<s.options.length;i++){if(s.options[i].text.toLowerCase().includes(t)){s.selectedIndex=i;carregarEdicao();break}} }
         function carregarEdicao() { 
@@ -118,18 +148,15 @@
             } 
         } 
         function salvarAluno() { 
-            let idSel = document.getElementById('select-admin').value, n = document.getElementById('adm-nome').value.trim(), u = document.getElementById('adm-user').value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), p = document.getElementById('adm-senha').value.trim(); 
-            if(!n || !u || !p){ alert('Nome, Usuário e Senha são obrigatórios!'); return; } 
-            salvarExAba(); 
-            if (idSel === 'novo' && bdLocal.alunos[u]) { alert(`⚠️ O usuário [ ${u} ] já pertence ao aluno(a) ${bdLocal.alunos[u].nome}.\n\nEscolha outro nome de usuário!`); return; }
-            let idF = (idSel === 'novo') ? u : idSel; 
-            let f = { nome: n, senha: p, objetivo: document.getElementById('adm-obj').value.trim(), peso: document.getElementById('adm-peso').value.trim(), altura: document.getElementById('adm-altura').value.trim(), exercicios: exerciciosEmEdicao }; 
-            bdLocal.alunos[idF] = f; localStorage.setItem('backup_academia_v9', JSON.stringify(bdLocal.alunos)); 
-            if(!urlNuvem.includes("seu-projeto-default")){ fetch(obterUrlFicha(idF), { method: 'PUT', body: JSON.stringify(f) }).then(() => { alert('Ficha salva e sincronizada na nuvem com sucesso!'); sincronizarEcarregar(); document.getElementById('select-admin').value = 'novo'; document.getElementById('busca-admin-treino').value = ''; carregarEdicao(); }); } else { alert('Salvo no computador!'); atualizarSelect(); document.getElementById('select-admin').value = 'novo'; document.getElementById('busca-admin-treino').value = ''; carregarEdicao(); }
+            let idSel=document.getElementById('select-admin').value, n=document.getElementById('adm-nome').value.trim(), u=document.getElementById('adm-user').value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), p=document.getElementById('adm-senha').value.trim(); 
+            if(!n||!u||!p){alert('Obrigatórios!');return} salvarExAba(); if(idSel==='novo'&&bdLocal.alunos[u]){alert(`⚠️ O usuário [ ${u} ] já existe!`);return} let idF=(idSel==='novo')?u:idSel; 
+            let f={nome:n,senha:p,objetivo:document.getElementById('adm-obj').value.trim(),peso:document.getElementById('adm-peso').value.trim(),altura:document.getElementById('adm-altura').value.trim(),exercicios:exerciciosEmEdicao}; 
+            bdLocal.alunos[idF]=f;localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos)); 
+            if(!urlNuvem.includes("seu-projeto-default")){ fetch(obterUrlFicha(idF),{method:'PUT',body:JSON.stringify(f)}).then(()=>{alert('Salvo na nuvem!');sincronizarEcarregar();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()})}else{alert('Salvo local!');atualizarSelect();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()}
         } 
         function excluirAlunoAtual() { 
-            let id = document.getElementById('select-admin').value; if(id === 'novo') return; 
-            if(confirm('Excluir?')){ delete bdLocal.alunos[id]; localStorage.setItem('backup_academia_v9', JSON.stringify(bdLocal.alunos)); if(!urlNuvem.includes("seu-projeto-default")){ fetch(obterUrlFicha(id), { method: 'DELETE' }).then(() => { alert('Apagado!'); sincronizarEcarregar(); document.getElementById('select-admin').value = 'novo'; document.getElementById('busca-admin-treino').value = ''; carregarEdicao(); }); } else { alert('Apagado!'); atualizarSelect(); document.getElementById('select-admin').value = 'novo'; document.getElementById('busca-admin-treino').value = ''; carregarEdicao(); } } 
+            let id=document.getElementById('select-admin').value;if(id==='novo')return; 
+            if(confirm('Excluir?')){ delete bdLocal.alunos[id];localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos));if(!urlNuvem.includes("seu-projeto-default")){fetch(obterUrlFicha(id),{method:'DELETE'}).then(()=>{alert('Apagado!');sincronizarEcarregar();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()})}else{alert('Apagado!');atualizarSelect();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()}} 
         } 
         function exib(id,s){document.getElementById(id).classList.toggle('hidden',!s)} 
         window.onload=function(){sincronizarEcarregar();document.getElementById('senha-aluno').onkeydown=(e)=>{if(e.key==='Enter')logarAluno()};document.getElementById('user-aluno').onkeydown=(e)=>{if(e.key==='Enter')logarAluno()}} 

@@ -169,9 +169,9 @@
     </div>
 
 <script>
-        // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
-        const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
-        const SENHA_ADMIN = "2004";
+                 
+// ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
+        const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";        const SENHA_ADMIN = "2004";
 
         let bd = {}, foto = "", idxEd = null, alunoFinId = null;
 
@@ -181,8 +181,19 @@
             return idAluno ? base + "/matriculas/" + idAluno + ".json" : base + "/matriculas.json";
         }
 
+        // 🌟 TRAVA MÁXIMA: Bloqueia a tela inteira logo no primeiro segundo se não tiver a senha
         window.onload = function() { 
-            sincronizarMatriculasFirebase();
+            document.getElementById('form-cadastro').classList.add('hidden');
+            document.querySelector('.lista-cadastrados').classList.add('hidden');
+            
+            if(prompt('Área Restrita da Administração. Digite a Senha:') === SENHA_ADMIN) {
+                document.getElementById('form-cadastro').classList.remove('hidden');
+                document.querySelector('.lista-cadastrados').classList.remove('hidden');
+                sincronizarMatriculasFirebase();
+            } else {
+                alert('Acesso negado! Você será redirecionado para o painel de treinos.');
+                window.location.href = "treinos.html";
+            }
         };
 
         function sincronizarMatriculasFirebase() {
@@ -198,7 +209,6 @@
                             bd = dados;
                             localStorage.setItem('fichas_v2', JSON.stringify(dados));
                             atLista();
-                            if(alunoFinId) abrirFinanceiro(alunoFinId);
                         }
                     }).catch(e => console.log("Modo offline"));
             }
@@ -227,7 +237,8 @@
         }
         function altJ(id, e) { let b = document.getElementById(id); b.classList.toggle('hidden', !e); if(!e){b.querySelector('textarea').value='';} }
 
- function calcIMC() {
+
+        function calcIMC() {
             let p = parseFloat(document.getElementById('peso').value), a = parseFloat(document.getElementById('altura').value), d = document.getElementById('res-imc');
             if(p && a && a > 0) {
                 let imc = (p / (a * a)).toFixed(1), cat = "Normal";
@@ -268,7 +279,8 @@
             ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao'].forEach(id => document.getElementById(id).classList.add('hidden'));
         }
 
-function atLista() {
+
+        function atLista() {
             let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = '';
             if(!bd) return; let chaves = Object.keys(bd).filter(id => bd[id] !== null);
             if(chaves.length === 0) { div.innerHTML = "<p style='color:gray;font-size:13px;'>Nenhum registro.</p>"; return; }
@@ -287,7 +299,6 @@ function atLista() {
             });
         }
         function abrirFinanceiro(id) {
-            if(prompt('Senha Admin:') !== SENHA_ADMIN) { alert('Incorreta!'); return; }
             alunoFinId = id; let f = bd[id]; if(!f) return;
             document.getElementById('financeiro-nome-titulo').innerText = `💰 Pagamentos de: ${f.nome}`;
             document.getElementById('painel-financeiro-aluno').classList.remove('hidden');
@@ -310,15 +321,14 @@ function atLista() {
                 fetch(obterUrlMatricula(idAluno), { method: 'PUT', body: JSON.stringify(f) }).then(() => sincronizarMatriculasFirebase());
             } else { abrirFinanceiro(idAluno); }
         }
-function gerarRecibo(idAluno, mes) {
+
+
+        function gerarRecibo(idAluno, mes) {
             let f = bd[idAluno]; if(!f) return; let val = f.mensalidade || "100.00";
-            let dataHoje = new Date().toLocaleDateString('pt-BR'); 
-            let codAutenticacao = "AUT-" + Math.floor(100000 + Math.random() * 900000);
-            
-            // Desenha o laudo com o Selo Autenticador direto na folha
+            let dataHoje = new Date().toLocaleDateString('pt-BR'); let codAutenticacao = "AUT-" + Math.floor(100000 + Math.random() * 900000);
             let htmlRecibo = `
                 <div class="recibo-box">
-                    <div class="recibo-topo"><h3>COMPROVANTE DE PAGAMENTO</h3><p><b>ACADEMIA DE ARTES MARCIAIS</b></p></div>
+                    <div class="recibo-topo"><h3>COMPROVANTE DE PAGAMENTO</h3><p><b>FERAS TAEKWONDO 🥋</b></p></div>
                     <div class="recibo-linha"><b>Recebemos de:</b> ${f.nome}</div>
                     <div class="recibo-linha"><b>Inscrição/CPF:</b> ${f.cpf}</div>
                     <div class="recibo-linha"><b>A importância de:</b> R$ ${parseFloat(val).toFixed(2)}</div>
@@ -328,30 +338,20 @@ function gerarRecibo(idAluno, mes) {
                     <div class="assinatura-area"><p style="font-size:11px; margin:0; color:#2563eb; font-weight:bold;">Selo Digital Gerado com Sucesso</p><p><b>Direção Administrativa</b></p></div>
                     <div class="hidden-print" style="margin-top:20px; display:flex; gap:10px;">
                         <button type="button" class="btn" style="margin:0;" onclick="window.print()">🖨️ Imprimir Recibo</button>
-                        <button type="button" class="btn btn-sucesso" style="margin:0; background:#facc15; color:#1e293b;" onclick="copiarTextoWhats('${f.nome}', '${mes}', '${val}', '${codAutenticacao}')">📋 Copiar Texto para WhatsApp</button>
+                        <button type="button" class="btn btn-sucesso" style="margin:0; background:#facc15; color:#1e293b;" onclick="enviarWhatsRecibo('${f.tel || f.telefone}', '${f.nome}', '${mes}', '${val}', '${codAutenticacao}')">📋 Copiar Texto para WhatsApp</button>
                     </div>
                 </div>`;
-            
-            let area = document.getElementById('area-recibo-impressao'); 
-            area.innerHTML = htmlRecibo; area.classList.remove('hidden');
-            alert("Recibo montado com sucesso no final da página!"); 
-            area.scrollIntoView({ behavior: 'smooth' });
+            let area = document.getElementById('area-recibo-impressao'); area.innerHTML = htmlRecibo; area.classList.remove('hidden');
+            alert("Recibo montado no final da página!"); area.scrollIntoView({ behavior: 'smooth' });
         }
-
-        // 🌟 FUNÇÃO NOVA: Copia o recibo em formato de texto limpo para você colar em qualquer lugar
-        function copiarTextoWhats(nome, mes, valor, cod) {
-            let textoRecibo = `*COMPROVANTE DE PAGAMENTO* 🥋\n\n*Recebemos de:* ${nome}\n*Referente ao mês de:* ${mes}\n*Valor:* R$ ${parseFloat(valor).toFixed(2)}\n*Data:* ${new Date().toLocaleDateString('pt-BR')}\n\n*Selo de Validação Digital:* ${cod}\n\nFicha atualizada no sistema! Bons treinos! 💪`;
-            
+        function enviarWhatsRecibo(tel, nome, mes, valor, cod) {
+            let textoRecibo = `*COMPROVANTE DE PAGAMENTO - FERAS TAEKWONDO 🥋*\n\n*Recebemos de:* ${nome}\n*Referente ao mês de:* ${mes}\n*Valor:* R$ ${parseFloat(valor).toFixed(2)}\n*Data:* ${new Date().toLocaleDateString('pt-BR')}\n\n*Selo de Validação Digital:* ${cod}\n\nFicha updated no sistema! Bons treinos! 💪`;
             navigator.clipboard.writeText(textoRecibo).then(() => {
                 alert("Texto do recibo copiado para a memória do seu computador!\n\nAgora basta abrir o WhatsApp do aluno e apertar Ctrl + V para enviar.");
-            }).catch(err => {
-                alert("Erro ao copiar automaticamente. Você pode selecionar o texto do recibo na tela e dar Ctrl + C.");
-            });
+            }).catch(err => { alert("Erro ao copiar. Selecione o texto e dê Ctrl + C."); });
         }
-
         function fecharFinanceiro() { document.getElementById('painel-financeiro-aluno').classList.add('hidden'); alunoFinId = null; }
-
- function carregar(id) {
+        function carregar(id) {
             let f = bd[id]; document.getElementById('nome').value = f.nome; document.getElementById('cpf').value = f.cpf;
             document.getElementById('rg').value = f.rg; document.getElementById('telefone').value = f.tel || f.telefone; document.getElementById('nascimento').value = f.nasc;
             document.getElementById('endereco').value = f.end || f.endereco; document.getElementById('peso').value = f.peso || ''; document.getElementById('altura').value = f.alt || f.altura; document.getElementById('valor-mensalidade').value = f.mensalidade || "100.00";
@@ -364,7 +364,6 @@ function gerarRecibo(idAluno, mes) {
             if(f.foto) { foto = f.foto; let img = document.getElementById('foto-preview'); img.src = f.foto; document.getElementById('video').style.display = "none"; img.style.display = "block"; }
             alert("Ficha carregada para edição!");
         }
-
         function excluir(id) { 
             if(confirm("Apagar permanentemente da nuvem?")) { 
                 delete bd[id]; localStorage.setItem('fichas_v2', JSON.stringify(bd)); 

@@ -112,7 +112,21 @@
     </div>
 
     <script>
-        // 🌟 FUNÇÃO NOVA: Troca as frases e esconde campos de forma mágica ao clicar nas abas
+
+        const SENHA_ADMIN = "2004";
+
+        // 🌟 TRAVA MÁXIMA PARA OS TERMOS: Bloqueia a tela se não for o professor
+        window.onload = function() {
+            document.getElementById('form-termo').classList.add('hidden');
+            
+            if(prompt('Área Restrita da Administração. Digite a Senha:') === SENHA_ADMIN) {
+                document.getElementById('form-termo').classList.remove('hidden');
+            } else {
+                alert('Acesso negado! Você será redirecionado para o painel de treinos.');
+                window.location.href = "treinos.html";
+            }
+        };
+
         function mudarTipoIdade(tipo) {
             document.getElementById('btn-menor').classList.toggle('ativa', tipo === 'menor');
             document.getElementById('btn-maior').classList.toggle('ativa', tipo === 'maior');
@@ -134,7 +148,7 @@
             } else {
                 responsavel.classList.remove('hidden');
                 titAluno.innerText = "2. Dados do Aluno / Atleta (Menor de Idade)";
-                txtRisco.innerText = "Eu, acima identificado como responsável legal do menor, declaro estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, effort físico intenso e riscos inerentes à modalidade, tais como:";
+                txtRisco.innerText = "Eu, acima identificado como responsável legal do menor, declaro estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, esforço físico intenso e riscos inerentes à modalidade, tais como:";
                 txtFinalRisco.innerText = "Declaro que o menor encontra-se em perfeitas condições de saúde física e mental para participar das atividades e competições, isentando a organização de qualquer responsabilidade por incidentes resultantes da própria prática esportiva.";
                 txtImagem.innerText = "Autorizo, de forma gratuita e definitiva, o uso do nome, imagem e voz do menor acima identificado em fotos, vídeos, redes sociais oficiais da academia e materiais informativos. Esta autorização é concedida com exclusividade para fins de divulgação dos treinos, eventos e conquistas em competições, sem gerar qualquer direito a indenizações ou pagamentos futuros.";
                 linhaAssinatura.innerText = "Assinatura do Responsável Legal";
