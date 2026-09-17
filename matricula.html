@@ -1,62 +1,70 @@
-﻿<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Ficha de Cadastro, Avaliação e Pagamentos</title>
-    <style>
-        body { background: #f1f5f9; color: #1e293b; font-family: system-ui, sans-serif; padding: 20px; }
-        .container { max-width: 750px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .menu-navegacao { display: flex; gap: 10px; background: #1e3a8a; padding: 10px; border-radius: 6px; margin-bottom: 20px; }
-        .menu-navegacao a { color: #fff; text-decoration: none; font-weight: bold; font-size: 14px; padding: 6px 12px; border-radius: 4px; background: rgba(255,255,255,0.1); }
-        .menu-navegacao a:hover { background: rgba(255,255,255,0.25); }
-        .menu-navegacao a.ativo { background: #2563eb; }
-        .menu-navegacao a.aba-amarela { background: #facc15; color: #1e293b; }
-        .menu-navegacao a.aba-amarela:hover { background: #fde047; }
-        h2, h3 { color: #1e3a8a; margin-top: 0; }
-        h3 { border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-        .full-width { grid-column: span 2; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
-        textarea { resize: vertical; height: 60px; }
-        .foto-container { display: flex; flex-direction: column; align-items: center; gap: 10px; background: #f8fafc; padding: 15px; border: 1px dashed #cbd5e1; border-radius: 6px; margin-bottom: 20px; }
-        video, canvas, img { width: 240px; height: 180px; background: #000; border-radius: 6px; object-fit: cover; }
-        .btn { background: #2563eb; color: #fff; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 10px; }
-        .btn-secundario { background: #475569; }
-        .btn-sucesso { background: #10b981; color: white; }
-        .btn-acao-financeira { padding: 4px 8px; font-size: 12px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 3px; }
-        .hidden { display: none !important; }
-        .pergunta-bloco { background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px; }
-        .radio-group { display: flex; gap: 20px; margin-bottom: 8px; margin-top: 4px; }
-        .radio-group label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer; }
-        .radio-group input { width: auto; cursor: pointer; }
-        .imc-resultado { background: #eff6ff; border-left: 4px solid #2563eb; padding: 10px; border-radius: 4px; font-size: 14px; font-weight: bold; margin-top: 5px; display: flex; align-items: center; justify-content: center; height: 100%; box-sizing: border-box; }
-        .busca-box { background: #f8fafc; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; margin-bottom: 15px; }
-        .painel-meses { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .mes-card { background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; text-align: center; }
-        .mes-card.pago { background: #dcfce7; border-color: #10b981; }
-        .mes-card label { margin-bottom: 8px; font-size: 13px; color: #1e3a8a; }
-        
-        .recibo-box { background: #ffffea; border: 2px dashed #cbd5e1; padding: 25px; margin-top: 20px; border-radius: 6px; font-family: monospace; color: #000; position: relative; }
-        .recibo-topo { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
-        .recibo-topo h3 { color: #000 !important; margin: 0; }
-        .recibo-linha { margin-bottom: 8px; font-size: 14px; }
-        .assinatura-area { margin-top: 25px; text-align: center; border-top: 1px solid #000; padding-top: 5px; width: 250px; margin-left: auto; margin-right: auto; }
-        .selo-autenticidade { font-size: 10px; color: #475569; text-align: center; margin-top: 10px; font-family: 'Courier New', monospace; letter-spacing: 2px; }
-        
-        /* 🌟 CORREÇÃO DEFINTIVA: Apaga o título H2 principal da página na hora de imprimir */
-        @media print {
-            body { background: white; padding: 0; }
-            .container { box-shadow: none; padding: 0; max-width: 100%; border: none; }
-            h2, .menu-navegacao, .btn, .foto-container, .lista-cadastrados, .botoes-acoes, video, #form-cadastro, #painel-financeiro-aluno, .hidden-print { display: none !important; }
-            .recibo-box { display: block !important; border: 2px dashed #000; background: white; width: 100%; box-sizing: border-box; padding: 20px; margin: 0; }
+﻿ function atLista() {
+            let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = '';
+            if(!bd) return; let chaves = Object.keys(bd).filter(id => bd[id] !== null);
+            if(chaves.length === 0) { div.innerHTML = "<p style='color:gray;font-size:13px;'>Nenhum registro.</p>"; return; }
+            chaves.forEach(id => {
+                let f = bd[id]; if(f) {
+                    if (b === "" || (f.nome||"").toLowerCase().includes(b) || (f.cpf||"").toLowerCase().includes(b) || (f.nasc||"").toLowerCase().includes(b)) {
+                        div.innerHTML += `<div class="aluno-linha">
+                            <span style="font-size:14px;"><b>${f.nome}</b> (${f.cpf})</span>
+                            <div style="display:flex; gap:4px;">
+                                <button type="button" class="btn-acao-financeira" style="background:#10b981;" onclick="abrirFinanceiro('${f.id}')">💰 Finanças / Recibo</button>
+                                <button type="button" class="btn-acao-financeira" onclick="carregar('${f.id}')">Editar</button>
+                                <button type="button" class="btn-acao-financeira" style="background:#ef4444;" onclick="excluir('${f.id}')">X</button>
+                            </div></div>`;
+                    }
+                }
+            });
         }
-        .lista-cadastrados { margin-top: 40px; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; }
-        .aluno-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0; align-items: center; }
-    </style>
-</head>
 
+        // 🌟 FUNÇÃO FINANCEIRA CORRIGIDA: Puxa o ID limpo do aluno para o controle
+        function abrirFinanceiro(id) {
+            let cPura = id.replace(/\D/g, ""); // Garante o uso do CPF puro
+            if(!bd[cPura]) { alert('Aluno não localizado!'); return; }
+            
+            alunoFinId = cPura; 
+            let f = bd[cPura];
+            document.getElementById('financeiro-nome-titulo').innerText = `💰 Pagamentos de: ${f.nome}`;
+            document.getElementById('painel-financeiro-aluno').classList.remove('hidden');
+            
+            let meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            let grid = document.getElementById('grid-meses-corpo'); grid.innerHTML = ''; 
+            let pLocal = f.pagamentos || {};
+            
+            meses.forEach(mes => {
+                let status = pLocal[mes] ? "pago" : ""; 
+                let txtBotao = pLocal[mes] ? "✅ Pago (Estornar)" : "💵 Receber";
+                grid.innerHTML += `
+                    <div class="mes-card ${status}">
+                        <label><b>${mes}</b></label><br>
+                        <button type="button" onclick="alternarMes('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer;">${txtBotao}</button>
+                        <button type="button" onclick="gerarRecibo('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer; background:#10b981; color:white; border:none; margin-top:4px; padding:2px 4px; border-radius:2px; display:${pLocal[mes]?'inline-block':'none'};">🖨️ Recibo</button>
+                    </div>`;
+            });
+        }
+
+        // 🌟 ALTERNAR MÊS CORRIGIDO: Força a gravação em tempo real na nuvem do Firebase
+        function alternarMes(idAluno, mes) {
+            let cPura = idAluno.replace(/\D/g, "");
+            let f = bd[cPura]; if(!f) return; 
+            
+            if(!f.pagamentos) f.pagamentos = {}; 
+            f.pagamentos[mes] = !f.pagamentos[mes]; // Muda o status (Verde / Branco)
+
+            bd[cPura] = f; 
+            localStorage.setItem('fichas_v2', JSON.stringify(bd));
+            
+            if(!urlNuvemBase.includes("seu-projeto-default")) {
+                fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) })
+                .then(() => {
+                    sincronizarMatriculasFirebase(); // Força o Firebase a recarregar e pintar a tela na hora
+                }).catch(err => {
+                    alert("Erro ao salvar na nuvem! Verifique a internet.");
+                });
+            } else { 
+                abrirFinanceiro(cPura); 
+            }
+        }
 <body>
     <div class="container">
         <div class="menu-navegacao hidden-print">
@@ -89,7 +97,7 @@
                 <div><label>Valor da Mensalidade Fixa (R$):</label><input type="number" id="valor-mensalidade" value="100.00"></div>
             </div>
 
-<h3>Histórico de Saúde (Anamnese)</h3>
+            <h3>Histórico de Saúde (Anamnese)</h3>
             <div class="pergunta-bloco">
                 <label>1. Possui alguma doença crônica? (Cardíaca, diabetes, pressão alta, etc.)</label>
                 <div class="radio-group">
@@ -159,7 +167,7 @@
             <div class="painel-meses" id="grid-meses-corpo"></div>
         </div>
 
-        <div id="area-recibo-impressao" class="recibo-box hidden"></div>
+        <div id="area-recibo-impressao" class="hidden"></div>
 
         <div class="lista-cadastrados hidden-print">
             <h3>Alunos Cadastrados</h3>
@@ -168,10 +176,10 @@
         </div>
     </div>
 
-<script>
-                 
-// ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
-        const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";        const SENHA_ADMIN = "2004";
+    <script>
+        // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
+        const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+        const SENHA_ADMIN = "admin123";
 
         let bd = {}, foto = "", idxEd = null, alunoFinId = null;
 
@@ -181,7 +189,6 @@
             return idAluno ? base + "/matriculas/" + idAluno + ".json" : base + "/matriculas.json";
         }
 
-        // 🌟 TRAVA MÁXIMA: Bloqueia a tela inteira logo no primeiro segundo se não tiver a senha
         window.onload = function() { 
             document.getElementById('form-cadastro').classList.add('hidden');
             document.querySelector('.lista-cadastrados').classList.add('hidden');
@@ -191,7 +198,7 @@
                 document.querySelector('.lista-cadastrados').classList.remove('hidden');
                 sincronizarMatriculasFirebase();
             } else {
-                alert('Acesso negado! Você será redirecionado para o painel de treinos.');
+                alert('Acesso negado!');
                 window.location.href = "treinos.html";
             }
         };
@@ -209,6 +216,7 @@
                             bd = dados;
                             localStorage.setItem('fichas_v2', JSON.stringify(dados));
                             atLista();
+                            if(alunoFinId) carregarGrelhaMeses(alunoFinId);
                         }
                     }).catch(e => console.log("Modo offline"));
             }
@@ -236,8 +244,6 @@
             i.value = v;
         }
         function altJ(id, e) { let b = document.getElementById(id); b.classList.toggle('hidden', !e); if(!e){b.querySelector('textarea').value='';} }
-
-
         function calcIMC() {
             let p = parseFloat(document.getElementById('peso').value), a = parseFloat(document.getElementById('altura').value), d = document.getElementById('res-imc');
             if(p && a && a > 0) {
@@ -257,6 +263,7 @@
             foto = c.toDataURL('image/jpeg'); i.src = foto; v.style.display = "none"; i.style.display = "block";
             v.srcObject.getTracks().forEach(t => t.stop());
         }
+
         function salvar() {
             let n = document.getElementById('nome').value.trim(), cPura = document.getElementById('cpf').value.replace(/\D/g, "");
             if(!n || !cPura) { alert("Nome e CPF são obrigatórios!"); return; }
@@ -269,18 +276,11 @@
                 sau: { d: (document.querySelector('input[name="doenca"]:checked').value==="sim")?document.getElementById('detalhe-doenca').value:"Não", a: (document.querySelector('input[name="alergia"]:checked').value==="sim")?document.getElementById('detalhe-alergia').value:"Não", r: (document.querySelector('input[name="remedio"]:checked').value==="sim")?document.getElementById('detalhe-remedio').value:"Não", l: (document.querySelector('input[name="lesao"]:checked').value==="sim")?document.getElementById('detalhe-lesao').value:"Não" }
             };
             bd[cPura] = f; localStorage.setItem('fichas_v2', JSON.stringify(bd));
-            if(!urlNuvemBase.includes("seu-projeto-default")) {
+            if(!urlNuvmBase.includes("seu-projeto-default")) {
                 fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) }).then(() => { alert("Sincronizado na nuvem!"); sincronizarMatriculasFirebase(); resetF(); });
             } else { alert("Salvo local!"); atLista(); resetF(); }
         }
-        function resetF() {
-            document.getElementById('form-cadastro').reset(); document.getElementById('foto-preview').style.display = "none"; document.getElementById('video').style.display = "block";
-            document.getElementById('res-imc').innerText = "Digite peso/altura"; foto = ""; idxEd = null;
-            ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao'].forEach(id => document.getElementById(id).classList.add('hidden'));
-        }
-
-
-       function atLista() {
+        function atLista() {
             let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = '';
             if(!bd) return; let chaves = Object.keys(bd).filter(id => bd[id] !== null);
             if(chaves.length === 0) { div.innerHTML = "<p style='color:gray;font-size:13px;'>Nenhum registro.</p>"; return; }
@@ -299,85 +299,44 @@
             });
         }
 
-        // 🌟 FUNÇÃO FINANCEIRA CORRIGIDA: Puxa o ID limpo do aluno para o controle
         function abrirFinanceiro(id) {
-            let cPura = id.replace(/\D/g, ""); // Garante o uso do CPF puro
-            if(!bd[cPura]) { alert('Aluno não localizado!'); return; }
-            
-            alunoFinId = cPura; 
-            let f = bd[cPura];
+            let cPura = id.replace(/\D/g, ""); if(!bd[cPura]) { alert('Não localizado!'); return; }
+            if(prompt('Senha Admin:') !== SENHA_ADMIN) { alert('Incorreta!'); return; }
+            alunoFinId = cPura; carregarGrelhaMeses(cPura);
+        }
+        function carregarGrelhaMeses(cPura) {
+            let f = bd[cPura]; if(!f) return;
             document.getElementById('financeiro-nome-titulo').innerText = `💰 Pagamentos de: ${f.nome}`;
             document.getElementById('painel-financeiro-aluno').classList.remove('hidden');
-            
             let meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            let grid = document.getElementById('grid-meses-corpo'); grid.innerHTML = ''; 
-            let pLocal = f.pagamentos || {};
-            
+            let grid = document.getElementById('grid-meses-corpo'); grid.innerHTML = ''; let pLocal = f.pagamentos || {};
             meses.forEach(mes => {
-                let status = pLocal[mes] ? "pago" : ""; 
-                let txtBotao = pLocal[mes] ? "✅ Pago (Estornar)" : "💵 Receber";
-                grid.innerHTML += `
-                    <div class="mes-card ${status}">
-                        <label><b>${mes}</b></label><br>
-                        <button type="button" onclick="alternarMes('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer;">${txtBotao}</button>
-                        <button type="button" onclick="gerarRecibo('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer; background:#10b981; color:white; border:none; margin-top:4px; padding:2px 4px; border-radius:2px; display:${pLocal[mes]?'inline-block':'none'};">🖨️ Recibo</button>
-                    </div>`;
+                let status = pLocal[mes] ? "pago" : ""; let txtBotao = pLocal[mes] ? "✅ Pago (Estornar)" : "💵 Receber";
+                grid.innerHTML += `<div class="mes-card ${status}"><label><b>${mes}</b></label><br><button type="button" onclick="alternarMes('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer;">${txtBotao}</button><button type="button" onclick="generarRecibo('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer; background:#10b981; color:white; border:none; margin-top:4px; padding:2px 4px; border-radius:2px; display:${pLocal[mes]?'inline-block':'none'};">🖨️ Recibo</button></div>`;
             });
         }
-
-        // 🌟 ALTERNAR MÊS CORRIGIDO: Força a gravação em tempo real na nuvem do Firebase
         function alternarMes(idAluno, mes) {
-            let cPura = idAluno.replace(/\D/g, "");
-            let f = bd[cPura]; if(!f) return; 
-            
-            if(!f.pagamentos) f.pagamentos = {}; 
-            f.pagamentos[mes] = !f.pagamentos[mes]; // Muda o status (Verde / Branco)
-
-            bd[cPura] = f; 
-            localStorage.setItem('fichas_v2', JSON.stringify(bd));
-            
+            let cPura = idAluno.replace(/\D/g, ""); let f = bd[cPura]; if(!f) return;
+            if(!f.pagamentos) f.pagamentos = {}; f.pagamentos[mes] = !f.pagamentos[mes];
+            bd[cPura] = f; localStorage.setItem('fichas_v2', JSON.stringify(bd));
             if(!urlNuvemBase.includes("seu-projeto-default")) {
-                fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) })
-                .then(() => {
-                    sincronizarMatriculasFirebase(); // Força o Firebase a recarregar e pintar a tela na hora
-                }).catch(err => {
-                    alert("Erro ao salvar na nuvem! Verifique a internet.");
-                });
-            } else { 
-                abrirFinanceiro(cPura); 
-            }
+                fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) }).then(() => sincronizarMatriculasFirebase());
+            } else { carregarGrelhaMeses(cPura); }
         }
-
-        function gerarRecibo(idAluno, mes) {
-            let f = bd[idAluno]; if(!f) return; let val = f.mensalidade || "100.00";
+        function generarRecibo(idAluno, mes) {
+            let cPura = idAluno.replace(/\D/g, ""); let f = bd[cPura]; if(!f) return; let val = f.mensalidade || "100.00";
             let dataHoje = new Date().toLocaleDateString('pt-BR'); let codAutenticacao = "AUT-" + Math.floor(100000 + Math.random() * 900000);
-            let htmlRecibo = `
-                <div class="recibo-box">
-                    <div class="recibo-topo"><h3>COMPROVANTE DE PAGAMENTO</h3><p><b>FERAS TAEKWONDO 🥋</b></p></div>
-                    <div class="recibo-linha"><b>Recebemos de:</b> ${f.nome}</div>
-                    <div class="recibo-linha"><b>Inscrição/CPF:</b> ${f.cpf}</div>
-                    <div class="recibo-linha"><b>A importância de:</b> R$ ${parseFloat(val).toFixed(2)}</div>
-                    <div class="recibo-linha"><b>Referente ao mês de:</b> ${mes}</div>
-                    <div class="recibo-linha"><b>Data de Emissão:</b> ${dataHoje}</div>
-                    <div class="selo-autenticidade">|||| | ||||| | || |||| || ||||<br>CHAVE VALIDAÇÃO: ${codAutenticacao}</div>
-                    <div class="assinatura-area"><p style="font-size:11px; margin:0; color:#2563eb; font-weight:bold;">Selo Digital Gerado com Sucesso</p><p><b>Direção Administrativa</b></p></div>
-                    <div class="hidden-print" style="margin-top:20px; display:flex; gap:10px;">
-                        <button type="button" class="btn" style="margin:0;" onclick="window.print()">🖨️ Imprimir Recibo</button>
-                        <button type="button" class="btn btn-sucesso" style="margin:0; background:#facc15; color:#1e293b;" onclick="enviarWhatsRecibo('${f.tel || f.telefone}', '${f.nome}', '${mes}', '${val}', '${codAutenticacao}')">📋 Copiar Texto para WhatsApp</button>
-                    </div>
-                </div>`;
+            let htmlRecibo = `<div class="recibo-box"><div class="recibo-topo"><h3>COMPROVANTE DE PAGAMENTO</h3><p><b>FERAS TAEKWONDO 🥋</b></p></div><div class="recibo-linha"><b>Recebemos de:</b> ${f.nome}</div><div class="recibo-linha"><b>Inscrição/CPF:</b> ${f.cpf}</div><div class="recibo-linha"><b>A importância de:</b> R$ ${parseFloat(val).toFixed(2)}</div><div class="recibo-linha"><b>Referente ao mês de:</b> ${mes}</div><div class="recibo-linha"><b>Data de Emissão:</b> ${dataHoje}</div><div class="selo-autenticidade">|||| | ||||| | || |||| || ||||<br>CHAVE VALIDAÇÃO: ${codAutenticacao}</div><div class="assinatura-area"><p style="font-size:11px; margin:0; color:#2563eb; font-weight:bold;">Selo Digital Gerado com Sucesso</p><p><b>Direção Administrativa</b></p></div><div class="hidden-print" style="margin-top:20px; display:flex; gap:10px;"><button type="button" class="btn" style="margin:0;" onclick="window.print()">🖨️ Imprimir Recibo</button><button type="button" class="btn btn-sucesso" style="margin:0; background:#facc15; color:#1e293b;" onclick="enviarWhatsRecibo('${f.tel || f.telefone}', '${f.nome}', '${mes}', '${val}', '${codAutenticacao}')">📋 Copiar Texto para WhatsApp</button></div></div>`;
             let area = document.getElementById('area-recibo-impressao'); area.innerHTML = htmlRecibo; area.classList.remove('hidden');
-            alert("Recibo montado no final da página!"); area.scrollIntoView({ behavior: 'smooth' });
+            alert("Recibo montado!"); area.scrollIntoView({ behavior: 'smooth' });
         }
         function enviarWhatsRecibo(tel, nome, mes, valor, cod) {
-            let textoRecibo = `*COMPROVANTE DE PAGAMENTO - FERAS TAEKWONDO 🥋*\n\n*Recebemos de:* ${nome}\n*Referente ao mês de:* ${mes}\n*Valor:* R$ ${parseFloat(valor).toFixed(2)}\n*Data:* ${new Date().toLocaleDateString('pt-BR')}\n\n*Selo de Validação Digital:* ${cod}\n\nFicha updated no sistema! Bons treinos! 💪`;
-            navigator.clipboard.writeText(textoRecibo).then(() => {
-                alert("Texto do recibo copiado para a memória do seu computador!\n\nAgora basta abrir o WhatsApp do aluno e apertar Ctrl + V para enviar.");
-            }).catch(err => { alert("Erro ao copiar. Selecione o texto e dê Ctrl + C."); });
+            let textoRecibo = `*COMPROVANTE DE PAGAMENTO - FERAS TAEKWONDO 🥋*\n\n*Recebemos de:* ${nome}\n*Referente ao mês de:* ${mes}\n*Valor:* R$ ${parseFloat(valor).toFixed(2)}\n*Data:* ${new Date().toLocaleDateString('pt-BR')}\n\n*Selo de Validação Digital:* ${cod}\n\nFicha atualizada no sistema! Bons treinos! 💪`;
+            navigator.clipboard.writeText(textoRecibo).then(() => { alert("Texto copiado! Dê Ctrl + V no WhatsApp."); }).catch(err => { alert("Erro ao copiar."); });
         }
         function fecharFinanceiro() { document.getElementById('painel-financeiro-aluno').classList.add('hidden'); alunoFinId = null; }
         function carregar(id) {
-            let f = bd[id]; document.getElementById('nome').value = f.nome; document.getElementById('cpf').value = f.cpf;
+            let cPura = id.replace(/\D/g, ""); let f = bd[cPura]; document.getElementById('nome').value = f.nome; document.getElementById('cpf').value = f.cpf;
             document.getElementById('rg').value = f.rg; document.getElementById('telefone').value = f.tel || f.telefone; document.getElementById('nascimento').value = f.nasc;
             document.getElementById('endereco').value = f.end || f.endereco; document.getElementById('peso').value = f.peso || ''; document.getElementById('altura').value = f.alt || f.altura; document.getElementById('valor-mensalidade').value = f.mensalidade || "100.00";
             calcIMC(); let m = f.med || {};
@@ -387,13 +346,14 @@
             let map = [{ c: 'doenca', v: f.sau.d, b: 'b-doenca', t: 'detalhe-doenca' },{ c: 'alergia', v: f.sau.a, b: 'b-alergia', t: 'detalhe-alergia' },{ c: 'remedio', v: f.sau.r, b: 'b-remedio', t: 'detalhe-remedio' },{ c: 'lesao', v: f.sau.l, b: 'b-lesao', t: 'detalhe-lesao' }];
             map.forEach(item => { let s = (item.v !== "Não" && item.v !== ""); document.querySelector(`input[name="${item.c}"][value="${s ? 'sim' : 'nao'}"]`).checked = true; document.getElementById(item.b).classList.toggle('hidden', !s); document.getElementById(item.t).value = s ? item.v : ''; });
             if(f.foto) { foto = f.foto; let img = document.getElementById('foto-preview'); img.src = f.foto; document.getElementById('video').style.display = "none"; img.style.display = "block"; }
-            alert("Ficha carregada para edição!");
+            alert("Carregado para edição!");
         }
         function excluir(id) { 
+            let cPura = id.replace(/\D/g, "");
             if(confirm("Apagar permanentemente da nuvem?")) { 
-                delete bd[id]; localStorage.setItem('fichas_v2', JSON.stringify(bd)); 
+                delete bd[cPura]; localStorage.setItem('fichas_v2', JSON.stringify(bd)); 
                 if(!urlNuvemBase.includes("seu-projeto-default")) {
-                    fetch(obterUrlMatricula(id), { method: 'DELETE' }).then(() => { alert("Removido da nuvem!"); sincronizarMatriculasFirebase(); resetF(); });
+                    fetch(obterUrlMatricula(cPura), { method: 'DELETE' }).then(() => { alert("Removido!"); sincronizarMatriculasFirebase(); resetF(); });
                 } else { atLista(); resetF(); }
             } 
         }
