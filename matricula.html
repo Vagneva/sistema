@@ -167,8 +167,9 @@
     </div>
 
     <script>
-        <script>
-        // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
+     
+
+      // ⚠️ COLE O SEU LINK REAL DO FIREBASE AQUI DENTRO DAS ASPAS
         const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";       const SENHA_ADMIN = "admin123";
 
         let bd = {}, foto = "", idxEd = null, alunoFinId = null;
@@ -179,7 +180,7 @@
             return idAluno ? base + "/matriculas/" + idAluno + ".json" : base + "/matriculas.json";
         }
 
-        // TRAVA DE ENTRADA: Bloqueia a tela no primeiro segundo e só abre com a senha
+        // 🌟 TRAVA CORRIGIDA: Tranca a tela no primeiro segundo e força a busca na nuvem
         window.onload = function() { 
             document.getElementById('form-cadastro').classList.add('hidden');
             document.querySelector('.lista-cadastrados').classList.add('hidden');
@@ -209,9 +210,10 @@
                             atLista();
                             if(alunoFinId) carregarGrelhaMeses(alunoFinId);
                         }
-                    }).catch(e => console.log("Modo offline"));
+                    }).catch(e => console.log("Modo offline ativo"));
             }
         }
+
 
         function mRG(i) {
             let v = i.value.replace(/\D/g, "");
@@ -235,7 +237,6 @@
             i.value = v;
         }
         function altJ(id, e) { let b = document.getElementById(id); b.classList.toggle('hidden', !e); if(!e){b.querySelector('textarea').value='';} }
-
         function calcIMC() {
             let p = parseFloat(document.getElementById('peso').value), a = parseFloat(document.getElementById('altura').value), d = document.getElementById('res-imc');
             if(p && a && a > 0) {
@@ -255,7 +256,6 @@
             foto = c.toDataURL('image/jpeg'); i.src = foto; v.style.display = "none"; i.style.display = "block";
             v.srcObject.getTracks().forEach(t => t.stop());
         }
-
         function salvar() {
             let n = document.getElementById('nome').value.trim(), cPura = document.getElementById('cpf').value.replace(/\D/g, "");
             if(!n || !cPura) { alert("Nome e CPF são obrigatórios!"); return; }
@@ -272,12 +272,12 @@
                 fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) }).then(() => { alert("Sincronizado na nuvem!"); sincronizarMatriculasFirebase(); resetF(); });
             } else { alert("Salvo local!"); atLista(); resetF(); }
         }
-
         function resetF() {
             document.getElementById('form-cadastro').reset(); document.getElementById('foto-preview').style.display = "none"; document.getElementById('video').style.display = "block";
             document.getElementById('res-imc').innerText = "Digite peso/altura"; foto = ""; idxEd = null;
             ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao'].forEach(id => document.getElementById(id).classList.add('hidden'));
         }
+
 
         function atLista() {
             let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = '';
@@ -297,13 +297,11 @@
                 }
             });
         }
-
         function abrirFinanceiro(id) {
             let cPura = id.replace(/\D/g, ""); if(!bd[cPura]) { alert('Não localizado!'); return; }
             if(prompt('Senha Admin:') !== SENHA_ADMIN) { alert('Incorreta!'); return; }
             alunoFinId = cPura; carregarGrelhaMeses(cPura);
         }
-
         function carregarGrelhaMeses(cPura) {
             let f = bd[cPura]; if(!f) return;
             document.getElementById('financeiro-nome-titulo').innerText = `💰 Pagamentos de: ${f.nome}`;
@@ -315,7 +313,6 @@
                 grid.innerHTML += `<div class="mes-card ${status}"><label><b>${mes}</b></label><br><button type="button" onclick="alternarMes('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer;">${txtBotao}</button><button type="button" onclick="gerarRecibo('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer; background:#10b981; color:white; border:none; margin-top:4px; padding:2px 4px; border-radius:2px; display:${pLocal[mes]?'inline-block':'none'};">🖨️ Recibo</button></div>`;
             });
         }
-
         function alternarMes(idAluno, mes) {
             let cPura = idAluno.replace(/\D/g, ""); let f = bd[cPura]; if(!f) return;
             if(!f.pagamentos) f.pagamentos = {}; f.pagamentos[mes] = !f.pagamentos[mes];
@@ -324,7 +321,6 @@
                 fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) }).then(() => sincronizarMatriculasFirebase());
             } else { carregarGrelhaMeses(cPura); }
         }
-
         function gerarRecibo(idAluno, mes) {
             let cPura = idAluno.replace(/\D/g, ""); let f = bd[cPura]; if(!f) return; let val = f.mensalidade || "100.00";
             let dataHoje = new Date().toLocaleDateString('pt-BR'); let codAutenticacao = "AUT-" + Math.floor(100000 + Math.random() * 900000);
@@ -332,14 +328,11 @@
             let area = document.getElementById('area-recibo-impressao'); area.innerHTML = htmlRecibo; area.classList.remove('hidden');
             alert("Recibo montado!"); area.scrollIntoView({ behavior: 'smooth' });
         }
-
         function enviarWhatsRecibo(tel, nome, mes, valor, cod) {
             let textoRecibo = `*COMPROVANTE DE PAGAMENTO - FERAS TAEKWONDO 🥋*\n\n*Recebemos de:* ${nome}\n*Referente ao mês de:* ${mes}\n*Valor:* R$ ${parseFloat(valor).toFixed(2)}\n*Data:* ${new Date().toLocaleDateString('pt-BR')}\n\n*Selo de Validação Digital:* ${cod}\n\nFicha atualizada no sistema! Bons treinos! 💪`;
             navigator.clipboard.writeText(textoRecibo).then(() => { alert("Texto copiado! Dê Ctrl + V no WhatsApp."); }).catch(err => { alert("Erro ao copiar."); });
         }
-
         function fecharFinanceiro() { document.getElementById('painel-financeiro-aluno').classList.add('hidden'); alunoFinId = null; }
-        
         function carregar(id) {
             let cPura = id.replace(/\D/g, ""); let f = bd[cPura]; document.getElementById('nome').value = f.nome; document.getElementById('cpf').value = f.cpf;
             document.getElementById('rg').value = f.rg; document.getElementById('telefone').value = f.tel || f.telefone; document.getElementById('nascimento').value = f.nasc;
@@ -353,7 +346,6 @@
             if(f.foto) { foto = f.foto; let img = document.getElementById('foto-preview'); img.src = f.foto; document.getElementById('video').style.display = "none"; img.style.display = "block"; }
             alert("Carregado para edição!");
         }
-
         function excluir(id) { 
             let cPura = id.replace(/\D/g, "");
             if(confirm("Apagar permanentemente da nuvem?")) { 
