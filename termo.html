@@ -2,127 +2,109 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Termo de Responsabilidade e Autorização</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termo de Consentimento - FERAS TAEKWONDO</title>
     <style>
         body { background: #f1f5f9; color: #1e293b; font-family: system-ui, sans-serif; padding: 20px; }
-        .container { max-width: 750px; margin: 0 auto; background: #fff; padding: 35px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .container { max-width: 750px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .menu-navegacao { display: flex; gap: 10px; background: #1e3a8a; padding: 10px; border-radius: 6px; margin-bottom: 20px; }
         .menu-navegacao a { color: #fff; text-decoration: none; font-weight: bold; font-size: 14px; padding: 6px 12px; border-radius: 4px; background: rgba(255,255,255,0.1); }
         .menu-navegacao a:hover { background: rgba(255,255,255,0.25); }
         .menu-navegacao a.ativo { background: #2563eb; }
-        h2, h3 { color: #1e3a8a; margin-top: 0; }
-        h3 { border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px; }
+        .menu-navegacao a.aba-amarela { background: #facc15; color: #1e293b; }
+        .menu-navegacao a.aba-amarela:hover { background: #fde047; }
+        .topo-termo { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+        .topo-termo h2 { color: #ef4444; margin: 0; font-size: 24px; }
+        .topo-termo p { color: #64748b; margin: 5px 0 0 0; font-size: 14px; font-weight: bold; }
+        h3 { color: #1e3a8a; margin-top: 25px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; font-size: 16px; }
+        .seletor-idade-botoes { display: flex; gap: 10px; margin-bottom: 25px; }
+        .btn-opcao { flex: 1; padding: 12px; background: #e2e8f0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; color: #475569; }
+        .btn-opcao.ativa { background: #2563eb; color: white; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: span 2; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
         input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
-        .tabs-idade { display: flex; gap: 5px; margin-bottom: 20px; }
-        .tab-id { flex: 1; padding: 10px; background: #cbd5e1; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
-        .tab-id.ativa { background: #1e3a8a; color: white; }
-        .texto-legal { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; margin-top: 5px; font-size: 14px; line-height: 1.5; color: #334155; }
-        .btn { background: #10b981; color: white; border: none; padding: 14px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 25px; }
+        .texto-legal { text-align: justify; font-size: 14px; line-height: 1.6; color: #334155; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 15px; }
+        .assinatura-bloco { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; text-align: center; }
+        .linha-assinatura { border-top: 1px solid #000; padding-top: 8px; margin-top: 40px; font-weight: bold; font-size: 14px; }
+        .btn-imprimir { background: #10b981; color: #fff; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 25px; }
         .hidden { display: none !important; }
-        .secao-assinatura { display: none; margin-top: 60px; grid-template-columns: 1fr 1fr; gap: 40px; text-align: center; }
-        .linha-assinatura { border-top: 1px solid #000; padding-top: 8px; font-size: 14px; margin-top: 40px; }
         @media print {
-            body { background: white; padding: 0; color: black; }
+            body { background: white; padding: 0; }
             .container { box-shadow: none; padding: 0; max-width: 100%; }
-            .menu-navegacao, .btn, .tabs-idade { display: none !important; }
-            .secao-assinatura { display: grid !important; }
-            input { border: none; border-bottom: 1px dashed #000; background: transparent; padding: 2px; border-radius: 0; }
-            .texto-legal { background: transparent; border: none; padding: 0; }
+            .menu-navegacao, .seletor-idade-botoes, .btn-imprimir, .hidden-print { display: none !important; }
+            .texto-legal { background: white; border: none; padding: 0; }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <div class="menu-navegacao">
+        <div class="menu-navegacao hidden-print">
             <a href="matricula.html">📋 Matrícula e Avaliação</a>
-            <a href="treinos.html">🏋️‍♂️ Painel de Treinos</a>
+            <a href="treinos.html" class="aba-amarela">🏋️‍♂️ Painel de Treinos dos Alunos</a>
             <a href="#" class="ativo">📄 Termos e Autorizações</a>
         </div>
 
-        <h2>📄 Termo de Responsabilidade & Autorização</h2>
+        <!-- 🌟 NOVO CABEÇALHO OFICIAL COM A SUA MARCA -->
+        <div class="topo-termo">
+            <h2>FERAS TAEKWONDO  Paterson🥋</h2>
+            <p>TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO DE USO DE IMAGEM</p>
+        </div>
 
-        <!-- 🌟 NOVA SELEÇÃO: Abas para escolher Menor ou Maior de idade -->
-        <div class="tabs-idade">
-            <button type="button" id="btn-menor" class="tab-id ativa" onclick="mudarTipoIdade('menor')">👦 ALUNO MENOR DE IDADE</button>
-            <button type="button" id="btn-maior" class="tab-id" onclick="mudarTipoIdade('maior')">👨 ALUNO MAIOR DE IDADE</button>
+        <div class="seletor-idade-botoes hidden-print">
+            <button type="button" id="btn-menor" class="btn-opcao ativa" onclick="mudarTipoIdade('menor')">Aluno Menor de Idade (-18)</button>
+            <button type="button" id="btn-maior" class="btn-opcao" onclick="mudarTipoIdade('maior')">Aluno Maior de Idade (+18)</button>
         </div>
 
         <form id="form-termo">
-
-            <!-- DADOS DO RESPONSÁVEL (SOME SE FOR MAIOR DE IDADE) -->
             <div id="secao-dados-responsavel">
-                <h3>1. Dados do Responsável Legal (Pai, Mãe ou Tutor)</h3>
+                <h3>1. Dados do Responsável Legal</h3>
                 <div class="grid">
-                    <div class="full-width"><label>Nome do Responsável:</label><input type="text" placeholder="Nome completo de quem vai assinar"></div>
+                    <div class="full-width"><label>Nome do Responsável:</label><input type="text" placeholder="Nome completo"></div>
                     <div><label>CPF do Responsável:</label><input type="text" placeholder="000.000.000-00"></div>
-                    <div><label>RG do Responsável:</label><input type="text" placeholder="00.000.000-0"></div>
+                    <div><label>Grau de Parentesco:</label><input type="text" placeholder="Ex: Pai, Mãe, Tutor"></div>
                 </div>
             </div>
 
-            <!-- DADOS DO ALUNO -->
             <h3 id="titulo-dados-aluno">2. Dados do Aluno / Atleta (Menor de Idade)</h3>
             <div class="grid">
-                <div class="full-width"><label>Nome do Aluno:</label><input type="text" placeholder="Nome completo do aluno"></div>
-                <div><label>Data de Nascimento:</label><input type="date"></div>
-                <div><label>RG, CPF ou Certidão:</label><input type="text" placeholder="Documento do aluno"></div>
-                <div class="full-width"><label>Nome da Competição / Evento (Se houver):</label><input type="text" placeholder="Ex: Campeonato Interno / Treinos Diários"></div>
+                <div class="full-width"><label>Nome Completo do Aluno:</label><input type="text" placeholder="Nome completo do aluno"></div>
+                <div><label>CPF do Aluno:</label><input type="text" placeholder="000.000.000-00"></div>
+                <div><label>RG do Aluno:</label><input type="text" placeholder="00.000.000-0"></div>
             </div>
 
-            <!-- TERMO DE RISCO -->
-            <h3>3. Termo de Responsabilidade & Riscos da Atividade</h3>
-            <div class="texto-legal">
-                <!-- 🌟 TEXTO MUDADO POR JAVASCRIPT: Identifica se é o pai ou o próprio aluno adulto assumindo -->
-                <p id="texto-declaracao-risco">Eu, acima identificado como responsável legal do menor, declaro estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, esforço físico intenso e riscos inerentes à modalidade, tais como:</p>
-                <div contenteditable="true" style="border: 1px dashed #cbd5e1; padding: 10px; background: #fff; border-radius: 4px; min-height: 60px;">
-                    - Riscos de lesões musculares, articulares, luxações ou fraturas decorrentes de quedas e impactos comuns do treino.<br>
-                    - Riscos de escoriações, hematomas e fadiga física extrema devido à intensidade dos movimentos competitivos.<br>
-                    - Eventuais acidentes imprevisíveis durante o deslocamento ou execução de técnicas específicas do esporte.
-                </div>
-                <p style="margin-top: 10px; margin-bottom: 0;" id="texto-final-risco">Declaro que o menor encontra-se em perfeitas condições de saúde física e mental para participar das atividades, isentando a organização de qualquer responsabilidade por incidentes.</p>
+            <h3>3. Declaração de Ciência de Riscos e Condições de Saúde</h3>
+            <div class="texto-legal" id="texto-final-risco">
+                <p id="texto-declaracao-risco">Eu, acima identificado como responsável legal do menor, declaro estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, esforço físico intenso e riscos inerentes à modalidade, tais como quedas, contusões e lesões musculares.</p>
+                <p>Declaro que o menor encontra-se em perfeitas condições de saúde física e mental para participar das atividades e competições, isentando a organização de qualquer responsabilidade por incidentes resultantes da própria prática esportiva.</p>
             </div>
 
-            <!-- AUTORIZAÇÃO DE IMAGEM -->
             <h3>4. Autorização de Uso de Imagem e Voz</h3>
             <div class="texto-legal">
-                <div contenteditable="true" id="texto-declaracao-imagem" style="border: 1px dashed #cbd5e1; padding: 10px; background: #fff; border-radius: 4px; min-height: 60px;">
-                    Autorizo, de forma gratuita e definitiva, o uso do nome, imagem e voz do menor acima identificado em fotos, vídeos, redes sociais oficiais da academia e materiais informativos. Esta autorização é concedida com exclusividade para fins de divulgação dos treinos, eventos e conquistas em competições, sem gerar qualquer direito a indenizações ou pagamentos futuros.
-                </div>
+                <p id="texto-declaracao-imagem">Autorizo, de forma gratuita e definitiva, o uso do nome, imagem e voz do menor acima identificado em fotos, vídeos, redes sociais oficiais da academia e materiais informativos. Esta autorização é concedida com exclusividade para fins de divulgação dos treinos, eventos e conquistas em competições, sem gerar qualquer direito a indenizações ou pagamentos futuros.</p>
             </div>
 
-            <button type="button" class="btn" onclick="window.print()">🖨️ Gerar Documento / Imprimir PDF</button>
+            <div class="assinatura-bloco">
+                <div><p>Local e Data:</p><br><br><p>_____________________, ____/____/20___</p></div>
+                <div><p class="linha-signature" id="linha-nome-assinante">Assinatura do Responsável Legal</p></div>
+            </div>
+
+            <button type="button" class="btn-imprimir hidden-print" onclick="window.print()">🖨️ Imprimir Termo para Assinar</button>
         </form>
-
-        <!-- SEÇÃO DE ASSINATURAS MOLDADA PELO TIPO DE IDADE -->
-        <div class="secao-assinatura">
-            <div class="linha-assinatura">
-                <p><b id="linha-nome-assinante">Assinatura do Responsável Legal</b></p>
-                <p>Documento do Assinante: ____________________</p>
-            </div>
-            <div class="linha-assinatura">
-                <p><b>Assinatura do Diretor / Organização</b></p>
-                <p>Academia Oficial</p>
-            </div>
-            <div class="full-width" style="margin-top: 20px; font-size: 14px;">
-                Data: ____ / ____ / 2026
-            </div>
-        </div>
     </div>
 
-    <script>
+<script>
+        const SENHA_ADMIN = "tkd";
 
-        const SENHA_ADMIN = "2004";
-
-        // 🌟 TRAVA MÁXIMA PARA OS TERMOS: Bloqueia a tela se não for o professor
+        // 🌟 ESCUDO DE SENHA: Só libera o termo para quem for o administrador
         window.onload = function() {
             document.getElementById('form-termo').classList.add('hidden');
             
             if(prompt('Área Restrita da Administração. Digite a Senha:') === SENHA_ADMIN) {
                 document.getElementById('form-termo').classList.remove('hidden');
             } else {
-                alert('Acesso negado! Você será redirecionado para o painel de treinos.');
+                alert('Acesso negado!');
                 window.location.href = "treinos.html";
             }
         };
@@ -134,22 +116,19 @@
             let responsavel = document.getElementById('secao-dados-responsavel');
             let titAluno = document.getElementById('titulo-dados-aluno');
             let txtRisco = document.getElementById('texto-declaracao-risco');
-            let txtFinalRisco = document.getElementById('texto-final-risco');
             let txtImagem = document.getElementById('texto-declaracao-imagem');
             let linhaAssinatura = document.getElementById('linha-nome-assinante');
 
             if (tipo === 'maior') {
                 responsavel.classList.add('hidden');
                 titAluno.innerText = "2. Dados do Aluno / Atleta (Maior de Idade)";
-                txtRisco.innerText = "Eu, abaixo identificado, declaro em pleno gozo de minhas faculdades civis estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, esforço físico intenso e riscos inerentes à modalidade, tais como:";
-                txtFinalRisco.innerText = "Declaro que me encontro em perfeitas condições de saúde física e mental para participar das atividades e competições, isentando a organização de qualquer responsabilidade por incidentes resultantes da própria prática esportiva.";
+                txtRisco.innerText = "Eu, abaixo identificado, declaro em pleno gozo de minhas faculdades civis estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, esforço físico intenso e riscos inerentes à modalidade, tais como quedas, contusões e lesões musculares. Declaro que me encontro em perfeitas condições de saúde física e mental para participar das atividades, isentando a organização de qualquer responsabilidade.";
                 txtImagem.innerText = "Autorizo, de forma gratuita e definitiva, o uso do meu próprio nome, imagem e voz em fotos, vídeos, redes sociais oficiais da academia e materiais informativos. Esta autorização é concedida com exclusividade para fins de divulgação dos treinos, eventos e conquistas em competições, sem gerar qualquer direito a indenizações ou pagamentos futuros.";
                 linhaAssinatura.innerText = "Assinatura do Aluno (Maior de Idade)";
             } else {
                 responsavel.classList.remove('hidden');
                 titAluno.innerText = "2. Dados do Aluno / Atleta (Menor de Idade)";
-                txtRisco.innerText = "Eu, acima identificado como responsável legal do menor, declaro estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, esforço físico intenso e riscos inerentes à modalidade, tais como:";
-                txtFinalRisco.innerText = "Declaro que o menor encontra-se em perfeitas condições de saúde física e mental para participar das atividades e competições, isentando a organização de qualquer responsabilidade por incidentes resultantes da própria prática esportiva.";
+                txtRisco.innerText = "Eu, acima identificado como responsável legal do menor, declaro estar ciente de que a prática de esportes e treinamentos físicos envolvem contato, esforço físico intenso e riscos inerentes à modalidade, tais como quedas, contusões e lesões musculares. Declaro que o menor encontra-se em perfeitas condições de saúde física e mental para participar das atividades, isentando a organização de qualquer responsabilidade.";
                 txtImagem.innerText = "Autorizo, de forma gratuita e definitiva, o uso do nome, imagem e voz do menor acima identificado em fotos, vídeos, redes sociais oficiais da academia e materiais informativos. Esta autorização é concedida com exclusividade para fins de divulgação dos treinos, eventos e conquistas em competições, sem gerar qualquer direito a indenizações ou pagamentos futuros.";
                 linhaAssinatura.innerText = "Assinatura do Responsável Legal";
             }
