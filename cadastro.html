@@ -101,6 +101,8 @@
                 <div id="b-lesao" class="hidden"><textarea id="detalhe-lesao" placeholder="Por favor, especifique a lesão..."></textarea></div>
             </div>
 
+<div class="pergunta-bloco"><label>Observações Gerais:</label><textarea id="detalhe-obs" placeholder="Alguma informação extra..."></textarea></div>
+
             <button type="button" class="btn-enviar" onclick="enviarPreCadastro()">Enviar Inscrição com Segurança</button>
         </form>
     </div>
@@ -126,7 +128,13 @@
                 id: cPura, nome: n, cpf: document.getElementById('cpf').value, rg: document.getElementById('rg').value, tel: document.getElementById('telefone').value, donoTel1: document.getElementById('dono-tel1').value, tel2: document.getElementById('telefone2').value, donoTel2: document.getElementById('dono-tel2').value, nasc: document.getElementById('nascimento').value, end: document.getElementById('endereco').value,
                 modalidades: { musculacao: document.getElementById('mod-musculacao').checked, taekwondo: document.getElementById('mod-taekwondo').checked },
                 filiacao: { mae: document.getElementById('nome-mae').value.trim(), pai: document.getElementById('nome-pai').value.trim() },
-                sau: { d: (document.querySelector('input[name="doenca"]:checked').value==="sim")?document.getElementById('detalhe-doenca').value:"Não", a: (document.querySelector('input[name="alergia"]:checked').value==="sim")?document.getElementById('detalhe-alergia').value:"Não", r: (document.querySelector('input[name="remedio"]:checked').value==="sim")?document.getElementById('detalhe-remedio').value:"Não", l: (document.querySelector('input[name="lesao"]:checked').value==="sim")?document.getElementById('detalhe-lesao').value:"Não" }
+                sau: { 
+                    d: (document.querySelector('input[name="doenca"]:checked').value==="sim")?document.getElementById('detalhe-doenca').value:"Não", 
+                    a: (document.querySelector('input[name="alergia"]:checked').value==="sim")?document.getElementById('detalhe-alergia').value:"Não", 
+                    r: (document.querySelector('input[name="remedio"]:checked').value==="sim")?document.getElementById('detalhe-remedio').value:"Não", 
+                    l: (document.querySelector('input[name="lesao"]:checked').value==="sim")?document.getElementById('detalhe-lesao').value:"Não",
+                    obs: document.getElementById('detalhe-obs') ? document.getElementById('detalhe-obs').value.trim() : ""
+                }
             };
 
             let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
@@ -135,16 +143,13 @@
             if(!urlNuvemBase.includes("seu-projeto-default")) {
                 fetch(urlDestino, { method: 'PUT', body: JSON.stringify(f) })
                 .then(() => {
-                    alert("Parabéns! Sua inscrição foi enviada com total segurança para o FERAS TAEKWONDO. Informe o professor na recepção para validar a matrícula!");
+                    alert("Inscrição enviada com total segurança para o FERAS TAEKWONDO! Informe o professor na recepção para validar a matrícula.");
                     document.getElementById('form-aluno-cadastro').reset();
                     document.getElementById('idade-calculada').value = '';
                     ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao', 'secao-pais-menor'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                }).catch(err => { alert("Erro ao enviar dados. Verifique a conexão com a internet."); });
-            } else {
-                alert("Simulação local concluída! Insira o link real do seu Firebase.");
+                }).catch(err => { alert("Erro ao enviar dados."); });
             }
         }
-
         function mRG(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 2) v = v.substring(0,2) + '.' + v.substring(2); if (v.length > 6) v = v.substring(0,6) + '.' + v.substring(6); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,11); i.value = v; }
         function mascaraCPF(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 3) v = v.substring(0,3) + '.' + v.substring(3); if (v.length > 7) v = v.substring(0,7) + '.' + v.substring(7); if (v.length > 11) v = v.substring(0,11) + '-' + v.substring(11,14); i.value = v; }
         function mascaraTel(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 0) v = '(' + v; if (v.length > 3) v = v.substring(0,3) + ') ' + v.substring(3); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,14); i.value = v; }

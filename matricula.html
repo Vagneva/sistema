@@ -198,31 +198,10 @@
     </div>
 
 <script>
-        // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
+        
+
+// ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
         const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
-        const SENHA_ADMIN = "admin123";
-
-        let bd = {}, foto = "", idxEd = null, alunoFinId = null, preBD = {};
-
-        function obterUrlMatricula(idAluno) {
-            let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
-            return idAluno ? base + "/matriculas/" + idAluno + ".json" : base + "/matriculas.json";
-        }
-        function obterUrlPreMatricula(idAluno) {
-            let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
-            return idAluno ? base + "/pre_matriculas/" + idAluno + ".json" : base + "/pre_matriculas.json";
-        }
-
-        window.onload = function() { 
-            document.getElementById('form-cadastro').classList.add('hidden');
-            document.querySelector('.lista-cadastrados').classList.add('hidden');
-            if(prompt('Área Restrita da Administração. Digite a Senha:') === SENHA_ADMIN) {
-                document.getElementById('form-cadastro').classList.remove('hidden');
-                document.querySelector('.lista-cadastrados').classList.remove('hidden');
-                sincronizarMatriculasFirebase();
-                sincronizarPreMatriculas();
-            } else { alert('Acesso negado!'); window.location.href = "treinos.html"; }
-        };
 
         function verificarIdadeAutomatico() {
             let dataNasc = document.getElementById('nascimento').value; if(!dataNasc) return;
@@ -233,11 +212,50 @@
             if(idade < 18) { document.getElementById('secao-pais-menor').classList.remove('hidden'); } else { document.getElementById('secao-pais-menor').classList.add('hidden'); document.getElementById('nome-mae').value = ''; document.getElementById('nome-pai').value = ''; }
         }
 
+        function enviarPreCadastro() {
+            let n = document.getElementById('nome').value.trim(), cPura = document.getElementById('cpf').value.replace(/\D/g, "");
+            if(!n || !cPura) { alert("Nome e CPF são obrigatórios!"); return; }
+            
+            let f = {
+                id: cPura, nome: n, cpf: document.getElementById('cpf').value, rg: document.getElementById('rg').value, tel: document.getElementById('telefone').value, donoTel1: document.getElementById('dono-tel1').value, tel2: document.getElementById('telefone2').value, donoTel2: document.getElementById('dono-tel2').value, nasc: document.getElementById('nascimento').value, end: document.getElementById('endereco').value,
+                modalidades: { musculacao: document.getElementById('mod-musculacao').checked, taekwondo: document.getElementById('mod-taekwondo').checked },
+                filiacao: { mae: document.getElementById('nome-mae').value.trim(), pai: document.getElementById('nome-pai').value.trim() },
+                sau: { 
+                    d: (document.querySelector('input[name="doenca"]:checked').value==="sim")?document.getElementById('detalhe-doenca').value:"Não", 
+                    a: (document.querySelector('input[name="alergia"]:checked').value==="sim")?document.getElementById('detalhe-alergia').value:"Não", 
+                    r: (document.querySelector('input[name="remedio"]:checked').value==="sim")?document.getElementById('detalhe-remedio').value:"Não", 
+                    l: (document.querySelector('input[name="lesao"]:checked').value==="sim")?document.getElementById('detalhe-lesao').value:"Não",
+                    obs: document.getElementById('detalhe-obs') ? document.getElementById('detalhe-obs').value.trim() : ""
+                }
+            };
+
+            let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
+            let urlDestino = base + "/pre_matriculas/" + cPura + ".json";
+
+            if(!urlNuvemBase.includes("seu-projeto-default")) {
+                fetch(urlDestino, { method: 'PUT', body: JSON.stringify(f) })
+                .then(() => {
+                    alert("Inscrição enviada com total segurança para o FERAS TAEKWONDO! Informe o professor na recepção para validar a matrícula.");
+                    document.getElementById('form-aluno-cadastro').reset();
+                    document.getElementById('idade-calculada').value = '';
+                    ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao', 'secao-pais-menor'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                }).catch(err => { alert("Erro ao enviar dados."); });
+            }
+        }
+        function mRG(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 2) v = v.substring(0,2) + '.' + v.substring(2); if (v.length > 6) v = v.substring(0,6) + '.' + v.substring(6); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,11); i.value = v; }
+        function mascaraCPF(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 3) v = v.substring(0,3) + '.' + v.substring(3); if (v.length > 7) v = v.substring(0,7) + '.' + v.substring(7); if (v.length > 11) v = v.substring(0,11) + '-' + v.substring(11,14); i.value = v; }
+        function mascaraTel(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 0) v = '(' + v; if (v.length > 3) v = v.substring(0,3) + ') ' + v.substring(3); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,14); i.value = v; }
+        function altJ(id, e) { let b = document.getElementById(id); b.classList.toggle('hidden', !e); if(!e){b.querySelector('textarea').value='';} }
+    </script>
+</body>
+</html>
+
+
 function sincronizarPreMatriculas() {
             if(urlNuvemBase.includes("seu-projeto-default")) return;
             fetch(obterUrlPreMatricula()).then(res => res.json()).then(dados => {
-                if(dados) { preBD = dados; renderizarPrePainel(); }
-            });
+                preBD = dados || {}; renderizarPrePainel();
+            }).catch(() => { preBD = {}; renderizarPrePainel(); });
         }
 
         function renderizarPrePainel() {
@@ -256,7 +274,6 @@ function sincronizarPreMatriculas() {
             });
         }
 
-        // 🌟 PUXAR INSCRIÇÃO: Lê a nuvem e preenche todo o formulário sozinho
         function puxarPreCadastro(id) {
             let p = preBD[id]; if(!p) return;
             document.getElementById('nome').value = p.nome || ''; document.getElementById('cpf').value = p.cpf || '';
@@ -269,7 +286,8 @@ function sincronizarPreMatriculas() {
             let s = p.sau || {};
             let map = [{ c: 'doenca', v: s.d, b: 'b-doenca', t: 'detalhe-doenca' },{ c: 'alergia', v: s.a, b: 'b-alergia', t: 'detalhe-alergia' },{ c: 'remedio', v: s.r, b: 'b-remedio', t: 'detalhe-remedio' },{ c: 'lesao', v: s.l, b: 'b-lesao', t: 'detalhe-lesao' }];
             map.forEach(item => { let act = (item.v !== "Não" && item.v !== "" && item.v !== undefined); document.querySelector(`input[name="${item.c}"][value="${act ? 'sim' : 'nao'}"]`).checked = true; document.getElementById(item.b).classList.toggle('hidden', !act); document.getElementById(item.t).value = act ? item.v : ''; });
-            alert("Dados importados! Tire a foto do aluno e lance as medidas corporais antes de Gravar.");
+            if(s.obs && document.getElementById('detalhe-obs')) { document.getElementById('detalhe-obs').value = s.obs; }
+            alert("Dados importados com sucesso! O botão da câmera está liberado.");
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -279,12 +297,18 @@ function sincronizarPreMatriculas() {
             }
         }
 
- function sincronizarMatriculasFirebase() {
-            let cache = localStorage.getItem('fichas_v2'); if(cache){ bd = JSON.parse(cache); } atLista();
-            if(!urlNuvemBase.includes("seu-projeto-default")) {
-                fetch(obterUrlMatricula()).then(res => res.json()).then(dados => { if(dados) { bd = dados; localStorage.setItem('fichas_v2', JSON.stringify(dados)); atLista(); if(alunoFinId) carregarGrelhaMeses(alunoFinId); } });
-            }
+ function mRG(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 2) v = v.substring(0,2) + '.' + v.substring(2); if (v.length > 6) v = v.substring(0,6) + '.' + v.substring(6); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,11); i.value = v; }
+        function mascaraCPF(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 3) v = v.substring(0,3) + '.' + v.substring(3); if (v.length > 7) v = v.substring(0,7) + '.' + v.substring(7); if (v.length > 11) v = v.substring(0,11) + '-' + v.substring(11,14); i.value = v; }
+        function mascaraTel(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 0) v = '(' + v; if (v.length > 3) v = v.substring(0,3) + ') ' + v.substring(3); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,14); i.value = v; }
+        function altJ(id, e) { let b = document.getElementById(id); b.classList.toggle('hidden', !e); if(!e){b.querySelector('textarea').value='';} }
+        
+        function calcIMC() {
+            let p = parseFloat(document.getElementById('peso').value), a = parseFloat(document.getElementById('altura').value), d = document.getElementById('res-imc');
+            if(p && a && a > 0) { let imc = (p / (a * a)).toFixed(1), cat = "Normal"; if(imc < 18.5) cat = "Abaixo do peso"; else if(imc >= 25 && imc < 30) cat = "Sobrepeso"; else if(imc >= 30) cat = "Obesidade"; d.innerText = imc + " (" + cat + ")"; } else { d.innerText = "Digite peso/altura"; }
         }
+        function ligarCamera() { let v = document.getElementById('video'), i = document.getElementById('foto-preview'); i.style.display = "none"; v.style.display = "block"; navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(s => { v.srcObject = s; }).catch(e => { alert("Erro na câmera."); }); }
+        function tirarFoto() { let v = document.getElementById('video'), c = document.getElementById('canvas'), i = document.getElementById('foto-preview'), ctx = c.getContext('2d'); if (!v.srcObject) { alert("Ligue a câmera!"); return; } c.width = v.videoWidth; c.height = v.videoHeight; ctx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight); foto = c.toDataURL('image/jpeg'); i.src = foto; v.style.display = "none"; i.style.display = "block"; v.srcObject.getTracks().forEach(t => t.stop()); }
+
         function salvar() {
             let n = document.getElementById('nome').value.trim(), cPura = document.getElementById('cpf').value.replace(/\D/g, "");
             if(!n || !cPura) { alert("Nome e CPF são obrigatórios!"); return; }
@@ -294,30 +318,38 @@ function sincronizarPreMatriculas() {
                 modalidades: { musculacao: document.getElementById('mod-musculacao').checked, taekwondo: document.getElementById('mod-taekwondo').checked },
                 filiacao: { mae: document.getElementById('nome-mae').value.trim(), pai: document.getElementById('nome-pai').value.trim() },
                 med: { be: document.getElementById('b-e').value, bd: document.getElementById('b-d').value, ane: document.getElementById('an-e').value, and: document.getElementById('an-d').value, cxe: document.getElementById('cx-e').value, cxd: document.getElementById('cx-d').value, pte: document.getElementById('pt-e').value, ptd: document.getElementById('pt-d').value, cos: document.getElementById('costas').value, cin: document.getElementById('cintura').value, bf: document.getElementById('bf').value },
-                sau: { d: (document.querySelector('input[name="doenca"]:checked').value==="sim")?document.getElementById('detalhe-doenca').value:"Não", a: (document.querySelector('input[name="alergia"]:checked').value==="sim")?document.getElementById('detalhe-alergia').value:"Não", r: (document.querySelector('input[name="remedio"]:checked').value==="sim")?document.getElementById('detalhe-remedio').value:"Não", l: (document.querySelector('input[name="lesao"]:checked').value==="sim")?document.getElementById('detalhe-lesao').value:"Não" }
+                sau: { 
+                    d: (document.querySelector('input[name="doenca"]:checked').value==="sim")?document.getElementById('detalhe-doenca').value:"Não", 
+                    a: (document.querySelector('input[name="alergia"]:checked').value==="sim")?document.getElementById('detalhe-alergia').value:"Não", 
+                    r: (document.querySelector('input[name="remedio"]:checked').value==="sim")?document.getElementById('detalhe-remedio').value:"Não", 
+                    l: (document.querySelector('input[name="lesao"]:checked').value==="sim")?document.getElementById('detalhe-lesao').value:"Não",
+                    obs: document.getElementById('detalhe-obs') ? document.getElementById('detalhe-obs').value : ""
+                }
             };
             bd[cPura] = f; localStorage.setItem('fichas_v2', JSON.stringify(bd));
             if(!urlNuvemBase.includes("seu-projeto-default")) {
                 fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) }).then(() => {
-                    // Após salvar com sucesso, apaga o aluno da pasta temporária de pré-cadastros
+                    // 🌟 EXPULSOR AUTOMÁTICO: Deleta o registro temporário para a tarja amarela sumir na hora
                     fetch(obterUrlPreMatricula(cPura), { method: 'DELETE' }).then(() => { sincronizarPreMatriculas(); });
-                    alert("Matrícula oficializada com sucesso!"); sincronizarMatriculasFirebase(); resetF();
+                    alert("Matrícula oficializada e removida das pendências!"); sincronizarMatriculasFirebase(); resetF();
                 });
             } else { alert("Salvo local!"); atLista(); resetF(); }
         }
-        function resetF() { document.getElementById('form-cadastro').reset(); document.getElementById('foto-preview').style.display = "none"; document.getElementById('video').style.display = "block"; document.getElementById('res-imc').innerText = "Digite peso/altura"; document.getElementById('idade-calculada').value=''; foto = ""; idxEd = null; ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao', 'secao-pais-menor'].forEach(id => document.getElementById(id).classList.add('hidden')); }
+        function resetF() { document.getElementById('form-cadastro').reset(); document.getElementById('foto-preview').style.display = "none"; document.getElementById('video').style.display = "block"; document.getElementById('res-imc').innerText = "Digite peso/altura"; document.getElementById('idade-calculada').value=''; foto = ""; idxEd = null; ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao', 'secao-pais-menor'].forEach(id => document.getElementById(id).classList.add('hidden')); if(document.getElementById('detalhe-obs')) document.getElementById('detalhe-obs').value=''; }
 
-function atLista() { let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = ''; if(!bd) return; let chaves = Object.keys(bd).filter(id => bd[id] !== null); if(chaves.length === 0) { div.innerHTML = "<p style='color:gray;font-size:13px;'>Nenhum registro.</p>"; return; } chaves.forEach(id => { let f = bd[id]; if(f) { if (b === "" || (f.nome||"").toLowerCase().includes(b) || (f.cpf||"").toLowerCase().includes(b) || (f.nasc||"").toLowerCase().includes(b)) { div.innerHTML += `<div class="aluno-linha"><span style="font-size:14px;"><b>${f.nome}</b> (${f.cpf})</span><div style="display:flex; gap:4px;"><button type="button" class="btn-acao-financeira" style="background:#10b981;" onclick="abrirFinanceiro('${f.id}')">💰 Finanças / Recibo</button><button type="button" class="btn-acao-financeira" onclick="carregar('${f.id}')">Editar</button><button type="button" class="btn-acao-financeira" style="background:#ef4444;" onclick="excluir('${f.id}')">X</button></div></div>`; } } }); }
+  function atLista() { let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = ''; if(!bd) return; let chaves = Object.keys(bd).filter(id => bd[id] !== null); if(chaves.length === 0) { div.innerHTML = "<p style='color:gray;font-size:13px;'>Nenhum registro.</p>"; return; } chaves.forEach(id => { let f = bd[id]; if(f) { if (b === "" || (f.nome||"").toLowerCase().includes(b) || (f.cpf||"").toLowerCase().includes(b) || (f.nasc||"").toLowerCase().includes(b)) { div.innerHTML += `<div class="aluno-linha"><span style="font-size:14px;"><b>${f.nome}</b> (${f.cpf})</span><div style="display:flex; gap:4px;"><button type="button" class="btn-acao-financeira" style="background:#10b981;" onclick="abrirFinanceiro('${f.id}')">💰 Finanças / Recibo</button><button type="button" class="btn-acao-financeira" onclick="carregar('${f.id}')">Editar</button><button type="button" class="btn-acao-financeira" style="background:#ef4444;" onclick="excluir('${f.id}')">X</button></div></div>`; } } }); }
         function abrirFinanceiro(id) { let cPura = id.replace(/\D/g, ""); if(!bd[cPura]) { alert('Não localizado!'); return; } if(prompt('Senha Admin:') !== SENHA_ADMIN) { alert('Incorreta!'); return; } alunoFinId = cPura; carregarGrelhaMeses(cPura); }
         function carregarGrelhaMeses(cPura) { let f = bd[cPura]; if(!f) return; document.getElementById('financeiro-nome-titulo').innerText = `💰 Pagamentos de: ${f.nome}`; document.getElementById('painel-financeiro-aluno').classList.remove('hidden'); let meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]; let grid = document.getElementById('grid-meses-corpo'); grid.innerHTML = ''; let pLocal = f.pagamentos || {}; meses.forEach(mes => { let status = pLocal[mes] ? "pago" : ""; let txtBotao = pLocal[mes] ? "✅ Pago (Estornar)" : "💵 Receber"; grid.innerHTML += `<div class="mes-card ${status}"><label><b>${mes}</b></label><br><button type="button" onclick="alternarMes('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer;">${txtBotao}</button><button type="button" onclick="gerarRecibo('${cPura}', '${mes}')" style="font-size:10px; cursor:pointer; background:#10b981; color:white; border:none; margin-top:4px; padding:2px 4px; border-radius:2px; display:${pLocal[mes]?'inline-block':'none'};">🖨️ Recibo</button></div>`; }); }
         function alternarMes(idAluno, mes) { let cPura = idAluno.replace(/\D/g, ""); let f = bd[cPura]; if(!f) return; if(!f.pagamentos) f.pagamentos = {}; f.pagamentos[mes] = !f.pagamentos[mes]; bd[cPura] = f; localStorage.setItem('fichas_v2', JSON.stringify(bd)); if(!urlNuvemBase.includes("seu-projeto-default")) { fetch(obterUrlMatricula(cPura), { method: 'PUT', body: JSON.stringify(f) }).then(() => sincronizarMatriculasFirebase()); } else { carregarGrelhaMeses(cPura); } }
         function gerarRecibo(idAluno, mes) { let cPura = idAluno.replace(/\D/g, ""); let f = bd[cPura]; if(!f) return; let val = f.mensalidade || "100.00"; let dataHoje = new Date().toLocaleDateString('pt-BR'); let codAutenticacao = "AUT-" + Math.floor(100000 + Math.random() * 900000); let htmlRecibo = `<div class="recibo-box"><div class="recibo-topo"><h3>COMPROVANTE DE PAGAMENTO</h3><p><b>FERAS TAEKWONDO 👑</b></p></div><div class="recibo-linha"><b>Recebemos de:</b> ${f.nome}</div><div class="recibo-linha"><b>Inscrição/CPF:</b> ${f.cpf}</div><div class="recibo-linha"><b>A importância de:</b> R$ ${parseFloat(val).toFixed(2)}</div><div class="recibo-linha"><b>Referente ao mês de:</b> ${mes}</div><div class="recibo-linha"><b>Data de Emissão:</b> ${dataHoje}</div><div class="selo-autenticidade">|||| | ||||| | || |||| || ||||<br>CHAVE VALIDAÇÃO: ${codAutenticacao}</div><div class="assinatura-area"><p style="font-size:11px; margin:0; color:#2563eb; font-weight:bold;">Selo Digital Gerado com Sucesso</p><p><b>Direção Administrativa</b></p></div><div class="hidden-print" style="margin-top:20px; display:flex; gap:10px;"><button type="button" class="btn" style="margin:0;" onclick="window.print()">🖨️ Imprimir Recibo</button><button type="button" class="btn btn-sucesso" style="margin:0; background:#facc15; color:#1e293b;" onclick="enviarWhatsRecibo('${f.tel || f.telefone}', '${f.nome}', '${mes}', '${val}', '${codAutenticacao}')">📋 Copiar Texto para WhatsApp</button></div></div>`; let area = document.getElementById('area-recibo-impressao'); area.innerHTML = htmlRecibo; area.classList.remove('hidden'); alert("Recibo montado!"); area.scrollIntoView({ behavior: 'smooth' }); }
         function enviarWhatsRecibo(tel, nome, mes, valor, cod) { let textoRecibo = `*COMPROVANTE DE PAGAMENTO - FERAS TAEKWONDO 🥋*\n\n*Recebemos de:* ${nome}\n*Referente ao mês de:* ${mes}\n*Valor:* R$ ${parseFloat(valor).toFixed(2)}\n*Data:* ${new Date().toLocaleDateString('pt-BR')}\n\n*Selo de Validação Digital:* ${cod}\n\nFicha atualizada no sistema! Bons treinos! 💪`; navigator.clipboard.writeText(textoRecibo).then(() => { alert("Texto copiado! Dê Ctrl + V no WhatsApp."); }).catch(err => { alert("Erro ao copiar."); }); }
         function fecharFinanceiro() { document.getElementById('painel-financeiro-aluno').classList.add('hidden'); alunoFinId = null; }
+        
         function carregar(id) {
             let cPura = id.replace(/\D/g, ""); let f = bd[cPura]; document.getElementById('nome').value = f.nome; document.getElementById('cpf').value = f.cpf; document.getElementById('rg').value = f.rg; document.getElementById('telefone').value = f.tel || f.telefone; document.getElementById('dono-tel1').value = f.donoTel1 || "Aluno"; document.getElementById('telefone2').value = f.tel2 || ""; document.getElementById('dono-tel2').value = f.donoTel2 || "Mãe"; document.getElementById('nascimento').value = f.nasc; verificarIdadeAutomatico(); document.getElementById('endereco').value = f.end || f.endereco; document.getElementById('peso').value = f.peso || ''; document.getElementById('altura').value = f.alt || f.altura; document.getElementById('valor-mensalidade').value = f.mensalidade || "100.00";
             let mods = f.modalidades || {}; document.getElementById('mod-musculacao').checked = mods.musculacao || false; document.getElementById('mod-taekwondo').checked = mods.taekwondo || false;
             let fil = f.filiacao || {}; document.getElementById('nome-mae').value = fil.mae || ""; document.getElementById('nome-pai').value = fil.pai || "";
+            if(f.sau && f.sau.obs && document.getElementById('detalhe-obs')) { document.getElementById('detalhe-obs').value = f.sau.obs; }
             calcIMC(); let m = f.med || {}; document.getElementById('b-e').value = m.be||''; document.getElementById('b-d').value = m.bd||''; document.getElementById('an-e').value = m.ane||''; document.getElementById('an-d').value = m.and||''; document.getElementById('cx-e').value = m.cxe||''; document.getElementById('cx-d').value = m.cxd||''; document.getElementById('pt-e').value = m.pte||''; document.getElementById('pt-d').value = m.ptd||''; document.getElementById('costas').value = m.cos||''; document.getElementById('cintura').value = m.cin||''; document.getElementById('bf').value = m.bf||'';
             let map = [{ c: 'doenca', v: f.sau.d, b: 'b-doenca', t: 'detalhe-doenca' },{ c: 'alergia', v: f.sau.a, b: 'b-alergia', t: 'detalhe-alergia' },{ c: 'remedio', v: f.sau.r, b: 'b-remedio', t: 'detalhe-remedio' },{ c: 'lesao', v: f.sau.l, b: 'b-lesao', t: 'detalhe-lesao' }];
             map.forEach(item => { let s = (item.v !== "Não" && item.v !== ""); document.querySelector(`input[name="${item.c}"][value="${s ? 'sim' : 'nao'}"]`).checked = true; document.getElementById(item.b).classList.toggle('hidden', !s); document.getElementById(item.t).value = s ? item.v : ''; });
