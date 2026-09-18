@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pré-Cadastro - FERAS TAEKWONDO</title>
+    <style>
+        body { background: #f1f5f9; color: #1e293b; font-family: system-ui, sans-serif; padding: 15px; margin: 0; }
+        .container { max-width: 600px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .topo-cadastro { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+        .topo-cadastro h2 { color: #ef4444; margin: 0; font-size: 24px; }
+        .topo-cadastro p { color: #64748b; margin: 5px 0 0 0; font-size: 14px; }
+        h3 { color: #1e3a8a; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-top: 25px; font-size: 16px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .full-width { grid-column: span 2; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 13px; color: #334155; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        textarea { resize: vertical; height: 60px; }
+        .btn-enviar { background: #10b981; color: #fff; border: none; padding: 14px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 25px; box-shadow: 0 2px 4px rgba(16,185,129,0.2); }
+        .btn-enviar:hover { background: #059669; }
+        .hidden { display: none !important; }
+        .pergunta-bloco { background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 10px; }
+        .checkbox-group, .radio-group { display: flex; gap: 20px; margin-bottom: 4px; margin-top: 4px; }
+        .checkbox-group label, .radio-group label { display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; font-size: 14px; }
+        .checkbox-group input, .radio-group input { width: auto; cursor: pointer; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="topo-cadastro">
+            <h2>FERAS TAEKWONDO 🥋</h2>
+            <p>Preencha os seus dados abaixo para realizar a sua inscrição</p>
+        </div>
+
+        <form id="form-aluno-cadastro">
+            <h3>Modalidade de Interesse</h3>
+            <div class="pergunta-bloco">
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="mod-musculacao" value="sim"> 🏋️‍♂️ Musculação</label>
+                    <label><input type="checkbox" id="mod-taekwondo" value="sim"> 🥋 Taekwondo</label>
+                </div>
+            </div>
+
+            <h3>Dados Pessoais do Aluno</h3>
+            <div class="grid">
+                <div class="full-width"><label>Nome Completo:</label><input type="text" id="nome" placeholder="Seu nome completo" required></div>
+                <div><label>CPF:</label><input type="text" id="cpf" maxlength="14" placeholder="000.000.000-00" oninput="mascaraCPF(this)" required></div>
+                <div><label>RG:</label><input type="text" id="rg" maxlength="12" placeholder="00.000.000-0" oninput="mRG(this)" required></div>
+                <div><label>Data de Nascimento:</label><input type="date" id="nascimento" oninput="verificarIdadeAutomatico()" required></div>
+                <div><label>Sua Idade:</label><input type="text" id="idade-calculada" style="background:#f1f5f9; font-weight:bold; color:#1e3a8a;" placeholder="Calculada na hora" disabled></div>
+                <div class="full-width"><label>Endereço Residencial Completo:</label><input type="text" id="endereco" placeholder="Rua, número, bairro e cidade" required></div>
+
+<div><label>Telefone / WhatsApp 1:</label><input type="text" id="telefone" maxlength="15" placeholder="(00) 00000-0000" oninput="mascaraTel(this)" required></div>
+                <div><label>Dono do Telefone 1:</label><select id="dono-tel1"><option value="Aluno">Do próprio Aluno</option><option value="Mãe">Da Mãe</option><option value="Pai">Do Pai</option><option value="Responsável">De outro Responsável</option></select></div>
+                
+                <div><label>Telefone / WhatsApp 2:</label><input type="text" id="telefone2" maxlength="15" placeholder="(00) 00000-0000" oninput="mascaraTel(this)"></div>
+                <div><label>Dono do Telefone 2:</label><select id="dono-tel2"><option value="Mãe">Da Mãe</option><option value="Pai">Do Pai</option><option value="Aluno">Do próprio Aluno</option><option value="Responsável">De outro Responsável</option></select></div>
+            </div>
+
+            <div id="secao-pais-menor" class="hidden">
+                <h3>Dados de Filiação (Obrigatório para Menores de 18 anos)</h3>
+                <div class="grid">
+                    <div><label>Nome Completo da Mãe:</label><input type="text" id="nome-mae" placeholder="Nome da mãe"></div>
+                    <div><label>Nome Completo do Pai:</label><input type="text" id="nome-pai" placeholder="Nome do pai"></div>
+                </div>
+            </div>
+
+            <h3>Histórico de Saúde (Anamnese)</h3>
+            <div class="pergunta-bloco">
+                <label>1. Possui alguma doença crônica? (Cardíaca, diabetes, pressão alta, etc.)</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="doenca" value="nao" checked onclick="altJ('b-doenca', false)"> Não</label>
+                    <label><input type="radio" name="doenca" value="sim" onclick="altJ('b-doenca', true)"> Sim</label>
+                </div>
+                <div id="b-doenca" class="hidden"><textarea id="detalhe-doenca" placeholder="Por favor, especifique qual doença..."></textarea></div>
+            </div>
+
+ <div class="pergunta-bloco">
+                <label>2. Possui algum tipo de alergia?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="alergia" value="nao" checked onclick="altJ('b-alergia', false)"> Não</label>
+                    <label><input type="radio" name="alergia" value="sim" onclick="altJ('b-alergia', true)"> Sim</label>
+                </div>
+                <div id="b-alergia" class="hidden"><textarea id="detalhe-alergia" placeholder="Por favor, especifique a alergia..."></textarea></div>
+            </div>
+            <div class="pergunta-bloco">
+                <label>3. Toma algum medicamento de uso contínuo?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="remedio" value="nao" checked onclick="altJ('b-remedio', false)"> Não</label>
+                    <label><input type="radio" name="remedio" value="sim" onclick="altJ('b-remedio', true)"> Sim</label>
+                </div>
+                <div id="b-remedio" class="hidden"><textarea id="detalhe-remedio" placeholder="Digite o nome do medicamento..."></textarea></div>
+            </div>
+            <div class="pergunta-bloco">
+                <label>4. Possui alguma lesão óssea ou muscular recente?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="lesao" value="nao" checked onclick="altJ('b-lesao', false)"> Não</label>
+                    <label><input type="radio" name="lesao" value="sim" onclick="altJ('b-lesao', true)"> Sim</label>
+                </div>
+                <div id="b-lesao" class="hidden"><textarea id="detalhe-lesao" placeholder="Por favor, especifique a lesão..."></textarea></div>
+            </div>
+
+            <button type="button" class="btn-enviar" onclick="enviarPreCadastro()">Enviar Inscrição com Segurança</button>
+        </form>
+    </div>
+
+<script>
+        // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
+        const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+
+        function verificarIdadeAutomatico() {
+            let dataNasc = document.getElementById('nascimento').value; if(!dataNasc) return;
+            let hoje = new Date(); let nasc = new Date(dataNasc);
+            let idade = hoje.getFullYear() - nasc.getFullYear(); let m = hoje.getMonth() - nasc.getMonth();
+            if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) { idade--; }
+            document.getElementById('idade-calculada').value = idade + " anos";
+            if(idade < 18) { document.getElementById('secao-pais-menor').classList.remove('hidden'); } else { document.getElementById('secao-pais-menor').classList.add('hidden'); document.getElementById('nome-mae').value = ''; document.getElementById('nome-pai').value = ''; }
+        }
+
+        function enviarPreCadastro() {
+            let n = document.getElementById('nome').value.trim(), cPura = document.getElementById('cpf').value.replace(/\D/g, "");
+            if(!n || !cPura) { alert("Nome e CPF são obrigatórios!"); return; }
+            
+            let f = {
+                id: cPura, nome: n, cpf: document.getElementById('cpf').value, rg: document.getElementById('rg').value, tel: document.getElementById('telefone').value, donoTel1: document.getElementById('dono-tel1').value, tel2: document.getElementById('telefone2').value, donoTel2: document.getElementById('dono-tel2').value, nasc: document.getElementById('nascimento').value, end: document.getElementById('endereco').value,
+                modalidades: { musculacao: document.getElementById('mod-musculacao').checked, taekwondo: document.getElementById('mod-taekwondo').checked },
+                filiacao: { mae: document.getElementById('nome-mae').value.trim(), pai: document.getElementById('nome-pai').value.trim() },
+                sau: { d: (document.querySelector('input[name="doenca"]:checked').value==="sim")?document.getElementById('detalhe-doenca').value:"Não", a: (document.querySelector('input[name="alergia"]:checked').value==="sim")?document.getElementById('detalhe-alergia').value:"Não", r: (document.querySelector('input[name="remedio"]:checked').value==="sim")?document.getElementById('detalhe-remedio').value:"Não", l: (document.querySelector('input[name="lesao"]:checked').value==="sim")?document.getElementById('detalhe-lesao').value:"Não" }
+            };
+
+            let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
+            let urlDestino = base + "/pre_matriculas/" + cPura + ".json";
+
+            if(!urlNuvemBase.includes("seu-projeto-default")) {
+                fetch(urlDestino, { method: 'PUT', body: JSON.stringify(f) })
+                .then(() => {
+                    alert("Parabéns! Sua inscrição foi enviada com total segurança para o FERAS TAEKWONDO. Informe o professor na recepção para validar a matrícula!");
+                    document.getElementById('form-aluno-cadastro').reset();
+                    document.getElementById('idade-calculada').value = '';
+                    ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao', 'secao-pais-menor'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                }).catch(err => { alert("Erro ao enviar dados. Verifique a conexão com a internet."); });
+            } else {
+                alert("Simulação local concluída! Insira o link real do seu Firebase.");
+            }
+        }
+
+        function mRG(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 2) v = v.substring(0,2) + '.' + v.substring(2); if (v.length > 6) v = v.substring(0,6) + '.' + v.substring(6); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,11); i.value = v; }
+        function mascaraCPF(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 3) v = v.substring(0,3) + '.' + v.substring(3); if (v.length > 7) v = v.substring(0,7) + '.' + v.substring(7); if (v.length > 11) v = v.substring(0,11) + '-' + v.substring(11,14); i.value = v; }
+        function mascaraTel(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 0) v = '(' + v; if (v.length > 3) v = v.substring(0,3) + ') ' + v.substring(3); if (v.length > 10) v = v.substring(0,10) + '-' + v.substring(10,14); i.value = v; }
+        function altJ(id, e) { let b = document.getElementById(id); b.classList.toggle('hidden', !e); if(!e){b.querySelector('textarea').value='';} }
+    </script>
+</body>
+</html>
