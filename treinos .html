@@ -1,0 +1,275 @@
+<!DOCTYPE html> 
+<html lang="pt-BR"> 
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Treinos - FERAS TAEKWONDO</title> 
+    <style> 
+        body{background:#f1f5f9;color:#1e293b;font-family:system-ui,sans-serif;padding:12px;margin:0} 
+        .container{max-width:600px;margin:0 auto}
+        .box{background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:20px} 
+        .menu-navegacao{display:flex;gap:8px;background:#1e3a8a;padding:8px;border-radius:6px;margin-bottom:15px} 
+        .menu-navegacao a{color:#fff;text-decoration:none;font-weight:bold;font-size:13px;padding:8px;border-radius:4px;background:rgba(255,255,255,0.1);text-align:center;flex:1} 
+        .menu-navegacao a:hover{background:rgba(255,255,255,0.25)} 
+        .menu-navegacao a.ativo{background:#2563eb} 
+        .menu-navegacao a.aba-amarela{background:#facc15;color:#1e293b}
+        .menu-navegacao a.aba-amarela:hover{background:#fde047}
+        .btn{background:#2563eb;color:#fff;border:none;padding:14px;border-radius:4px;cursor:pointer;width:100%;font-weight:bold;font-size:16px} 
+        .btn-danger{background:#ef4444}.hidden{display:none !important} 
+        .row{display:flex;gap:5px;margin-bottom:5px} .row input,.row select{padding:8px;border:1px solid #cbd5e1;border-radius:4px} 
+                .tabs{display:flex;gap:6px;margin-bottom:15px} 
+        .tab{flex:1;padding:12px 6px;background:#cbd5e1;border:none;cursor:pointer;font-weight:bold;font-size:14px;border-radius:6px} 
+        .tab.active{background:#2563eb;color:#fff} 
+        .imc-box{background:#eff6ff;border-left:4px solid #2563eb;padding:12px;margin-top:15px;border-radius:4px;font-size:14px} 
+        .exercicio-item{padding:16px;border:1px solid #cbd5e1;margin-bottom:10px;background:#f8fafc;border-radius:8px;display:flex;align-items:center;gap:14px;font-size:17px} 
+        .exercicio-item.concluido{background:#dcfce7;border-color:#10b981;text-decoration:line-through;color:#15803d} 
+        .exercicio-item input[type="checkbox"]{width:24px;height:22px;cursor:pointer} 
+        .topo-sistema{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .titulo-academia{color:#ef4444;display:flex;align-items:center;gap:10px;margin:0}
+        .titulo-academia h2{margin:0;color:#ef4444;font-size:20px} .icone-quimono-svg{width:32px;height:36px;fill:#ef4444}
+        .btn-voltar-flutuante{background:#475569;color:white;border:none;padding:14px;border-radius:6px;font-weight:bold;cursor:pointer;width:100%;margin-top:20px;font-size:15px}
+        #bloqueio-seguranca-admin { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; font-family: system-ui, sans-serif; text-align: center; padding: 20px; box-sizing: border-box; }
+        .card-autenticacao { background: #1e293b; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 2px solid #1e3a8a; max-width: 400px; width: 100%; }
+        .card-autenticacao h1 { font-size: 22px; color: #ef4444; margin-bottom: 5px; }
+        .card-autenticacao p { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
+        .btn-biometria { background: #2563eb; color: white; border: none; width: 90px; height: 90px; border-radius: 50%; font-size: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; transition: transform 0.2s, background 0.3s; box-shadow: 0 0 15px rgba(37,99,235,0.4); }
+        .btn-biometria:hover { background: #1d4ed8; transform: scale(1.05); }
+        .btn-biometria.escaneando { animation: pulsar 1s infinite alternate; background: #eab308; }
+        .btn-senha-alternativa { background: transparent; border: 1px dashed #475569; color: #94a3b8; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; margin-top: 15px; transition: color 0.2s; }
+        .btn-senha-alternativa:hover { color: white; border-color: #94a3b8; }
+        @keyframes pulsar { from { transform: scale(1); box-shadow: 0 0 15px rgba(37,99,235,0.4); } to { transform: scale(1.1); box-shadow: 0 0 25px rgba(234,179,8,0.8); } }
+    </style> 
+</head>
+<body> 
+    <div id="bloqueio-seguranca-admin" class="hidden">
+        <div class="card-autenticacao">
+            <h1>FERAS TAEKWONDO 🥋</h1>
+            <p>Área Restrita do Professor / Administração</p>
+            <button type="button" class="btn-biometria" id="scanner-digital-admin" onclick="autenticarBiometriaAdmin()">👆</button>
+            <div id="status-mensagem-admin" style="font-weight: bold; font-size: 14px; margin-bottom: 15px; color: #38bdf8;">Toque no sensor digital do Administrador</div>
+            <button type="button" class="btn-senha-alternativa" onclick="autenticarPorSenhaAdminTradicional()">Usar Senha Numérica</button>
+        </div>
+    </div>
+    <div class="container"> 
+        <div id="cabecalho-completo">
+            <div class="menu-navegacao"> 
+                <a href="matricula.html">📋 Matrícula</a> 
+                <a href="#" class="ativo aba-amarela">🏋️‍♂️ Treinos</a> 
+                <a href="termo.html">📄 Termos</a>
+            </div> 
+            <div class="topo-sistema">
+                <div class="titulo-academia">
+                    <svg class="icone-quimono-svg" viewBox="0 0 24 24"><path d="M12,2L4,6V12L12,22L20,12V6L12,2M12,4.3L17.7,7.2L12,12L6.3,7.2L12,4.3M6,8.5L11,12.2V19.3L6,13V8.5M18,8.5V13L13,19.3V12.2L18,8.5Z"/></svg>
+                    <h2>FERAS TAEKWONDO 🥋</h2>
+                </div>
+                <button onclick="acionarInterfaceAdmin()" style="padding:6px 12px;cursor:pointer;font-weight:bold;font-size:13px;border-radius:4px;border:1px solid #cbd5e1;">Admin</button> 
+            </div>
+        </div>
+        <div id="tela-login" class="box"> 
+            <h3>Login do Aluno</h3><br> 
+            <input type="text" id="user-aluno" placeholder="Usuário (ID)" style="width:100%;padding:12px;margin-bottom:12px;box-sizing:border-box;font-size:16px;"> 
+            <input type="password" id="senha-aluno" placeholder="Senha" style="width:100%;padding:12px;margin-bottom:12px;box-sizing:border-box;font-size:16px;"> 
+            <button class="btn" onclick="logarAluno()" style="margin-bottom:12px;">Entrar no Sistema</button> 
+            <div style="text-align:center; margin: 10px 0; color:#64748b; font-size:13px; font-weight:bold;">OU SE JÁ ESTIVER CADASTRADO</div>
+            <button class="btn" onclick="entrarComBiometriaAlunoReal()" style="background:#475569; display:flex; align-items:center; justify-content:center; gap:8px;"><span>📱</span> Entrar com a Digital do Celular</button>
+        </div>
+                <div id="tela-aluno" class="box hidden"> 
+            <div id="botoes-topo-aluno" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <h3 id="nome-aluno-titulo" style="margin:0">Ficha</h3>
+                <button onclick="sairAluno()" style="background:#ef4444;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">Desconectar</button> 
+            </div>
+            <div id="bloco-vincular-biometria" class="hidden" style="background:#f0fdf4; border:1px dashed #16a34a; padding:10px; margin-bottom:15px; border-radius:6px; text-align:center;">
+                <span style="font-size:13px; font-weight:bold; color:#14532d;">Ative o acesso rápido neste aparelho:</span><br>
+                <button onclick="cadastrarBiometriaNoCelularAluno()" style="background:#16a34a; color:white; border:none; padding:6px 12px; margin-top:5px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">Configurar Digital Deste Celular</button>
+            </div>
+            <p id="obj-aluno-titulo" style="color:#64748b;margin:0;margin-bottom:15px;font-size:15px"></p> 
+            <div class="tabs"> 
+                <button id="tA" class="tab active" onclick="verAba('A')">FICHA A</button> 
+                <button id="tB" class="tab" onclick="verAba('B')">FICHA B</button> 
+                <button id="tC" class="tab" onclick="verAba('C')">FICHA C</button> 
+            </div> 
+            <div id="lista-exercicios"></div> 
+            <div id="info-imc" class="imc-box"></div>
+            <button type="button" id="btn-restaurar-menu" class="btn-voltar-flutuante hidden" onclick="restaurarMenuCompleto()">↩️ Voltar ao Menu Principal</button>
+        </div> 
+        <div id="tela-admin" class="box hidden"> 
+            <div style="display:flex;justify-content:space-between;margin-bottom:15px"> <h3>Painel do Administrador</h3> <button onclick="sairAdmin()" style="cursor:pointer;padding:4px 10px;">Voltar</button> </div> 
+            <label>🔎 Buscar Aluno para Editar:</label>
+            <input type="text" id="busca-admin-treino" oninput="filtrarAlunosAdmin()" placeholder="Digite as primeiras letras..." style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:4px;margin-bottom:10px;box-sizing:border-box">
+            <label>Selecione para Editar ou Criar:</label> <select id="select-admin" onchange="carregarEdicao()" style="width:100%;padding:8px;margin-bottom:15px;width:100%"></select> 
+            <input type="text" id="adm-nome" placeholder="Nome Completo" style="width:100%;padding:8px;margin-bottom:5px;box-sizing:border-box"> 
+            <input type="text" id="adm-user" placeholder="Usuário Único" style="width:100%;padding:8px;margin-bottom:5px;box-sizing:border-box"> 
+            <input type="text" id="adm-senha" placeholder="Senha do Aluno" style="width:100%;padding:8px;margin-bottom:5px;box-sizing:border-box"> 
+            <input type="text" id="adm-obj" placeholder="Objetivo" style="width:100%;padding:8px;margin-bottom:10px;box-sizing:border-box"> 
+            <div class="row"> <input type="text" id="adm-peso" placeholder="Peso" style="flex:1;width:50%"> <input type="text" id="adm-altura" placeholder="Altura" style="flex:1;width:50%"> </div> 
+            <div style="font-weight:bold;margin:15px 0 5px 0">Exercícios por Ficha:</div> 
+            <div class="tabs"> 
+                <button id="adm-tA" class="tab active" onclick="mudarAbaAdmin('A')">FICHA A</button> 
+                <button id="adm-tB" class="tab" onclick="mudarAbaAdmin('B')">FICHA B</button> 
+                <button id="adm-tC" class="tab" onclick="mudarAbaAdmin('C')">FICHA C</button> 
+            </div> 
+            <div id="linhas-edit"></div> 
+            <button onclick="addLinhaAdminDoBotao()" style="background:#10b981;color:#fff;border:none;padding:8px;margin-bottom:15px;width:100%;cursor:pointer;font-weight:bold">+ Adicionar Exercício</button> 
+            <button class="btn" onclick="salvarAluno()">Gravar Ficha do Aluno</button><br><br> 
+            <button class="btn btn-danger" onclick="excluirAlunoAtual()">Excluir Aluno</button> 
+        </div> 
+    </div>
+    <datalist id="banco-exercicios-sugestoes">
+    <option value="Rosca Direta Barra W"></option><option value="Rosca Direta Halteres"></option><option value="Rosca Inclinada Halteres"></option><option value="Rosca Concentrada"></option><option value="Rosca Scott Barra W"></option><option value="Rosca Martelo Halteres"></option><option value="Rosca Inversa Barra"></option><option value="Tríceps Pulley Barra"></option><option value="Tríceps Pulley Corda"></option><option value="Tríceps Testa Barra W"></option><option value="Tríceps Francês Halter"></option><option value="Tríceps Coice Polia"></option><option value="Supino Reto Barra"></option><option value="Supino Inclinado Halteres"></option><option value="Supino Declinado Barra"></option><option value="Crucifixo Reto Halteres"></option><option value="Crossover Polia Alta"></option><option value="Voador (Pec Deck)"></option><option value="Puxada Alta Pronada"></option><option value="Puxada Alta Supinada"></option><option value="Remada Baixa Triângulo"></option><option value="Remada Cavalinho Barra"></option><option value="Remada Curvada Pronada"></option><option value="Remada Unilateral Halter"></option><option value="Agachamento Livre Barra"></option><option value="Agachamento Hack Machine"></option><option value="Leg Press 45 Graus"></option><option value="Cadeira Extensora"></option><option value="Mesa Flexora Deitada"></option><option value="Cadeira Flexora Sentada"></option><option value="Stiff Halteres"></option><option value="Afundo com Halteres"></option><option value="Desenvolvimento Halteres"></option><option value="Desenvolvimento Smith"></option><option value="Elevação Lateral Halteres"></option><option value="Elevação Frontal Halteres"></option><option value="Crucifixo Inverso Halteres"></option><option value="Encolhimento Ombros Halteres"></option><option value="Abdominal Crunch Chão"></option><option value="Abdominal Polia Alta"></option><option value="Prancha Isométrica"></option>
+</datalist>
+<script> 
+    const urlNuvem = "https://academia-2d8b2-default-rtdb.firebaseio.com/json";
+    const SENHA_ADMIN = "2004";
+    let bdLocal = { alunos: {} }, logadoId = null, abaAtiva = 'A', admAbaAtiva = 'A', exerciciosEmEdicao = []; 
+    function obterUrlFicha(id){ let u = urlNuvem.replace('.json', ''); if(u.endsWith('/')){u=u.slice(0,-1)} return u+"/"+id+".json"; }
+    function sincronizarEcarregar() { 
+        let c = localStorage.getItem('backup_academia_v9'); if(c){bdLocal.alunos=JSON.parse(c)} atualizarSelect(); 
+        if(!urlNuvem.includes("seu-projeto-default")){ fetch(urlNuvem).then(r=>r.json()).then(d=>{ if(d){bdLocal.alunos=d;localStorage.setItem('backup_academia_v9',JSON.stringify(d));atualizarSelect();if(logadoId)mostrarFicha()} }).catch(e=>console.log("Offline")); }
+    } 
+    function atualizarSelect() { let s = document.getElementById('select-admin'); if(!s)return; s.innerHTML='<option value="novo">-- Cadastrar Novo Aluno --</option>'; Object.keys(bdLocal.alunos).forEach(id=>{if(bdLocal.alunos[id]){s.innerHTML+=`<option value="${id}">${bdLocal.alunos[id].nome}</option>`}}); } 
+        function logarAluno() { 
+        let u=document.getElementById('user-aluno').value.trim().toLowerCase(), p=document.getElementById('senha-aluno').value.trim(); 
+        if(bdLocal.alunos[u] && bdLocal.alunos[u].senha === p) { 
+            logadoId=u; abaAtiva='A'; exib('tela-login',0); exib('tela-aluno',1); mostrarFicha(); AtivarTelaCheiaCelular();
+            if(!localStorage.getItem('bio_token_'+u)) { exib('bloco-vincular-biometria',1); } else { exib('bloco-vincular-biometria',0); }
+        } else { alert('Incorreto!') }
+    } 
+    function cadastrarBiometriaNoCelularAluno() {
+        if(!window.PublicKeyCredential) { alert("Este celular não possui suporte a biometria no navegador."); return; }
+        let idValido = btoa(logadoId).replace(/=/g, "");
+        let enc = new TextEncoder();
+        let options = {
+            publicKey: {
+                challenge: enc.encode("feras-taekwondo-alt-challenge-token-secure-2026"),
+                rp: { name: "Feras Taekwondo" },
+                user: { id: enc.encode(idValido), name: logadoId, displayName: logadoId },
+                pubKeyCredParams: [{type: "public-key", alg: -7}],
+                timeout: 60000,
+                authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" }
+            }
+        };
+        navigator.credentials.create(options).then((cred) => {
+            if(cred) {
+                localStorage.setItem('bio_token_'+logadoId, "credential_authenticated_success");
+                alert("🎉 Perfeito! Impressão digital gravada neste celular com sucesso!");
+                exib('bloco-vincular-biometria',0);
+            }
+        }).catch((err) => { alert("Erro ou cancelamento do registro biométrico."); console.error(err); });
+    }
+          function entrarComBiometriaAlunoReal() {
+        let u = document.getElementById('user-aluno').value.trim().toLowerCase();
+        if(!u) { alert('Digite seu Usuário (ID) primeiro para localizarmos sua digital.'); return; }
+        if(!localStorage.getItem('bio_token_'+u)) { alert('Sua digital ainda não está cadastrada neste celular. Faça login com senha uma vez e registre.'); return; }
+        let enc = new TextEncoder();
+        let options = {
+            publicKey: {
+                challenge: enc.encode("feras-taekwondo-alt-challenge-token-secure-2026"),
+                timeout: 60000,
+                userVerification: "required"
+            }
+        };
+        navigator.credentials.get(options).then((assertion) => {
+            if(assertion) {
+                logadoId = u; abaAtiva = 'A'; exib('tela-login',0); exib('tela-aluno',1); mostrarFicha(); AtivarTelaCheiaCelular();
+            }
+        }).catch((err) => { 
+            alert("Leitura biométrica indisponível ou cancelada. Por segurança, faça o login usando sua senha padrão."); 
+            console.error(err); 
+        });
+    }
+    function sairAluno(){ restaurarMenuCompleto(); logadoId=null; document.getElementById('user-aluno').value=''; document.getElementById('senha-aluno').value=''; exib('tela-aluno',0); exib('tela-login',1); sincronizarEcarregar(); } 
+    function verAba(l){ abaAtiva=l; document.querySelectorAll('#tela-aluno .tab').forEach(t=>t.classList.remove('active')); document.getElementById('t'+l).classList.add('active'); mostrarFicha(); AtivarTelaCheiaCelular(); } 
+    function AtivarTelaCheiaCelular() { document.getElementById('cabecalho-completo').classList.add('hidden'); document.getElementById('botoes-topo-aluno').classList.add('hidden'); document.getElementById('btn-restaurar-menu').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function restaurarMenuCompleto() { document.getElementById('cabecalho-completo').classList.remove('hidden'); document.getElementById('botoes-topo-aluno').classList.remove('hidden'); document.getElementById('btn-restaurar-menu').classList.add('hidden'); }
+    function mostrarFicha() { 
+        let a=bdLocal.alunos[logadoId];if(!a)return; let div=document.getElementById('lista-exercicios');div.innerHTML=''; 
+        document.getElementById('nome-aluno-titulo').innerText="Treino: "+a.nome; document.getElementById('obj-aluno-titulo').innerText="Foco: "+(a.objetivo||'Geral'); 
+        let t=a.exercicios||[], f=t.filter(e=>e.f===abaAtiva); 
+        if(f.length===0){div.innerHTML='<p style="color:gray;padding:15px;text-align:center">Nenhum exercício hoje nesta ficha.</p>'}else{ f.forEach(e=>{ let idx=t.findIndex(o=>o.n===e.n&&o.f===e.f), ck=e.concluido?'checked':'', cl=e.concluido?'concluido':''; div.innerHTML+=`<div class="exercicio-item ${cl}"><input type="checkbox" ${ck} onchange="altSt(${idx},this)"><div><strong>${e.n}</strong> - ${e.s}x${e.r} | <span style="color:#1e3a8a;font-weight:bold">${e.p} Kg</span></div></div>` }) }
+        let p=parseFloat(a.peso), alt=parseFloat(a.altura); if(p&&alt){let imc=(p/(alt * alt)).toFixed(1),cat="Normal";if(imc<18.5)cat="Abaixo";else if(imc>=25&&imc<30)cat="Sobrepeso";else if(imc>=30)cat="Obesidade";document.getElementById('info-imc').innerHTML=`📊 <b>Avaliação:</b> ${p}kg | ${alt}m <br><b>IMC:</b> ${imc} (${cat})`;exib('info-imc',1)}else{document.getElementById('info-imc').innerHTML='';exib('info-imc',0)} 
+    }
+            function altSt(idx,cb){ let a=bdLocal.alunos[logadoId];if(!a||!a.exercicios)return; a.exercicios[idx].concluido=cb.checked;localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos));cb.parentElement.classList.toggle('concluido',cb.checked);if(!urlNuvem.includes("seu-projeto-default")){fetch(obterUrlFicha(logadoId),{method:'PUT',body:JSON.stringify(a)})} }
+    
+    function irAdmin(){ 
+        // Trava de segurança: Se não estiver em ambiente seguro HTTPS/Localhost, pula direto para a senha e não expõe o painel
+        if(!window.PublicKeyCredential || window.location.protocol === 'file:') {
+            autenticarPorSenhaAdminTradicional();
+            return;
+        }
+        exib('bloqueio-seguranca-admin',1); 
+        document.getElementById('scanner-digital-admin').innerText = "👆"; 
+        document.getElementById('status-mensagem-admin').innerText = "Toque no sensor digital do Administrador"; 
+        document.getElementById('status-mensagem-admin').style.color = "#38bdf8"; 
+    }
+    
+    function autenticarBiometriaAdmin() {
+        let bD = document.getElementById('scanner-digital-admin'); 
+        let mS = document.getElementById('status-mensagem-admin'); 
+        bD.classList.add('escaneando'); bD.innerText = "🌀"; 
+        mS.innerText = "Lendo digital do Professor..."; mS.style.color = "#eab308";
+        
+        // Verifica se o dispositivo possui credenciais válidas configuradas
+        if(window.PublicKeyCredential) {
+            let enc = new TextEncoder();
+            navigator.credentials.get({
+                publicKey: { challenge: enc.encode("feras-taekwondo-admin-secure-gate-2026"), timeout: 10000, userVerification: "required" }
+            }).then((auth) => {
+                if(auth) {
+                    bD.classList.remove('escaneando'); bD.innerText = "✅"; 
+                    mS.innerText = "Acesso Autorizado!"; mS.style.color = "#22c55e";
+                    setTimeout(() => { exib('bloqueio-seguranca-admin',0); entrarNoPainelAdminDireto(); }, 600);
+                }
+            }).catch((err) => {
+                // Se falhar ou o professor cancelar, pede a senha numérica obrigatoriamente
+                bD.classList.remove('escaneando');
+                mS.innerText = "Falha biométrica. Use a senha."; mS.style.color = "#ef4444";
+                setTimeout(() => { autenticarPorSenhaAdminTradicional(); }, 500);
+            });
+        } else {
+            autenticarPorSenhaAdminTradicional();
+        }
+    }
+    
+    function autenticarPorSenhaAdminTradicional() { 
+        let senha = prompt('Área Restrita. Digite a Senha Administrativa:');
+        if(senha === SENHA_ADMIN) { 
+            exib('bloqueio-seguranca-admin',0); 
+            entrarNoPainelAdminDireto(); 
+        } else { 
+            alert('Senha incorreta! Acesso estritamente negado.'); 
+            exib('bloqueio-seguranca-admin',0); 
+            sairAdmin();
+        } 
+    }
+    
+    function entrarNoPainelAdminDireto() { sincronizarEcarregar(); exib('cabecalho-completo',1); exib('tela-login',0); exib('tela-aluno',0); exib('tela-admin',1); admAbaAtiva='A'; carregarEdicao(); }
+    function acionarInterfaceAdmin(){ irAdmin(); }
+    function sairAdmin(){exib('tela-admin',0);exib('tela-login',1);document.getElementById('busca-admin-treino').value=''} 
+    function mudarAbaAdmin(l){salvarExAba();admAbaAtiva=l;document.querySelectorAll('#tela-admin .tab').forEach(t=>t.classList.remove('active'));document.getElementById('adm-t'+l).classList.add('active');renderizarExerciciosAdmin()}
+    function salvarExAba(){ exerciciosEmEdicao=exerciciosEmEdicao.filter(e=>e.f!==admAbaAtiva); document.querySelectorAll('.layout-linha').forEach(r=>{let nV=r.querySelector('.ln').value.trim(),sV=r.querySelector('.ls').value.trim(),rV=r.querySelector('.lr').value.trim(),pV=r.querySelector('.lp').value.trim();if(nV){exerciciosEmEdicao.push({f:admAbaAtiva,n:nV,s:sV,r:rV,p:pV,concluido:false})}}) }
+    function renderizarExerciciosAdmin(){ let div=document.getElementById('linhas-edit');div.innerHTML='';let f=exerciciosEmEdicao.filter(e=>e.f===admAbaAtiva);if(f.length===0){addLinhaSuporte('','','','')}else{f.forEach(e=>addLinhaSuporte(e.n,e.s,e.r,e.p))} }
+    function addLinhaSuporte(n='',s='',r='',p=''){document.getElementById('linhas-edit').insertAdjacentHTML('beforeend',`<div class="row layout-linha"><input type="text" class="ln" placeholder="Exercício" list="banco-exercicios-sugestoes" value="${n}" style="flex:2;width:40%"><input type="text" class="ls" placeholder="S" value="${s}" style="width:35px;text-align:center"><input type="text" class="lr" placeholder="R" value="${r}" style="width:35px;text-align:center"><input type="text" class="lp" placeholder="Kg" value="${p}" style="width:45px;text-align:center"><button type="button" onclick="this.parentElement.remove()" style="color:red;background:none;border:none;font-weight:bold;cursor:pointer">X</button></div>`)}
+    function addLinhaAdminDoBotao(){addLinhaSuporte('','','','')}
+    function filtrarAlunosAdmin(){ let t=document.getElementById('busca-admin-treino').value.toLowerCase().trim(), s=document.getElementById('select-admin'); if(t==='')return; for(let i=0;i<s.options.length;i++){if(s.options[i].text.toLowerCase().includes(t)){s.selectedIndex=i;carregarEdicao();break}} }
+    function carregarEdicao() { 
+        let id=document.getElementById('select-admin').value;exerciciosEmEdicao=[];document.getElementById('linhas-edit').innerHTML=''; 
+        if(id==='novo'){document.getElementById('adm-nome').value='';document.getElementById('adm-user').value='';document.getElementById('adm-user').disabled=false;document.getElementById('adm-senha').value='';document.getElementById('adm-obj').value='';document.getElementById('adm-peso').value='';document.getElementById('adm-altura').value='';renderizarExerciciosAdmin()}else{ 
+            let a=bdLocal.alunos[id];if(!a)return; document.getElementById('adm-nome').value=a.nome||'';document.getElementById('adm-user').value=id;document.getElementById('adm-user').disabled=true;document.getElementById('adm-senha').value=a.senha||'';document.getElementById('adm-obj').value=a.objective||a.objetivo||'';document.getElementById('adm-peso').value=a.peso||'';document.getElementById('adm-altura').value=a.altura||'';exerciciosEmEdicao=a.exercicios?[...a.exercicios]:[];renderizarExerciciosAdmin()
+        } 
+    } 
+    function salvarAluno() { 
+        let idSel=document.getElementById('select-admin').value, n=document.getElementById('adm-nome').value.trim(), u=document.getElementById('adm-user').value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), p=document.getElementById('adm-senha').value.trim(); 
+        if(!n||!u||!p){alert('Obrigatórios!');return} salvarExAba(); if(idSel==='novo'&&bdLocal.alunos[u]){alert(`⚠️ O usuário [ ${u} ] já existe!`);return} let idF=(idSel==='novo')?u:idSel; 
+        let f={nome:n,senha:p,objetivo:document.getElementById('adm-obj').value.trim(),peso:document.getElementById('adm-peso').value.trim(),altura:document.getElementById('adm-altura').value.trim(),exercicios:exerciciosEmEdicao}; 
+        bdLocal.alunos[idF]=f;localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos)); 
+        if(!urlNuvem.includes("seu-projeto-default")){ fetch(obterUrlFicha(idF),{method:'PUT',body:JSON.stringify(f)}).then(()=>{alert('Salvo na nuvem!');sincronizarEcarregar();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()})}else{alert('Salvo local!');atualizarSelect();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()}
+    } 
+    function excluirAlunoAtual() { 
+        let id=document.getElementById('select-admin').value;if(id==='novo')return; 
+        if(confirm('Excluir?')){ delete bdLocal.alunos[id];localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos));if(!urlNuvem.includes("seu-projeto-default")){fetch(obterUrlFicha(id),{method:'DELETE'}).then(()=>{alert('Apagado!');sincronizarEcarregar();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()})}else{alert('Apagado!');atualizarSelect();document.getElementById('select-admin').value='novo';document.getElementById('busca-admin-treino').value='';carregarEdicao()}} 
+    } 
+    function exib(id,s){document.getElementById(id).classList.toggle('hidden',!s)} 
+    window.onload=function(){sincronizarEcarregar();document.getElementById('senha-aluno').onkeydown=(e)=>{if(e.key==='Enter')logarAluno()};document.getElementById('user-aluno').onkeydown=(e)=>{if(e.key==='Enter')logarAluno()}} 
+</script> 
+</body> 
+</html>
