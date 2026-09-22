@@ -190,6 +190,21 @@
         </div>
 
         <div id="area-recibo-impressao" class="hidden"></div>
+<!-- ================= ABA DE HISTÓRICO DE PRESENÇAS ANUAL ================= -->
+        <div class="lista-cadastrados hidden-print" style="margin-top: 30px; background: #f0fdf4; border-color: #10b981;">
+            <h3 style="color: #15803d; border-color: #bbf7d0;">📅 Histórico de Presenças Diárias (Reconhecimento Facial)</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                <div>
+                    <label style="font-size: 12px; color: #15803d;">Selecione o Dia:</label>
+                    <input type="date" id="filtro-data-presenca" class="busca-box" style="margin: 0; width: 180px;" onchange="puxarPresencasDoDia()">
+                </div>
+                <button type="button" class="btn btn-sucesso" style="margin-top: 20px; padding: 8px 15px; font-size: 14px; width: auto;" onclick="puxarPresencasDoDia()">🔎 Atualizar Lista</button>
+            </div>
+            <div id="corpo-lista-presencas">
+                <p style="color:gray; font-size:13px; margin: 0;">Selecione uma data acima para listar os alunos que compareceram.</p>
+            </div>
+        </div>
+        <!-- ======================================================================= -->
 
         <div class="lista-cadastrados hidden-print">
             <h3>Alunos Cadastrados</h3>
@@ -223,6 +238,10 @@
                 sincronizarPreMatriculas();
             } else { alert('Acesso negado!'); window.location.href = "treinos.html"; }
         };
+let hoje = new Date();
+    let dataFormatada = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
+    document.getElementById('filtro-data-presenca').value = dataFormatada;
+    puxarPresencasDoDia();
 
         function verificarIdadeAutomatico() {
             let dataNasc = document.getElementById('nascimento').value; if(!dataNasc) return;
@@ -283,10 +302,12 @@ function recusarPreCadastro(id) { if(confirm("Remover esta pré-inscrição?")) 
         function tirarFoto() { let v = document.getElementById('video'), c = document.getElementById('canvas'), i = document.getElementById('foto-preview'), ctx = c.getContext('2d'); if (!v.srcObject) { alert("Ligue a câmera!"); return; } c.width = v.videoWidth; c.height = v.videoHeight; ctx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight); foto = c.toDataURL('image/jpeg'); i.src = foto; v.style.display = "none"; i.style.display = "block"; v.srcObject.getTracks().forEach(t => t.stop()); }
 
         function salvar() {
-            let n = document.getElementById('nome').value.trim(), cPura = document.getElementById('cpf').value.replace(/\D/g, ""); if(!n || !cPura) { alert("Nome e CPF obrigatórios!"); return; }
-            let pagamentosAntigos = (bd[cPura] && bd[cPura].pagamentos) ? bd[cPura].pagamentos : {};
-            let f = {
-                id: cPura, nome: n, cpf: document.getElementById('cpf').value, rg: document.getElementById('rg').value, tel: document.getElementById('telefone').value, donoTel1: document.getElementById('dono-tel1').value, tel2: document.getElementById('telefone2').value, donoTel2: document.getElementById('dono-tel2').value, nasc: document.getElementById('nascimento').value, end: document.getElementById('endereco').value, mensalidade: document.getElementById('valor-mensalidade').value, pagamentos: pagamentosAntigos,
+    let n = document.getElementById('nome').value.trim(), cPura = document.getElementById('cpf').value.replace(/\D/g, ""); if(!n || !cPura) { alert("Nome e CPF obrigatórios!"); return; }
+    let pagamentosAntigos = (bd[cPura] && bd[cPura].pagamentos) ? bd[cPura].pagamentos : {};
+    let f = {
+        id: cPura, nome: n, cpf: document.getElementById('cpf').value, 
+        foto: foto, // <-- ADICIONE APENAS ESSA LINHA AQUI
+        rg: document.getElementById('rg').value, tel: document.getElementById('telefone').value, donoTel1: document.getElementById('dono-tel1').value, tel2: document.getElementById('telefone2').value, donoTel2: document.getElementById('dono-tel2').value, nasc: document.getElementById('nascimento').value, end: document.getElementById('endereco').value, mensalidade: document.getElementById('valor-mensalidade').value, pagamentos: pagamentosAntigos,
                 modalidades: { musculacao: document.getElementById('mod-musculacao').checked, taekwondo: document.getElementById('mod-taekwondo').checked },
                 filiacao: { mae: document.getElementById('nome-mae').value.trim(), pai: document.getElementById('nome-pai').value.trim() },
                 med: { be: document.getElementById('b-e').value, bd: document.getElementById('b-d').value, ane: document.getElementById('an-e').value, and: document.getElementById('an-d').value, cxe: document.getElementById('cx-e').value, cxd: document.getElementById('cx-d').value, pte: document.getElementById('pt-e').value, ptd: document.getElementById('pt-d').value, cos: document.getElementById('costas').value, cin: document.getElementById('cintura').value, bf: document.getElementById('bf').value },
@@ -319,6 +340,49 @@ function atLista() { let div = document.getElementById('l-corpo'), b = document.
             if(f.foto) { foto = f.foto; let img = document.getElementById('foto-preview'); img.src = f.foto; document.getElementById('video').style.display = "none"; img.style.display = "block"; } alert("Carregado para edição!");
         }
         function excluir(id) { let cPura = id.replace(/\D/g, ""); if(confirm("Apagar permanentemente da nuvem?")) { delete bd[cPura]; localStorage.setItem('fichas_v2', JSON.stringify(bd)); if(!urlNuvemBase.includes("seu-projeto-default")) { fetch(obterUrlMatricula(cPura), { method: 'DELETE' }).then(() => { alert("Removido!"); sincronizarMatriculasFirebase(); resetF(); }); } else { atLista(); resetF(); } } }
+function puxarPresencasDoDia() {
+            let dataSelecionada = document.getElementById('filtro-data-presenca').value;
+            if(!dataSelecionada) return;
+
+            let divCorpo = document.getElementById('corpo-lista-presencas');
+            divCorpo.innerHTML = "<p style='color:gray; font-size:13px;'>Buscando registros na nuvem...</p>";
+
+            // Monta a URL correta apontando para a data dentro do nó de presenças
+            let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
+            let urlChamada = base + "/presencas/" + dataSelecionada + ".json";
+
+            fetch(urlChamada)
+                .then(res => res.json())
+                .then(dados => {
+                    divCorpo.innerHTML = '';
+                    
+                    if(!dados || Object.keys(dados).length === 0) {
+                        divCorpo.innerHTML = "<p style='color:#b91c1c; font-size:13px; font-weight:bold; margin: 0;'>⚠️ Nenhuma presença registrada via reconhecimento facial nesta data.</p>";
+                        return;
+                    }
+
+                    // Cria o cabeçalho com o total de alunos no dia
+                    let totalAlunos = Object.keys(dados).length;
+                    divCorpo.innerHTML = `<p style="font-size:13px; font-weight:bold; color:#15803d; margin: 0 0 10px 0;">✅ Total de comparecimentos hoje: ${totalAlunos} aluno(s)</p>`;
+
+                    // Lista cada aluno que bateu ponto na webcam da recepção
+                    Object.keys(dados).forEach(cpf => {
+                        let registro = dados[cpf];
+                        
+                        // Formata o CPF para exibição bonita (000.000.000-00)
+                        let cpfFormatado = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "\$1.\$2.\$3-\$4");
+                        
+                        divCorpo.innerHTML += `
+                            <div class="aluno-linha" style="border-bottom: 1px dashed #cbd5e1; padding: 6px 0;">
+                                <span style="font-size:14px;">⏰ <b>${registro.horario}</b> - ${registro.nome} (<small>${cpfFormatado}</small>)</span>
+                                <span style="font-size:11px; background:#dcfce7; color:#16a34a; padding:2px 6px; border-radius:10px; font-weight:bold;">Presença Confirmada</span>
+                            </div>`;
+                    });
+                })
+                .catch(() => {
+                    divCorpo.innerHTML = "<p style='color:red; font-size:13px;'>Erro crítico ao conectar com o histórico de presenças do Firebase.</p>";
+                });
+        }
     </script>
 </body>
 </html>
