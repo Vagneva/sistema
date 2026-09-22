@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    <!-- Biblioteca de Inteligência Facial -->
+    <!-- Biblioteca de Inteligência Facial Atualizada -->
     <script defer src="https://jsdelivr.net"></script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
@@ -41,13 +41,13 @@
 </div>
 
 <script>
-    // Configuração do seu Banco de Dados atual
+    // URL do seu Firebase (Sempre terminando com .json no final)
     const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
     
     let faceMatcher = null;
     let videoEl = document.getElementById('webcam');
     let ultimasPresencas = {}; 
-    const INTERVALO_MINUTOS = 20; // Tempo mínimo para o mesmo aluno bater presença novamente
+    const INTERVALO_MINUTOS = 20; 
 
     function obterUrlMatricula() {
         let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
@@ -60,9 +60,10 @@
 
     async function iniciarSistema() {
         try {
-            // Modelos originais que possuem maior estabilidade com arquivos locais
+            // Caminho correto e unificado para os modelos faciais compatíveis com a biblioteca vladmandic
             const MODEL_URL = 'https://jsdelivr.net';
             
+            // Carrega os modelos correspondentes do mesmo CDN
             await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
@@ -78,6 +79,7 @@
                     if (aluno && aluno.foto && aluno.foto.startsWith("data:image")) {
                         try {
                             let img = await faceapi.fetchImage(aluno.foto);
+                            // Usando a detecção compatível com o modelo atual carregado
                             let resultadoIA = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
                             
                             if (resultadoIA) {
@@ -106,7 +108,7 @@
 
         } catch (erro) {
             console.error(erro);
-            document.getElementById('status-carregamento').innerHTML = "❌ Bloqueio de Segurança do Navegador ou Erro no Firebase.";
+            document.getElementById('status-carregamento').innerHTML = "❌ Erro ao sincronizar modelos de IA. Verifique sua conexão.";
             document.getElementById('status-carregamento').style.color = "#ef4444";
             ligarWebcam();
         }
