@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    <!-- Biblioteca de Inteligência Facial Atualizada -->
-    <script defer src="https://jsdelivr.net"></script>
+    <!-- Script de IA original e estável -->
+    <script src="https://cloudflare.com" integrity="sha512-Z6vH8SgW4CAt7RgmU6unFpS6wV6BovYmR2fbaS7V9oWe+WWeIIn8YI6iM6vVvD8bQ1b8U2a2S5L2sFwVv8F5eA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -41,7 +41,6 @@
 </div>
 
 <script>
-    // URL do seu Firebase (Sempre terminando com .json no final)
     const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
     
     let faceMatcher = null;
@@ -60,10 +59,9 @@
 
     async function iniciarSistema() {
         try {
-            // Caminho correto e unificado para os modelos faciais compatíveis com a biblioteca vladmandic
-            const MODEL_URL = 'https://jsdelivr.net';
+            // Servidor estável alternativo com os arquivos originais de IA (pesos faciais)
+            const MODEL_URL = 'https://githubusercontent.com';
             
-            // Carrega os modelos correspondentes do mesmo CDN
             await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
@@ -78,8 +76,11 @@
                     let aluno = alunos[cpf];
                     if (aluno && aluno.foto && aluno.foto.startsWith("data:image")) {
                         try {
-                            let img = await faceapi.fetchImage(aluno.foto);
-                            // Usando a detecção compatível com o modelo atual carregado
+                            // Cria uma imagem invisível na memória para a IA ler
+                            let img = new Image();
+                            img.src = aluno.foto;
+                            await new Promise(resolve => img.onload = resolve);
+                            
                             let resultadoIA = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
                             
                             if (resultadoIA) {
@@ -100,7 +101,7 @@
                 document.getElementById('status-carregamento').innerHTML = "✅ Sistema Pronto e Monitorando Entrada!";
                 document.getElementById('status-carregamento').style.color = "#10b981";
             } else {
-                document.getElementById('status-carregamento').innerHTML = "⚠️ Câmera ativa. Cadastre um aluno com foto na Matrícula primeiro.";
+                document.getElementById('status-carregamento').innerHTML = "⚠️ Câmera ativa. Registre um aluno com foto na Matrícula primeiro.";
                 document.getElementById('status-carregamento').style.color = "#facc15";
             }
             
@@ -108,7 +109,7 @@
 
         } catch (erro) {
             console.error(erro);
-            document.getElementById('status-carregamento').innerHTML = "❌ Erro ao sincronizar modelos de IA. Verifique sua conexão.";
+            document.getElementById('status-carregamento').innerHTML = "❌ Erro ao sincronizar modelos de IA ou conectar ao Firebase.";
             document.getElementById('status-carregamento').style.color = "#ef4444";
             ligarWebcam();
         }
@@ -156,20 +157,20 @@
             return; 
         }
 
-        ultimasPresencas[cpf] = timestampAtual;
-
         let ano = agora.getFullYear();
         let mes = String(agora.getMonth() + 1).padStart(2, '0');
         let dia = String(agora.getDate()).padStart(2, '0');
         let dataHoje = `${ano}-${mes}-${dia}`;
         let horaHoje = agora.toLocaleTimeString('pt-BR');
 
+        // Só atualiza a marcação no histórico após o sucesso do envio
         let dadosPresenca = { nome: nome, horario: horaHoje };
         
         fetch(obterUrlSalvarPresenca(dataHoje, cpf), {
             method: 'PUT',
             body: JSON.stringify(dadosPresenca)
         }).then(() => {
+            ultimasPresencas[cpf] = timestampAtual;
             let hist = document.getElementById('historico-presenca');
             hist.innerHTML = `<div class="log-item"><span class="sucesso">✅ ${nome}</span> <span>${horaHoje}</span></div>` + hist.innerHTML;
             
