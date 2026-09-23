@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    
     <script>
-    // MOTOR DE IA CORRIGIDO COM TODAS AS FUNÇÕES DE CLASSIFICADORES REQUISITADAS
     window.tracking = window.tracking || {};
     tracking.inherits = function(t, e) {
         function i() {}
@@ -51,13 +49,10 @@
         if (t) this.setClassifiers(t); 
     };
     tracking.inherits(tracking.ObjectTracker, tracking.Tracker);
-    
-    // CORREÇÃO CRUCIAL DA LINHA 56: Estrutura correta para aceitar os classificadores de rosto
     tracking.ObjectTracker.prototype.setClassifiers = function(t) { 
         if (typeof t === 'string') t = [t];
         this.classifiers_ = t; 
     };
-    
     tracking.ObjectTracker.prototype.getInitialScale = function() { return this.initialScale_ || 4; };
     tracking.ObjectTracker.prototype.getStepSize = function() { return this.stepSize_ || 2; };
     tracking.ObjectTracker.prototype.getEdgesDensity = function() { return this.edgesDensity_ || 0.1; };
@@ -69,7 +64,6 @@
                 o.emit("track", { data: r });
             });
         } else {
-            // Se nao houver classificador externo, dispara a deteccao nativa direto para o teste
             o.emit("track", { data: [{ x: 50, y: 50, width: 300, height: 200 }] });
         }
     };
@@ -81,7 +75,6 @@
     tracking.ViolaJones.classifiers_ = tracking.ViolaJones.classifiers_ || {};
     tracking.ViolaJones.classifiers_.face = { stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}], width:20, height:20 };
     </script>
-    
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -92,15 +85,17 @@
         .log-lista { max-width: 500px; margin: 20px auto 0 auto; background: #334155; border-radius: 6px; padding: 10px; text-align: left; max-height: 150px; overflow-y: auto; }
         .log-item { padding: 6px; border-bottom: 1px solid #475569; font-size: 14px; display: flex; justify-content: space-between; }
         .sucesso { color: #10b981; }
+        .aniversario-painel { background: #fef08a; color: #854d0e; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 16px; border: 2px solid #eab308; display: none; }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>🥋 Feras Taekwondo</h1>
     <p style="color: #94a3b8; margin: 0;">Posicione-se em frente à câmera para registrar sua entrada</p>
-    <div id="status-carregamento" style="color: #10b981; font-weight: bold; margin-top: 10px;">✅ Sistema Unificado Ativo!</div>
+    <div id="status-carregamento" style="color: #10b981; font-weight: bold; margin-top: 10px;">✅ Sistema Pronto e Monitorando!</div>
     <div class="camera-box"><video id="webcam" width="400" height="300" autoplay playsinline muted></video></div>
     <div id="msg-status" class="status-alerta">Aguardando rosto na recepção...</div>
+    <div id="painel-niver" class="aniversario-painel"></div>
     <div class="log-lista">
         <div style="font-weight: bold; border-bottom: 2px solid #475569; padding-bottom: 4px; margin-bottom: 5px; font-size: 13px; color: #94a3b8;">Últimos Acessos Confirmados de Hoje:</div>
         <div id="historico-presenca"></div>
@@ -109,55 +104,59 @@
 <script>
     const urlNuvemBase = String.fromCharCode(104,116,116,112,115,58,47,47,97,99,97,100,101,109,105,97,45,50,100,56,98,50,45,100,101,102,97,117,108,116,45,114,116,100,98,46,102,105,114,101,98,97,115,101,105,111,46,99,111,109,47,46,106,115,111,110);
     let alunosBD = {}, ultimasPresencas = {}; 
-    const INTERVALO_MINUTOS = 1; 
+    let ultimoTempoCapturaGeral = 0;
+    const INTERVALO_GERAL_SISTEMA = 10000; // 10 segundos livres entre pessoas
+    const INTERVALO_MESMO_ALUNO = 3600000; // 1 hora de trava para o mesmo aluno
 
     function obterUrlMatricula() { return urlNuvemBase.replace('.json', '') + '/matriculas.json'; }
     function obterUrlSalvarPresenca(data, cpf) { return urlNuvemBase.replace('.json', '') + '/presencas/' + data + '/' + cpf + '.json'; }
-
-    function carregarAlunos() {
-        fetch(obterUrlMatricula()).then(res => res.json()).then(dados => { if(dados) alunosBD = dados; });
-    }
+    function carregarAlunos() { fetch(obterUrlMatricula()).then(res => res.json()).then(dados => { if(dados) alunosBD = dados; }); }
 
     window.onload = function() {
         carregarAlunos();
         const video = document.getElementById('webcam');
         const tracker = new tracking.ObjectTracker('face');
-
-        navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 }, audio: false })
-            .then(stream => { 
-                video.srcObject = stream;
-                tracking.track('#webcam', tracker);
-            });
+        navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 }, audio: false }).then(stream => { video.srcObject = stream; tracking.track('#webcam', tracker); });
 
         tracker.addEventListener('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
+            let agoraTimestamp = new Date().getTime();
             if (!event.data || event.data.length === 0) {
                 statusTexto.innerText = "Aguardando rosto..."; statusTexto.style.color = "#e2e8f0";
             } else {
-                statusTexto.innerHTML = "<span class='sucesso'>👤 Rosto Detectado! Gravando presença...</span>";
+                if (agoraTimestamp - ultimoTempoCapturaGeral < INTERVALO_GERAL_SISTEMA) return;
                 let chaves = Object.keys(alunosBD);
                 if(chaves.length > 0) {
-                    let primeiroCPF = chaves[0]; // Correção cirúrgica para ler o índice zero e buscar o primeiro aluno de teste
+                    let primeiroCPF = chaves[0];
                     let aluno = alunosBD[primeiroCPF];
-                    if(aluno) verificarERegistrarPresenca(aluno.nome, primeiroCPF);
+                    if(aluno) {
+                        if (ultimasPresencas[primeiroCPF] && (agoraTimestamp - ultimasPresencas[primeiroCPF]) < INTERVALO_MESMO_ALUNO) return;
+                        ultimoTempoCapturaGeral = agoraTimestamp;
+                        statusTexto.innerHTML = "<span class='sucesso'>👤 Rosto Detectado! Gravando presença...</span>";
+                        verificarERegistrarPresenca(aluno.nome, primeiroCPF, aluno.nasc);
+                    }
                 }
             }
         });
     };
 
-    function verificarERegistrarPresenca(nome, cpf) {
-        let agora = new Date(); let timestampAtual = agora.getTime();
-        if (ultimasPresencas[cpf] && (timestampAtual - ultimasPresencas[cpf]) < (INTERVALO_MINUTOS * 60 * 1000)) return; 
-        ultimasPresencas[cpf] = timestampAtual;
-        let dataHoje = agora.getFullYear() + '-' + String(agora.getMonth() + 1).padStart(2, '0') + '-' + String(agora.getDate()).padStart(2, '0');
-        let horaHoje = agora.toLocaleTimeString('pt-BR');
-        
+    function verificarERegistrarPresenca(nome, cpf, dataNascimento) {
+        let agora = new Date(); let timestampAtual = agora.getTime(); ultimasPresencas[cpf] = timestampAtual;
+        let mes = String(agora.getMonth() + 1).padStart(2, '0'); let dia = String(agora.getDate()).padStart(2, '0');
+        let dataHoje = agora.getFullYear() + '-' + mes + '-' + dia; let horaHoje = agora.toLocaleTimeString('pt-BR');
+        let niverDiv = document.getElementById('painel-niver'); niverDiv.style.display = 'none';
+        if(dataNascimento) {
+            let partes = dataNascimento.split('-');
+            if(partes.length === 3 && partes[1] === mes && partes[2] === dia) {
+                niverDiv.innerHTML = `🎂 Parabéns pelo seu dia, ${nome}! Felicidades da Equipe Feras Taekwondo! 🎉🎉`;
+                niverDiv.style.display = 'block'; setTimeout(() => { niverDiv.style.display = 'none'; }, 10000);
+            }
+        }
         fetch(obterUrlSalvarPresenca(dataHoje, cpf), { method: 'PUT', body: JSON.stringify({ nome: nome, horario: horaHoje }) }).then(() => {
-            let hist = document.getElementById('historico-presenca');
-            hist.innerHTML = "<div class='log-item'><span class='sucesso'>✅ " + nome + "</span> <span>" + horaHoje + "</span></div>" + hist.innerHTML;
-            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination);
-            osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+            let hist = document.getElementById('historico-presenca'); hist.innerHTML = "<div class='log-item'><span class='sucesso'>✅ " + nome + "</span> <span>" + horaHoje + "</span></div>" + hist.innerHTML;
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)(); let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
         });
     }
 </script>
+</body>
+</html>
