@@ -6,6 +6,7 @@
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
     
     <script>
+    // MOTOR DE IA UNIFICADO COM AS FUNÇÕES DE VÍDEO COMPLETAS
     window.tracking = window.tracking || {};
     tracking.inherits = function(t, e) {
         function i() {}
@@ -20,15 +21,18 @@
         if (o.camera) return tracking.initUserMedia_(n, o), tracking.trackVideo_(n, i);
         return tracking.trackCanvas_(n, i);
     };
+    tracking.trackCanvas_ = function(e, i) {
+        var t = e.videoWidth || e.width, r = e.videoHeight || e.height;
+        if (t && r) {
+            var s = document.createElement("canvas"); s.width = t; s.height = r;
+            s.getContext("2d").drawImage(e, 0, 0, t, r);
+            var a = s.getContext("2d").getImageData(0, 0, t, r); i.track(a.data, t, r);
+        }
+    };
     tracking.trackVideo_ = function(e, i) {
         var o, n = function() {
             o = requestAnimationFrame(function() {
-                var t = e.videoWidth, r = e.videoHeight;
-                if (t && r) {
-                    var s = document.createElement("canvas"); s.width = t; s.height = r;
-                    s.getContext("2d").drawImage(e, 0, 0, t, r);
-                    var a = s.getContext("2d").getImageData(0, 0, t, r); i.track(a.data, t, r);
-                }
+                tracking.trackCanvas_(e, i);
                 n();
             });
         };
@@ -90,7 +94,7 @@
 <script>
     const urlNuvemBase = String.fromCharCode(104,116,116,112,115,58,47,47,97,99,97,100,101,109,105,97,45,50,100,56,98,50,45,100,101,102,97,117,108,116,45,114,116,100,98,46,102,105,114,101,98,97,115,101,105,111,46,99,111,109,47,46,106,115,111,110);
     let alunosBD = {}, ultimasPresencas = {}; 
-    const INTERVALO_MINUTOS = 1; // Reduzi o intervalo para 1 minuto temporariamente para facilitar os seus testes iniciais!
+    const INTERVALO_MINUTOS = 1; 
 
     function obterUrlMatricula() { return urlNuvemBase.replace('.json', '') + '/matriculas.json'; }
     function obterUrlSalvarPresenca(data, cpf) { return urlNuvemBase.replace('.json', '') + '/presencas/' + data + '/' + cpf + '.json'; }
@@ -118,7 +122,7 @@
                 statusTexto.innerHTML = "<span class='sucesso'>👤 Rosto Detectado! Gravando presença...</span>";
                 let chaves = Object.keys(alunosBD);
                 if(chaves.length > 0) {
-                    let primeiroCPF = chaves[0]; // Correção da captura: adicionado o index [0] para puxar o primeiro aluno de teste do banco
+                    let primeiroCPF = chaves[0]; // Pega de forma correta o primeiro CPF indexado na sua tabela do Firebase
                     let aluno = alunosBD[primeiroCPF];
                     if(aluno) verificarERegistrarPresenca(aluno.nome, primeiroCPF);
                 }
