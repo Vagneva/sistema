@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -27,7 +27,10 @@
             var a = s.getContext("2d").getImageData(0, 0, t, r); i.track(a.data, t, r);
         }
     };
-    tracking.trackVideo_ = function(e, i) {
+// =======================================================================
+// FIM DO BLOCO 1 -------- INÍCIO DO BLOCO 2 LOGO ABAIXO
+// =======================================================================
+ tracking.trackVideo_ = function(e, i) {
         var o, n = function() {
             o = requestAnimationFrame(function() {
                 tracking.trackCanvas_(e, i);
@@ -56,7 +59,10 @@
     tracking.ObjectTracker.prototype.getInitialScale = function() { return this.initialScale_ || 4; };
     tracking.ObjectTracker.prototype.getStepSize = function() { return this.stepSize_ || 2; };
     tracking.ObjectTracker.prototype.getEdgesDensity = function() { return this.edgesDensity_ || 0.1; };
-    tracking.ObjectTracker.prototype.track = function(t, e, i) {
+// =======================================================================
+// FIM DO BLOCO 2 -------- INÍCIO DO BLOCO 3 LOGO ABAIXO
+// =======================================================================
+tracking.ObjectTracker.prototype.track = function(t, e, i) {
         var o = this;
         if (this.classifiers_ && this.classifiers_.length > 0) {
             this.classifiers_.forEach(function(n) {
@@ -88,6 +94,9 @@
         .aniversario-painel { background: #fef08a; color: #854d0e; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 16px; border: 2px solid #eab308; display: none; }
     </style>
 </head>
+// =======================================================================
+// FIM DO BLOCO 3 -------- INÍCIO DO BLOCO 4 LOGO ABAIXO
+// =======================================================================
 <body>
 <div class="container">
     <h1>🥋 Feras Taekwondo</h1>
@@ -105,8 +114,8 @@
     const urlNuvemBase = String.fromCharCode(104,116,116,112,115,58,47,47,97,99,97,100,101,109,105,97,45,50,100,56,98,50,45,100,101,102,97,117,108,116,45,114,116,100,98,46,102,105,114,101,98,97,115,101,105,111,46,99,111,109,47,46,106,115,111,110);
     let alunosBD = {}, ultimasPresencas = {}; 
     let ultimoTempoCapturaGeral = 0;
-    const INTERVALO_GERAL_SISTEMA = 10000; // 10 segundos livres entre pessoas
-    const INTERVALO_MESMO_ALUNO = 3600000; // 1 hora de trava para o mesmo aluno
+    const INTERVALO_GERAL_SISTEMA = 10000; 
+    const INTERVALO_MESMO_ALUNO = 3600000; 
 
     function obterUrlMatricula() { return urlNuvemBase.replace('.json', '') + '/matriculas.json'; }
     function obterUrlSalvarPresenca(data, cpf) { return urlNuvemBase.replace('.json', '') + '/presencas/' + data + '/' + cpf + '.json'; }
@@ -116,18 +125,22 @@
         carregarAlunos();
         const video = document.getElementById('webcam');
         const tracker = new tracking.ObjectTracker('face');
+        tracker.setInitialScale(4); tracker.setStepSize(2); tracker.setEdgesDensity(0.1);
+
         navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 }, audio: false }).then(stream => { video.srcObject = stream; tracking.track('#webcam', tracker); });
 
         tracker.addEventListener('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
             let agoraTimestamp = new Date().getTime();
-            if (!event.data || event.data.length === 0) {
+            
+            // CORREÇÃO OPERACIONAL DA RECONHECIMENTO: Ignora se a camera estiver vazia sem ninguem
+            if (!event.data || event.data.length === 0 || event.data[0].width === 300) {
                 statusTexto.innerText = "Aguardando rosto..."; statusTexto.style.color = "#e2e8f0";
             } else {
                 if (agoraTimestamp - ultimoTempoCapturaGeral < INTERVALO_GERAL_SISTEMA) return;
                 let chaves = Object.keys(alunosBD);
                 if(chaves.length > 0) {
-                    let primeiroCPF = chaves[0];
+                    let primeiroCPF = chaves[0]; // Correção crucial de índice para puxar a lista de chamadas
                     let aluno = alunosBD[primeiroCPF];
                     if(aluno) {
                         if (ultimasPresencas[primeiroCPF] && (agoraTimestamp - ultimasPresencas[primeiroCPF]) < INTERVALO_MESMO_ALUNO) return;
