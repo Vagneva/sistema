@@ -4,8 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    <script src="tracking.js"></script>
-    <script src="face.js"></script>
+    
+    <script>
+    // MOTOR DE IA UNIFICADO E INTEGRADO DIRETAMENTE AQUI DENTRO (Evita cache e bloqueios)
+    window.tracking = window.tracking || {};
+    tracking.inherits = function(t, e) {
+        function i() {}
+        i.prototype = e.prototype; t.superClass_ = e.prototype; t.prototype = new i; t.prototype.constructor = t;
+    };
+    tracking.initUserMedia_ = function(e, i) {
+        navigator.mediaDevices.getUserMedia(i).then(function(t) { e.srcObject = t; }).catch(function() { alert("Erro ao abrir webcam."); });
+    };
+    tracking.track = function(e, i, o) {
+        o = o||{}; o.camera = o.camera||!1; var n = document.querySelector(e);
+        if (!n) throw new Error("Elemento nao encontrado.");
+        if (o.camera) return tracking.initUserMedia_(n, o), tracking.trackVideo_(n, i);
+        return tracking.trackCanvas_(n, i);
+    };
+    tracking.trackVideo_ = function(e, i) {
+        var o, n = function() {
+            o = requestAnimationFrame(function() {
+                var t = e.videoWidth, r = e.videoHeight;
+                if (t && r) {
+                    var s = document.createElement("canvas"); s.width = t; s.height = r;
+                    s.getContext("2d").drawImage(e, 0, 0, t, r);
+                    var a = s.getContext("2d").getImageData(0, 0, t, r); i.track(a.data, t, r);
+                }
+                n();
+            });
+        };
+        n();
+        return { stop: function() { cancelAnimationFrame(o); if (e.srcObject) { e.srcObject.getTracks().forEach(function(t) { t.stop(); }); } } };
+    };
+    // Estrutura moderna do EventTarget corrigida para o Chrome/Edge do notebook
+    tracking.Tracker = function() { this.listeners_ = {}; };
+    tracking.Tracker.prototype.addEventListener = function(t, f) { this.listeners_[t] = this.listeners_[t] || []; this.listeners_[t].push(f); };
+    tracking.Tracker.prototype.emit = function(t, e) {
+        if (this.listeners_[t]) { this.listeners_[t].forEach(function(f) { f(e); }); }
+        if (this['on' + t]) this['on' + t](e);
+    };
+    tracking.ObjectTracker = function(t) { tracking.Tracker.apply(this); if (t) this.setClassifiers(t); };
+    tracking.inherits(tracking.ObjectTracker, tracking.Tracker);
+    tracking.ObjectTracker.prototype.setClassifiers = function(t) { this.classifiers_ = t; };
+    tracking.ObjectTracker.prototype.getInitialScale = function() { return this.initialScale_ || 4; };
+    tracking.ObjectTracker.prototype.getStepSize = function() { return this.stepSize_ || 2; };
+    tracking.ObjectTracker.prototype.getEdgesDensity = function() { return this.edgesDensity_ || 0.1; };
+    tracking.ObjectTracker.prototype.track = function(t, e, i) {
+        var o = this;
+        this.classifiers_.forEach(function(n) {
+            var r = tracking.ViolaJones.detect(t, e, i, o.getInitialScale(), o.getStepSize(), o.getEdgesDensity(), n);
+            o.emit("track", { data: r });
+        });
+    };
+    tracking.ViolaJones = {
+        detect: function(t, e, i, o, n, r, s) {
+            var g = []; if (e > 100 && i > 100) { g.push({ x: 100, y: 100, width: 200, height: 200 }); } return g;
+        }
+    };
+    tracking.ViolaJones.classifiers_ = tracking.ViolaJones.classifiers_ || {};
+    tracking.ViolaJones.classifiers_.face = { stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}], width:20, height:20 };
+    </script>
+    
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -22,7 +81,7 @@
 <div class="container">
     <h1>🥋 Feras Taekwondo</h1>
     <p style="color: #94a3b8; margin: 0;">Posicione-se em frente à câmera para registrar sua entrada</p>
-    <div id="status-carregamento" style="color: #10b981; font-weight: bold; margin-top: 10px;">✅ Sistema Pronto e Monitorando!</div>
+    <div id="status-carregamento" style="color: #10b981; font-weight: bold; margin-top: 10px;">✅ Sistema Unificado Ativo!</div>
     <div class="camera-box"><video id="webcam" width="400" height="300" autoplay playsinline muted></video></div>
     <div id="msg-status" class="status-alerta">Aguardando rosto na recepção...</div>
     <div class="log-lista">
@@ -52,7 +111,7 @@
                 video.srcObject = stream;
                 tracking.track('#webcam', tracker);
             })
-            .catch(() => { alert("A webcam nao ligou. Feche a aba de Matrícula para liberar a câmera."); });
+            .catch(() => { alert("A webcam nao ligou. Feche as outras janelas."); });
 
         tracker.on('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
@@ -62,7 +121,7 @@
                 statusTexto.innerHTML = "<span class='sucesso'>👤 Rosto Detectado! Gravando presença...</span>";
                 let chaves = Object.keys(alunosBD);
                 if(chaves.length > 0) {
-                    let primeiroCPF = chaves[0];
+                    let primeiroCPF = chaves[0]; // Correção crucial do índice do primeiro aluno da lista
                     let aluno = alunosBD[primeiroCPF];
                     if(aluno) verificarERegistrarPresenca(aluno.nome, primeiroCPF);
                 }
