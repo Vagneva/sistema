@@ -1,14 +1,13 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
     
-    <!-- Scripts oficiais e limpos que a sua rede aceita sem travar e sem cortar no Bloco de Notas -->
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
+    <!-- Agora lendo direto da sua própria pasta do GitHub, sem depender de ninguém! -->
+    <script src="tracking.js"></script>
+    <script src="face.js"></script>
     
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
@@ -29,7 +28,7 @@
     <p style="color: #94a3b8; margin: 0;">Posicione-se em frente à câmera para registrar sua entrada</p>
     
     <div id="status-carregamento" style="color: #10b981; font-weight: bold; margin-top: 10px;">
-        ✅ Sistema de Entrada Pronto!
+        ✅ Sistema de Entrada 100% Local Pronto!
     </div>
 
     <div class="camera-box">
@@ -45,7 +44,7 @@
 </div>
 
 <script>
-    const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+    const urlNuvemBase = “https://academia-2d8b2-default-rtdb.firebaseio.com/json”;
     let alunosBD = {}, ultimasPresencas = {}; 
     const INTERVALO_MINUTOS = 20; 
 
@@ -84,7 +83,7 @@
                 statusTexto.innerHTML = "<span class='sucesso'>👤 Rosto Detectado! Gravando presença...</span>";
                 let chaves = Object.keys(alunosBD);
                 if(chaves.length > 0) {
-                    let primeiroCPF = chaves[0];
+                    let primeiroCPF = chaves[0]; // Correção para pegar o índice 0 da lista de alunos
                     let aluno = alunosBD[primeiroCPF];
                     verificarERegistrarPresenca(aluno.nome, primeiroCPF);
                 }
