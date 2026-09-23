@@ -1,13 +1,12 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
     
-    <!-- Biblioteca de IA Estável (Homologada para o GitHub Pages) -->
-    <script src="https://cloudflare.com" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Link oficial corrigido com letras minúsculas (Homologado para o GitHub Pages) -->
+    <script src="https://cloudflare.com"></script>
     
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
@@ -63,7 +62,7 @@
 
     async function iniciarSistema() {
         try {
-            // Servidor estável do GitHub com arquivos de IA originais
+            // Servidor estável do GitHub com arquivos de IA originais em letras minúsculas
             const MODEL_URL = 'https://githubusercontent.com';
             
             await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
@@ -135,7 +134,7 @@
             })
             .catch(erro => { 
                 console.error("Erro na webcam:", erro);
-                alert("A webcam nao pôde ser ativada. Verifique se as permissões no cadeado estao ok ou se a aba de Matrícula nao está aberta usando a câmera."); 
+                alert("A webcam nao pôde ser ativada. Feche a aba de Matrícula para liberar a câmera."); 
             });
     }
 
