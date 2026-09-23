@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -27,8 +27,10 @@
             var a = s.getContext("2d").getImageData(0, 0, t, r); i.track(a.data, t, r);
         }
     };
-
- tracking.trackVideo_ = function(e, i) {
+// =======================================================================
+// FIM DO BLOCO 1 -------- INÍCIO DO BLOCO 2 LOGO ABAIXO
+// =======================================================================
+    tracking.trackVideo_ = function(e, i) {
         var o, n = function() {
             o = requestAnimationFrame(function() {
                 tracking.trackCanvas_(e, i);
@@ -57,8 +59,10 @@
     tracking.ObjectTracker.prototype.getInitialScale = function() { return this.initialScale_ || 4; };
     tracking.ObjectTracker.prototype.getStepSize = function() { return this.stepSize_ || 2; };
     tracking.ObjectTracker.prototype.getEdgesDensity = function() { return this.edgesDensity_ || 0.1; };
-
-tracking.ObjectTracker.prototype.track = function(t, e, i) {
+// =======================================================================
+// FIM DO BLOCO 2 -------- INÍCIO DO BLOCO 3 LOGO ABAIXO
+// =======================================================================
+    tracking.ObjectTracker.prototype.track = function(t, e, i) {
         var o = this;
         if (this.classifiers_ && this.classifiers_.length > 0) {
             this.classifiers_.forEach(function(n) {
@@ -90,7 +94,9 @@ tracking.ObjectTracker.prototype.track = function(t, e, i) {
         .aniversario-painel { background: #fef08a; color: #854d0e; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 16px; border: 2px solid #eab308; display: none; }
     </style>
 </head>
-
+// =======================================================================
+// FIM DO BLOCO 3 -------- INÍCIO DO BLOCO 4 LOGO ABAIXO
+// =======================================================================
 <body>
 <div class="container">
     <h1>🥋 Feras Taekwondo</h1>
