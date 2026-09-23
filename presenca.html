@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
     
-    <!-- Biblioteca Alternativa Embutida via texto que roda direto do navegador sem baixar arquivos de fora -->
-    <script>
-    /* tracking-min.js embutido para pular o bloqueio de rede */
-    !function(t,e){t.tracking=t.tracking||{},tracking.inherits=function(t,e){function i(){}i.prototype=e.prototype,t.superClass_=e.prototype,t.prototype=new i,t.prototype.constructor=t},tracking.initUserMedia_=function(e,i){t.navigator.mediaDevices.getUserMedia(i).then(function(t){e.srcObject=t}).catch(function(){alert("Erro ao abrir webcam.")})},tracking.isTimer_=!1,tracking.track=function(e,i,o){o=o||{},o.camera=o.camera||!1;var n=t.document.querySelector(e);if(!n)throw new Error("Elemento nao encontrado.");if(o.camera)return tracking.initUserMedia_(n,o),tracking.trackVideo_(n,i);return tracking.trackCanvas_(n,i)},tracking.trackVideo_=function(e,i){var o,n=function(){o=t.requestAnimationFrame(function(){var t=e.videoWidth,r=e.videoHeight;if(t&&r){var s=new tracking.Canvas(t,r);s.getContext().drawImage(e,0,0,t,r);var a=s.getContext().getImageData(0,0,t,r);i.track(a.data,t,r)}n()})};return n(),{stop:function(){t.cancelAnimationFrame(o),e.srcObject&&e.srcObject.getTracks().forEach(function(t){t.stop()})}}},tracking.Canvas=function(e,i){var o=t.document.createElement("canvas");return o.width=e,o.height=i,o},tracking.Canvas.prototype.getContext=function(){return this.getContext("2d")},tracking.Tracker=function(){tracking.Tracker.superClass_.constructor.apply(this,arguments)},tracking.inherits(tracking.Tracker,t.EventTarget||function(){}),tracking.Tracker.prototype.track=function(){},tracking.ObjectTracker=function(t){tracking.ObjectTracker.superClass_.constructor.apply(this,arguments),t&&(this.setClassifiers(t))},tracking.inherits(tracking.ObjectTracker,tracking.Tracker),tracking.ObjectTracker.prototype.setClassifiers=function(t){this.classifiers_=t},tracking.ObjectTracker.prototype.track=function(t,e,i){var o=this,n=this.classifiers_;n.forEach(function(n){var r=tracking.ViolaJones.detect(t,e,i,o.getInitialScale(),o.getStepSize(),o.getEdgesDensity(),n);o.emit("track",{data:r})})},tracking.ObjectTracker.prototype.getInitialScale=function(){return this.initialScale_||1},tracking.ObjectTracker.prototype.setInitialScale=function(t){this.initialScale_=t},tracking.ObjectTracker.prototype.getStepSize=function(){return this.stepSize_||2},tracking.ObjectTracker.prototype.setStepSize=function(t){this.stepSize_=t},tracking.ObjectTracker.prototype.getEdgesDensity=function(){return this.edgesDensity_||.1},tracking.ObjectTracker.prototype.setEdgesDensity=function(t){this.edgesDensity_=t},tracking.ViolaJones={detect:function(t,e,i,o,n,r,s){var a=0,h=new Int32Array(e*i),c=new Int32Array(e*i),u=new Int32Array(e*i);tracking.ViolaJones.computeImages(t,e,i,h,c,u,s);var f=s.stages,l=f.threshold,g=[],p=s.width,d=s.height;for(var v=o;e>v*p;v+=n)for(var m=o;i>v*d;m+=n){var y=Math.round(v*p),w=Math.round(v*d);if(tracking.ViolaJones.evalStage(f,h,c,u,a,e,m,v))return g.push({x:a,y:m,width:y,height:w}),!0}return g},computeImages:function(t,e,i,o,n,r,s){for(var a=0;i>a;a++)for(var h=0;e>h;h++){var c=4*(a*e+h),u=.299*t[c]+.587*t[c+1]+.114*t[c+2];o[a*e+h]=u,n[a*e+h]=u*u}},evalStage:function(t,e,i,o,n,r,s,a){return!0}}(window);
-    
-    /* face-min.js embutido para mapear contornos de rostos */
-    tracking.ViolaJones.classifiers_=tracking.ViolaJones.classifiers_||{},tracking.ObjectTracker.prototype.setClassifiers=function(t){"string"==typeof t&&(t=[t]);var e=[];t.forEach(function(t){e.push(tracking.ViolaJones.classifiers_[t])}),this.classifiers_=e},tracking.ViolaJones.classifiers_.face={stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}],width:20,height:20};
-    </script>
+    <!-- Scripts oficiais e estáveis homologados para o GitHub Pages -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
     
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
@@ -33,14 +28,14 @@
     <p style="color: #94a3b8; margin: 0;">Posicione-se em frente à câmera para registrar sua entrada</p>
     
     <div id="status-carregamento" style="color: #10b981; font-weight: bold; margin-top: 10px;">
-        ✅ Sistema Pronto e Monitorando Entrada!
+        ✅ Sistema de Entrada Pronto!
     </div>
 
     <div class="camera-box">
         <video id="webcam" width="400" height="300" autoplay playsinline muted></video>
     </div>
 
-    <div id="msg-status" class="status-alerta">Aguardando aluno em frente à câmera...</div>
+    <div id="msg-status" class="status-alerta">Aguardando rosto na recepção...</div>
 
     <div class="log-lista">
         <div style="font-weight: bold; border-bottom: 2px solid #475569; padding-bottom: 4px; margin-bottom: 5px; font-size: 13px; color: #94a3b8;">Últimos Acessos Confirmados de Hoje:</div>
@@ -51,7 +46,6 @@
 <script>
     // URL do seu Firebase atualizado
     const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
-    
     let alunosBD = {};
     let ultimasPresencas = {}; 
     const INTERVALO_MINUTOS = 20; 
@@ -76,29 +70,26 @@
     window.onload = function() {
         carregarAlunos();
         
-        let video = document.getElementById('webcam');
-        let tracker = new tracking.ObjectTracker('face');
+        const video = document.getElementById('webcam');
+        const tracker = new tracking.ObjectTracker('face');
         
         tracker.setInitialScale(4);
         tracker.setStepSize(2);
         tracker.setEdgesDensity(0.1);
 
-        const restricoes = {
-            video: { width: 400, height: 300, facingMode: "user" },
-            audio: false
-        };
-
-        navigator.mediaDevices.getUserMedia(restricoes)
+        // Liga a câmera forçando as configurações do notebook
+        navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 }, audio: false })
             .then(stream => { 
                 video.srcObject = stream;
+                // Inicializa o rastreamento assim que o vídeo começar a rodar
+                tracking.track('#webcam', tracker);
             })
             .catch(erro => { 
-                alert("A webcam nao pôde ser ligada. Feche a aba de Matrícula para liberá-la."); 
+                console.error("Erro de hardware:", erro);
+                alert("A webcam não pôde ser ativada. Lembre-se de FECHAR a aba de Matrícula para liberar a câmera."); 
             });
 
-        tracking.track('#webcam', tracker);
-
-        // Quando o aluno se posicionar na recepção
+        // Quando detectar um rosto na recepção
         tracker.on('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
             
