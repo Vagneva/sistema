@@ -337,7 +337,18 @@ function atLista() { let div = document.getElementById('l-corpo'), b = document.
             calcIMC(); let m = f.med || {}; document.getElementById('b-e').value = m.be||''; document.getElementById('b-d').value = m.bd||''; document.getElementById('an-e').value = m.ane||''; document.getElementById('an-d').value = m.and||''; document.getElementById('cx-e').value = m.cxe||''; document.getElementById('cx-d').value = m.cxd||''; document.getElementById('pt-e').value = m.pte||''; document.getElementById('pt-d').value = m.ptd||''; document.getElementById('costas').value = m.cos||''; document.getElementById('cintura').value = m.cin||''; document.getElementById('bf').value = m.bf||'';
             let map = [{ c: 'doenca', v: f.sau.d, b: 'b-doenca', t: 'detalhe-doenca' },{ c: 'alergia', v: f.sau.a, b: 'b-alergia', t: 'detalhe-alergia' },{ c: 'remedio', v: f.sau.r, b: 'b-remedio', t: 'detalhe-remedio' },{ c: 'lesao', v: f.sau.l, b: 'b-lesao', t: 'detalhe-lesao' }];
             map.forEach(item => { let s = (item.v !== "Não" && item.v !== ""); document.querySelector(`input[name="${item.c}"][value="${s ? 'sim' : 'nao'}"]`).checked = true; document.getElementById(item.b).classList.toggle('hidden', !s); document.getElementById(item.t).value = s ? item.v : ''; });
-            if(f.foto) { foto = f.foto; let img = document.getElementById('foto-preview'); img.src = f.foto; document.getElementById('video').style.display = "none"; img.style.display = "block"; } alert("Carregado para edição!");
+            if(f.foto) { foto = f.foto; let img = document.getElementById('foto-preview'); img.src = f.foto; document.getElementById('video').style.display = "none"; img.style.display = "block"; }  let baseFin = urlNuvemBase.replace('.json', ''); if (baseFin.endsWith('/')) { baseFin = baseFin.slice(0, -1); }
+            fetch(baseFin + "/presencas.json").then(res => res.json()).then(todasPresencas => {
+                let totalDiasTreinados = 0;
+                if(todasPresencas) {
+                    Object.keys(todasPresencas).forEach(dataDia => {
+                        if(todasPresencas[dataDia] && todasPresencas[dataDia][cPura]) { totalDiasTreinados++; }
+                    });
+                }
+                let painelTitulo = document.getElementById('financeiro-nome-titulo');
+                if(painelTitulo) { painelTitulo.innerText += ` | 🏋️‍♂️ Treinou ${totalDiasTreinados} dias este ano`; }
+                else { alert(`Aluno: ${f.nome}\nTotal de presenças registradas este ano: ${totalDiasTreinados} dias.`); }
+            }).catch(() => console.log("Sem histórico.")); alert("Carregado para edição!");
         }
         function excluir(id) { let cPura = id.replace(/\D/g, ""); if(confirm("Apagar permanentemente da nuvem?")) { delete bd[cPura]; localStorage.setItem('fichas_v2', JSON.stringify(bd)); if(!urlNuvemBase.includes("seu-projeto-default")) { fetch(obterUrlMatricula(cPura), { method: 'DELETE' }).then(() => { alert("Removido!"); sincronizarMatriculasFirebase(); resetF(); }); } else { atLista(); resetF(); } } }
 function puxarPresencasDoDia() {
