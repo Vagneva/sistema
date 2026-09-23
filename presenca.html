@@ -1,11 +1,12 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    <!-- Script de IA original e estável -->
-    <script src="https://cloudflare.com" integrity="sha512-Z6vH8SgW4CAt7RgmU6unFpS6wV6BovYmR2fbaS7V9oWe+WWeIIn8YI6iM6vVvD8bQ1b8U2a2S5L2sFwVv8F5eA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Biblioteca de IA unificada e atualizada -->
+    <script src="https://unpkg.com"></script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -41,6 +42,7 @@
 </div>
 
 <script>
+    // URL do seu Firebase atual
     const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
     
     let faceMatcher = null;
@@ -59,8 +61,8 @@
 
     async function iniciarSistema() {
         try {
-            // Servidor estável alternativo com os arquivos originais de IA (pesos faciais)
-            const MODEL_URL = 'https://githubusercontent.com';
+            // Servidor estável sem bloqueios de CORS para arquivos de pesos faciais
+            const MODEL_URL = 'https://unpkg.com';
             
             await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
@@ -76,7 +78,6 @@
                     let aluno = alunos[cpf];
                     if (aluno && aluno.foto && aluno.foto.startsWith("data:image")) {
                         try {
-                            // Cria uma imagem invisível na memória para a IA ler
                             let img = new Image();
                             img.src = aluno.foto;
                             await new Promise(resolve => img.onload = resolve);
@@ -142,7 +143,7 @@
                 statusTexto.style.color = "#ef4444";
             }
         } else {
-            document.getElementById('msg-status').innerText = "Aguardando rosto...";
+            document.getElementById('msg-status').innerText = "Aguardando rosto... (" + new Date().toLocaleTimeString() + ")";
             document.getElementById('msg-status').style.color = "#e2e8f0";
         }
 
@@ -163,7 +164,6 @@
         let dataHoje = `${ano}-${mes}-${dia}`;
         let horaHoje = agora.toLocaleTimeString('pt-BR');
 
-        // Só atualiza a marcação no histórico após o sucesso do envio
         let dadosPresenca = { nome: nome, horario: horaHoje };
         
         fetch(obterUrlSalvarPresenca(dataHoje, cpf), {
