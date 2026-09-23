@@ -6,7 +6,6 @@
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
     
     <script>
-    // MOTOR DE IA UNIFICADO E INTEGRADO DIRETAMENTE AQUI DENTRO (Evita cache e bloqueios)
     window.tracking = window.tracking || {};
     tracking.inherits = function(t, e) {
         function i() {}
@@ -36,7 +35,6 @@
         n();
         return { stop: function() { cancelAnimationFrame(o); if (e.srcObject) { e.srcObject.getTracks().forEach(function(t) { t.stop(); }); } } };
     };
-    // Estrutura moderna do EventTarget corrigida para o Chrome/Edge do notebook
     tracking.Tracker = function() { this.listeners_ = {}; };
     tracking.Tracker.prototype.addEventListener = function(t, f) { this.listeners_[t] = this.listeners_[t] || []; this.listeners_[t].push(f); };
     tracking.Tracker.prototype.emit = function(t, e) {
@@ -113,7 +111,8 @@
             })
             .catch(() => { alert("A webcam nao ligou. Feche as outras janelas."); });
 
-        tracker.on('track', function(event) {
+        // CORREÇÃOTÉCNICA: Trocado de tracker.on para o escutador correto addEventListener
+        tracker.addEventListener('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
             if (!event.data || event.data.length === 0) {
                 statusTexto.innerText = "Aguardando rosto..."; statusTexto.style.color = "#e2e8f0";
@@ -121,7 +120,7 @@
                 statusTexto.innerHTML = "<span class='sucesso'>👤 Rosto Detectado! Gravando presença...</span>";
                 let chaves = Object.keys(alunosBD);
                 if(chaves.length > 0) {
-                    let primeiroCPF = chaves[0]; // Correção crucial do índice do primeiro aluno da lista
+                    let primeiroCPF = chaves[0]; // Pega o primeiro CPF indexado no Firebase de forma correta
                     let aluno = alunosBD[primeiroCPF];
                     if(aluno) verificarERegistrarPresenca(aluno.nome, primeiroCPF);
                 }
