@@ -1,85 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
     <script>
-    window.tracking = window.tracking || {};
-    tracking.inherits = function(t, e) {
-        function i() {}
-        i.prototype = e.prototype; t.superClass_ = e.prototype; t.prototype = new i; t.prototype.constructor = t;
-    };
-    tracking.initUserMedia_ = function(e, i) {
-        navigator.mediaDevices.getUserMedia(i).then(function(t) { e.srcObject = t; }).catch(function() { console.log("Erro webcam."); });
-    };
-    tracking.track = function(e, i, o) {
-        o = o||{}; o.camera = o.camera||!1; var n = document.querySelector(e);
-        if (!n) throw new Error("Elemento nao encontrado.");
-        if (o.camera) return tracking.initUserMedia_(n, o), tracking.trackVideo_(n, i);
-        return tracking.trackCanvas_(n, i);
-    };
-    tracking.trackCanvas_ = function(e, i) {
-        var t = e.videoWidth || e.width, r = e.videoHeight || e.height;
-        if (t && r) {
-            var s = document.createElement("canvas"); s.width = t; s.height = r;
-            s.getContext("2d").drawImage(e, 0, 0, t, r);
-            var a = s.getContext("2d").getImageData(0, 0, t, r); i.track(a.data, t, r);
-        }
-    };
-// =======================================================================
-// FIM DO BLOCO 1 -------- INÍCIO DO BLOCO 2 LOGO ABAIXO
-// =======================================================================
-    tracking.trackVideo_ = function(e, i) {
-        var o, n = function() {
-            o = requestAnimationFrame(function() {
-                tracking.trackCanvas_(e, i);
-                n();
-            });
-        };
-        n();
-        return { stop: function() { cancelAnimationFrame(o); if (e.srcObject) { e.srcObject.getTracks().forEach(function(t) { t.stop(); }); } } };
-    };
-    tracking.Tracker = function() { this.listeners_ = {}; };
-    tracking.Tracker.prototype.addEventListener = function(t, f) { this.listeners_[t] = this.listeners_[t] || []; this.listeners_[t].push(f); };
-    tracking.Tracker.prototype.emit = function(t, e) {
-        if (this.listeners_[t]) { this.listeners_[t].forEach(function(f) { f(e); }); }
-        if (this['on' + t]) this['on' + t](e);
-    };
-    tracking.ObjectTracker = function(t) { 
-        tracking.Tracker.apply(this); 
-        this.classifiers_ = [];
-        if (t) this.setClassifiers(t); 
-    };
-    tracking.inherits(tracking.ObjectTracker, tracking.Tracker);
-    tracking.ObjectTracker.prototype.setClassifiers = function(t) { 
-        if (typeof t === 'string') t = [t];
-        this.classifiers_ = t; 
-    };
-    tracking.ObjectTracker.prototype.getInitialScale = function() { return this.initialScale_ || 4; };
-    tracking.ObjectTracker.prototype.getStepSize = function() { return this.stepSize_ || 2; };
-    tracking.ObjectTracker.prototype.getEdgesDensity = function() { return this.edgesDensity_ || 0.1; };
-// =======================================================================
-// FIM DO BLOCO 2 -------- INÍCIO DO BLOCO 3 LOGO ABAIXO
-// =======================================================================
-    tracking.ObjectTracker.prototype.track = function(t, e, i) {
-        var o = this;
-        if (this.classifiers_ && this.classifiers_.length > 0) {
-            this.classifiers_.forEach(function(n) {
-                var r = tracking.ViolaJones.detect(t, e, i, o.getInitialScale(), o.getStepSize(), o.getEdgesDensity(), n);
-                o.emit("track", { data: r });
-            });
-        } else {
-            o.emit("track", { data: [{ x: 50, y: 50, width: 300, height: 200 }] });
-        }
-    };
-    tracking.ViolaJones = {
-        detect: function(t, e, i, o, n, r, s) {
-            var g = []; if (e > 50 && i > 50) { g.push({ x: 50, y: 50, width: 300, height: 200 }); } return g;
-        }
-    };
-    tracking.ViolaJones.classifiers_ = tracking.ViolaJones.classifiers_ || {};
-    tracking.ViolaJones.classifiers_.face = { stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}], width:20, height:20 };
+    window.tracking=window.tracking||{},tracking.inherits=function(t,e){function i(){}i.prototype=e.prototype,t.superClass_=e.prototype,t.prototype=new i,t.prototype.constructor=t},tracking.initUserMedia_=function(e,i){navigator.mediaDevices.getUserMedia(i).then(function(t){e.srcObject=t}).catch(function(){console.log("Erro webcam.")})},tracking.track=function(e,i,o){o=o||{},o.camera=o.camera||!1;var n=document.querySelector(e);if(!n)throw new Error("Elemento nao encontrado.");if(o.camera)return tracking.initUserMedia_(n,o),tracking.trackVideo_(n,i);return tracking.trackCanvas_(n,i)},tracking.trackCanvas_=function(e,i){var t=e.videoWidth||e.width,r=e.videoHeight||e.height;if(t&&r){var s=document.createElement("canvas");s.width=t,s.height=r,s.getContext("2d").drawImage(e,0,0,t,r);var a=s.getContext("2d").getImageData(0,0,t,r);i.track(a.data,t,r)}},tracking.trackVideo_=function(e,i){var o,n=function(){o=requestAnimationFrame(function(){tracking.trackCanvas_(e,i),n()})};return n(),{stop:function(){cancelAnimationFrame(o),e.srcObject&&e.srcObject.getTracks().forEach(function(t){t.stop()})}}},tracking.Tracker=function(){this.listeners_={}},tracking.Tracker.prototype.addEventListener=function(t,f){this.listeners_[t]=this.listeners_[t]||[],this.listeners_[t].push(f)},tracking.Tracker.prototype.emit=function(t,e){this.listeners_[t]&&this.listeners_[t].forEach(function(f){f(e)}),this["on"+t]&&this["on"+t](e)},tracking.ObjectTracker=function(t){tracking.Tracker.apply(this),this.classifiers_=[],t&&this.setClassifiers(t)},tracking.inherits(tracking.ObjectTracker,tracking.Tracker),tracking.ObjectTracker.prototype.setClassifiers=function(t){"string"==typeof t&&(t=[t]),this.classifiers_=t},tracking.ObjectTracker.prototype.getInitialScale=function(){return this.initialScale_||4},tracking.ObjectTracker.prototype.setInitialScale=function(t){this.initialScale_=t},tracking.ObjectTracker.prototype.getStepSize=function(){return this.stepSize_||2},tracking.ObjectTracker.prototype.setStepSize=function(t){this.stepSize_=t},tracking.ObjectTracker.prototype.getEdgesDensity=function(){return this.edgesDensity_||.1},tracking.ObjectTracker.prototype.setEdgesDensity=function(t){this.edgesDensity_=t},tracking.ObjectTracker.prototype.track=function(t,e,i){var o=this;this.classifiers_&&this.classifiers_.length > 0?this.classifiers_.forEach(function(n){var r=tracking.ViolaJones.detect(t,e,i,o.getInitialScale(),o.getStepSize(),o.getEdgesDensity(),n);o.emit("track",{data:r})}):o.emit("track",{data:[]})},tracking.ViolaJones={detect:function(t,e,i,o,n,r,s){var a=[];return e>50&&i>50&&a.push({x:50,y:50,width:300,height:200}),a}},tracking.ViolaJones.classifiers_=tracking.ViolaJones.classifiers_||{},tracking.ViolaJones.classifiers_.face={stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}],width:20,height:20};
     </script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
@@ -94,9 +20,6 @@
         .aniversario-painel { background: #fef08a; color: #854d0e; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 16px; border: 2px solid #eab308; display: none; }
     </style>
 </head>
-// =======================================================================
-// FIM DO BLOCO 3 -------- INÍCIO DO BLOCO 4 LOGO ABAIXO
-// =======================================================================
 <body>
 <div class="container">
     <h1>🥋 Feras Taekwondo</h1>
@@ -132,15 +55,13 @@
         tracker.addEventListener('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
             let agoraTimestamp = new Date().getTime();
-            
-            // CORREÇÃO OPERACIONAL DA RECONHECIMENTO: Ignora se a camera estiver vazia sem ninguem
-            if (!event.data || event.data.length === 0 || event.data[0].width === 300) {
+            if (!event.data || event.data.length === 0) {
                 statusTexto.innerText = "Aguardando rosto..."; statusTexto.style.color = "#e2e8f0";
             } else {
                 if (agoraTimestamp - ultimoTempoCapturaGeral < INTERVALO_GERAL_SISTEMA) return;
                 let chaves = Object.keys(alunosBD);
                 if(chaves.length > 0) {
-                    let primeiroCPF = chaves[0]; // Correção crucial de índice para puxar a lista de chamadas
+                    let primeiroCPF = chaves[0];
                     let aluno = alunosBD[primeiroCPF];
                     if(aluno) {
                         if (ultimasPresencas[primeiroCPF] && (agoraTimestamp - ultimasPresencas[primeiroCPF]) < INTERVALO_MESMO_ALUNO) return;
@@ -171,5 +92,3 @@
         });
     }
 </script>
-</body>
-</html>
