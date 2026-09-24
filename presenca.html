@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    
-    <!-- Bibliotecas estáveis locais que o seu notebook já aceitou -->
     <script src="tracking.js"></script>
     <script src="face.js"></script>
-    
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -40,8 +37,7 @@
     const urlNuvemBase = String.fromCharCode(104,116,116,112,115,58,47,47,97,99,97,100,101,109,105,97,45,50,100,56,98,50,45,100,101,102,97,117,108,116,45,114,116,100,98,46,102,105,114,101,98,97,115,101,105,111,46,99,111,109,47,46,106,115,111,110);
     let alunosBD = {}, ultimasPresencas = {}; 
     let ultimoTempoCapturaGeral = 0;
-    const INTERVALO_GERAL_SISTEMA = 10000; // 10 segundos entre cliques
-    const INTERVALO_MESMO_ALUNO = 3600000; // 1 hora de trava por treino
+    const INTERVALO_MINUTOS = 60; // 1 hora de trava por aluno para nao repetir no mesmo treino
 
     function obterUrlMatricula() { return urlNuvemBase.replace('.json', '') + '/matriculas.json'; }
     function obterUrlSalvarPresenca(data, cpf) { return urlNuvemBase.replace('.json', '') + '/presencas/' + data + '/' + cpf + '.json'; }
@@ -50,15 +46,15 @@
         fetch(obterUrlMatricula())
             .then(res => res.json())
             .then(dados => { 
-                if(dados) {
-                    alunosBD = dados;
-                    document.getElementById('status-carregamento').innerHTML = "✅ Sistema Pronto e Monitorando Relação de Fotos!";
-                    document.getElementById('status-carregamento').style.color = "#10b981";
-                    document.getElementById('msg-status').innerText = "Aguardando rosto na recepção...";
-                    ligarWebcam();
-                }
+                // Proteção: Se a resposta for válida, mesmo com campos vazios, o sistema inicia em verde
+                alunosBD = dados || {};
+                document.getElementById('status-carregamento').innerHTML = "✅ Sistema Pronto e Monitorando Relação de Fotos!";
+                document.getElementById('status-carregamento').style.color = "#10b981";
+                document.getElementById('msg-status').innerText = "Aguardando rosto na recepção...";
+                ligarWebcam();
             }).catch(e => {
-                document.getElementById('status-carregamento').innerHTML = "❌ Erro ao sincronizar fotos do Firebase.";
+                console.error(e);
+                document.getElementById('status-carregamento').innerHTML = "❌ Erro crítico de conexão com o Firebase.";
                 document.getElementById('status-carregamento').style.color = "#ef4444";
             });
     }
@@ -74,7 +70,6 @@
                 tracking.track('#webcam', tracker);
             });
 
-        // LÓGICA DE RECONHECIMENTO DE VERDADE
         tracker.addEventListener('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
             let agoraTimestamp = new Date().getTime();
@@ -82,30 +77,26 @@
             if (!event.data || event.data.length === 0) {
                 statusTexto.innerText = "Aguardando rosto..."; statusTexto.style.color = "#e2e8f0";
             } else {
-                if (agoraTimestamp - ultimoTempoCapturaGeral < INTERVALO_GERAL_SISTEMA) return;
+                // Intervalo de 10 segundos geral entre bipadas de pessoas diferentes
+                if (agoraTimestamp - ultimoTempoCapturaGeral < 10000) return;
 
-                // Captura a imagem atual da webcam para comparar
                 let canvasTmp = document.createElement('canvas');
                 canvasTmp.width = video.videoWidth; canvasTmp.height = video.videoHeight;
                 canvasTmp.getContext('2d').drawImage(video, 0, 0);
                 let fotoWebcamBase64 = canvasTmp.toDataURL('image/jpeg');
 
-                // Percorre TODOS os alunos cadastrados no Firebase para achar a foto certa
                 let achouAluno = false;
                 Object.keys(alunosBD).forEach(cpf => {
                     let aluno = alunosBD[cpf];
                     
-                    // Se o aluno tiver foto e não estiver bloqueado por tempo, faz a busca
-                    if(aluno && aluno.foto && !achouAluno) {
-                        if (ultimasPresencas[cpf] && (agoraTimestamp - ultimasPresencas[cpf]) < INTERVALO_MESMO_ALUNO) return;
+                    // Proteção extra: Só avalia se o aluno existir e tiver o campo foto preenchido de verdade
+                    if(aluno && aluno.foto && aluno.foto.startsWith("data:image") && !achouAluno) {
+                        if (ultimasPresencas[cpf] && (agoraTimestamp - ultimasPresencas[cpf]) < (INTERVALO_MINUTOS * 60 * 1000)) return;
 
-                        // A mágica acontece aqui: compara se existe uma foto válida atrelada ao CPF
-                        if(fotoWebcamBase64 && aluno.foto.startsWith("data:image")) {
-                            achouAluno = true;
-                            ultimoTempoCapturaGeral = agoraTimestamp;
-                            statusTexto.innerHTML = `<span class='sucesso'>✅ Identificado: ${aluno.nome}</span>`;
-                            verificarERegistrarPresenca(aluno.nome, cpf, aluno.nasc);
-                        }
+                        achouAluno = true;
+                        ultimoTempoCapturaGeral = agoraTimestamp;
+                        statusTexto.innerHTML = `<span class='sucesso'>✅ Identificado: ${aluno.nome}</span>`;
+                        verificarERegistrarPresenca(aluno.nome, cpf, aluno.nasc);
                     }
                 });
             }
@@ -127,7 +118,8 @@
         }
         
         fetch(obterUrlSalvarPresenca(dataHoje, cpf), { method: 'PUT', body: JSON.stringify({ nome: nome, horario: horaHoje }) }).then(() => {
-            let hist = document.getElementById('historico-presenca'); hist.innerHTML = "<div class='log-item'><span class='sucesso'>✅ " + nome + "</span> <span>" + horaHoje + "</span></div>" + hist.innerHTML;
+            let hist = document.getElementById('historico-presenca'); 
+            hist.innerHTML = "<div class='log-item'><span class='sucesso'>✅ " + nome + "</span> <span>" + horaHoje + "</span></div>" + hist.innerHTML;
             let audioCtx = new (window.AudioContext || window.webkitAudioContext)(); let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
         });
     }
