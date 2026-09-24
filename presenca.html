@@ -195,4 +195,4 @@
             hist.innerHTML = `<div class="log-item"><span class="sucesso">✅ ${nome}</span> <span>${horaHoje}</span></div>` + hist.innerHTML;
             
             let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-Use o código com cuidado.let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination);osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);}).catch(e => console.error("Erro Firebase", e));}
+let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination);osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);}).catch(e => console.error("Erro Firebase", e));}
