@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    <script>
-    window.tracking=window.tracking||{},tracking.inherits=function(t,e){function i(){}i.prototype=e.prototype,t.superClass_=e.prototype,t.prototype=new i,t.prototype.constructor=t},tracking.initUserMedia_=function(e,i){navigator.mediaDevices.getUserMedia(i).then(function(t){e.srcObject=t}).catch(function(){console.log("Erro webcam.")})},tracking.track=function(e,i,o){o=o||{},o.camera=o.camera||!1;var n=document.querySelector(e);if(!n)throw new Error("Elemento nao encontrado.");if(o.camera)return tracking.initUserMedia_(n,o),tracking.trackVideo_(n,i);return tracking.trackCanvas_(n,i)},tracking.trackCanvas_=function(e,i){var t=e.videoWidth||e.width,r=e.videoHeight||e.height;if(t&&r){var s=document.createElement("canvas");s.width=t,s.height=r,s.getContext("2d").drawImage(e,0,0,t,r);var a=s.getContext("2d").getImageData(0,0,t,r);i.track(a.data,t,r)}},tracking.trackVideo_=function(e,i){var o,n=function(){o=requestAnimationFrame(function(){tracking.trackCanvas_(e,i),n()})};return n(),{stop:function(){cancelAnimationFrame(o),e.srcObject&&e.srcObject.getTracks().forEach(function(t){t.stop()})}}},tracking.Tracker=function(){this.listeners_={}},tracking.Tracker.prototype.addEventListener=function(t,f){this.listeners_[t]=this.listeners_[t]||[],this.listeners_[t].push(f)},tracking.Tracker.prototype.emit=function(t,e){this.listeners_[t]&&this.listeners_[t].forEach(function(f){f(e)}),this["on"+t]&&this["on"+t](e)},tracking.ObjectTracker=function(t){tracking.Tracker.apply(this),this.classifiers_=[],t&&this.setClassifiers(t)},tracking.inherits(tracking.ObjectTracker,tracking.Tracker),tracking.ObjectTracker.prototype.setClassifiers=function(t){"string"==typeof t&&(t=[t]),this.classifiers_=t},tracking.ObjectTracker.prototype.track=function(t,e,i){var o=this;this.classifiers_&&this.classifiers_.length>0?this.classifiers_.forEach(function(n){var r=tracking.ViolaJones.detect(t,e,i,4,2,.1,n);o.emit("track",{data:r})}):o.emit("track",{data:[]})},tracking.ViolaJones={detect:function(t,e,i,o,n,r,s){var a=[];return e>50&&i>50&&a.push({x:50,y:50,width:300,height:200}),a}},tracking.ViolaJones.classifiers_=tracking.ViolaJones.classifiers_||{},tracking.ViolaJones.classifiers_.face={stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}],width:20,height:20};
-    </script>
+    
+    <!-- Scripts necessários para o Reconhecimento Facial Real rodar direto no HTML -->
+    <script defer src="https://jsdelivr.net"></script>
+    
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -24,79 +25,125 @@
 <div class="container">
     <h1>🥋 Feras Taekwondo</h1>
     <p style="color: #94a3b8; margin: 0;">Posicione-se em frente à câmera para registrar sua entrada</p>
-    <div id="status-carregamento" style="color: #facc15; font-weight: bold; margin-top: 10px;">⏳ Carregando banco de fotos dos alunos...</div>
+    <div id="status-carregamento" style="color: #facc15; font-weight: bold; margin-top: 10px;">⏳ Inicializando inteligência artificial e banco de dados...</div>
     <div class="camera-box"><video id="webcam" width="400" height="300" autoplay playsinline muted></video></div>
-    <div id="msg-status" class="status-alerta">Inicializando sistema...</div>
+    <div id="msg-status" class="status-alerta">Aguardando carregamento inicial...</div>
     <div id="painel-niver" class="aniversario-painel"></div>
     <div class="log-lista">
         <div style="font-weight: bold; border-bottom: 2px solid #475569; padding-bottom: 4px; margin-bottom: 5px; font-size: 13px; color: #94a3b8;">Últimos Acessos Confirmados de Hoje:</div>
         <div id="historico-presenca"></div>
     </div>
 </div>
+
 <script>
     const urlNuvemBase = String.fromCharCode(104,116,116,112,115,58,47,47,97,99,97,100,101,109,105,97,45,50,100,56,98,50,45,100,101,102,97,117,108,116,45,114,116,100,98,46,102,105,114,101,98,97,115,101,105,111,46,99,111,109,47,46,106,115,111,110);
     let alunosBD = {}, ultimasPresencas = {}; 
+    let rostosConhecidosComDescritores = [];
     let ultimoTempoCapturaGeral = 0;
     const INTERVALO_MINUTOS = 60; 
 
     function obterUrlMatricula() { return urlNuvemBase.replace('.json', '') + '/matriculas.json'; }
     function obterUrlSalvarPresenca(data, cpf) { return urlNuvemBase.replace('.json', '') + '/presencas/' + data + '/' + cpf + '.json'; }
 
-    function carregarAlunosESistema() {
-        fetch(obterUrlMatricula())
-            .then(res => res.json())
-            .then(dados => { 
-                alunosBD = dados || {};
-                document.getElementById('status-carregamento').innerHTML = "✅ Sistema Pronto e Monitorando Relação de Fotos!";
-                document.getElementById('status-carregamento').style.color = "#10b981";
-                document.getElementById('msg-status').innerText = "Aguardando rosto na recepção...";
-                ligarWebcam();
-            }).catch(e => {
-                console.error(e);
-                document.getElementById('status-carregamento').innerHTML = "❌ Erro crítico de conexão com o Firebase.";
-                document.getElementById('status-carregamento').style.color = "#ef4444";
-            });
+    async function inicializarSistema() {
+        try {
+            document.getElementById('status-carregamento').innerText = "⏳ Carregando Modelos de Reconhecimento Facial...";
+            // Carrega os arquivos de inteligência artificial direto dos servidores públicos da face-api
+            const MODEL_URL = 'https://jsdelivr.net';
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+
+            document.getElementById('status-carregamento').innerText = "⏳ Conectando ao Banco de Alunos do Firebase...";
+            const res = await fetch(obterUrlMatricula());
+            alunosBD = await res.json() || {};
+
+            // Processa as fotos cadastradas no Firebase para gerar os mapas faciais
+            document.getElementById('status-carregamento').innerText = "⏳ Mapeando fotos das matrículas...";
+            for (let cpf of Object.keys(alunosBD)) {
+                let aluno = alunosBD[cpf];
+                if (aluno && aluno.foto && aluno.foto.startsWith("data:image")) {
+                    const img = await faceapi.fetchImage(aluno.foto);
+                    const descritorCompleto = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                    if (descritorCompleto) {
+                        rostosConhecidosComDescritores.push({
+                            cpf: cpf,
+                            nome: aluno.nome,
+                            nasc: aluno.nasc,
+                            descriptor: descritorCompleto.descriptor
+                        });
+                    }
+                }
+            }
+
+            document.getElementById('status-carregamento').innerHTML = "✅ Sistema Pronto e Monitorando Biometria!";
+            document.getElementById('status-carregamento').style.color = "#10b981";
+            document.getElementById('msg-status').innerText = "Aguardando rosto na recepção...";
+            
+            ligarWebcam();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('status-carregamento').innerHTML = "❌ Erro crítico na inicialização ou conexão Firebase.";
+            document.getElementById('status-carregamento').style.color = "#ef4444";
+        }
     }
 
     function ligarWebcam() {
         const video = document.getElementById('webcam');
-        const tracker = new tracking.ObjectTracker('face');
-
         navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 }, audio: false })
             .then(stream => { 
                 video.srcObject = stream;
-                tracking.track('#webcam', tracker);
+                // Inicia o loop de monitoramento da câmera de tempos em tempos
+                setInterval(processarQuadroCamera, 800);
             });
+    }
 
-        tracker.addEventListener('track', function(event) {
-            let statusTexto = document.getElementById('msg-status');
-            let agoraTimestamp = new Date().getTime();
+    async function processarQuadroCamera() {
+        const video = document.getElementById('webcam');
+        let statusTexto = document.getElementById('msg-status');
+        let agoraTimestamp = new Date().getTime();
 
-            if (!event.data || event.data.length === 0) {
-                statusTexto.innerText = "Aguardando rosto..."; statusTexto.style.color = "#e2e8f0";
-            } else {
-                if (agoraTimestamp - ultimoTempoCapturaGeral < 10000) return;
+        if (agoraTimestamp - ultimoTempoCapturaGeral < 7000) return; // Pausa rápida pós confirmação para evitar spam
 
-                let canvasTmp = document.createElement('canvas');
-                canvasTmp.width = video.videoWidth; canvasTmp.height = video.videoHeight;
-                canvasTmp.getContext('2d').drawImage(video, 0, 0);
-                let fotoWebcamBase64 = canvasTmp.toDataURL('image/jpeg');
+        // Detecta o rosto da pessoa que está na frente da webcam
+        const detecoesCamera = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
 
-                let achouAluno = false;
-                Object.keys(alunosBD).forEach(cpf => {
-                    let aluno = alunosBD[cpf];
-                    
-                    if(aluno && aluno.foto && aluno.foto.startsWith("data:image") && !achouAluno) {
-                        if (ultimasPresencas[cpf] && (agoraTimestamp - ultimasPresencas[cpf]) < (INTERVALO_MINUTOS * 60 * 1000)) return;
+        if (!detecoesCamera) {
+            statusTexto.innerText = "Aguardando rosto..."; 
+            statusTexto.style.color = "#e2e8f0";
+            return;
+        }
 
-                        achouAluno = true;
-                        ultimoTempoCapturaGeral = agoraTimestamp;
-                        statusTexto.innerHTML = `<span class='sucesso'>✅ Identificado: ${aluno.nome}</span>`;
-                        verificarERegistrarPresenca(aluno.nome, cpf, aluno.nasc);
-                    }
-                });
+        statusTexto.innerText = "Analisando traços faciais...";
+        statusTexto.style.color = "#facc15";
+
+        let melhorMatch = null;
+        let menorDistancia = 0.6; // Limite padrão de segurança (quanto menor, mais rigoroso)
+
+        // Compara matematicamente os traços da câmera com os traços salvos no Firebase
+        rostosConhecidosComDescritores.forEach(alunoConhecido => {
+            const distancia = faceapi.euclideanDistance(detecoesCamera.descriptor, alunoConhecido.descriptor);
+            if (distancia < menorDistancia) {
+                menorDistancia = distancia;
+                melhorMatch = alunoConhecido;
             }
         });
+
+        // Se encontrou um aluno correspondente com segurança
+        if (melhorMatch) {
+            let cpf = melhorMatch.cpf;
+            if (ultimasPresencas[cpf] && (agoraTimestamp - ultimasPresencas[cpf]) < (INTERVALO_MINUTOS * 60 * 1000)) {
+                statusTexto.innerHTML = `<span style="color: #facc15">⚠️ Entrada recente já registrada para: ${melhorMatch.nome}</span>`;
+                return;
+            }
+
+            ultimoTempoCapturaGeral = agoraTimestamp;
+            statusTexto.innerHTML = `<span class='sucesso'>✅ Identificado: ${melhorMatch.nome}</span>`;
+            verificarERegistrarPresenca(melhorMatch.nome, cpf, melhorMatch.nasc);
+        } else {
+            statusTexto.innerText = "Rosto não reconhecido na lista cadastrada.";
+            statusTexto.style.color = "#ef4444";
+        }
     }
 
     function verificarERegistrarPresenca(nome, cpf, dataNascimento) {
@@ -107,7 +154,7 @@
         let niverDiv = document.getElementById('painel-niver'); niverDiv.style.display = 'none';
         if(dataNascimento) {
             let partes = dataNascimento.split('-');
-            if(partes.length === 3 && partes === mes && partes === dia) {
+            if(partes.length === 3 && partes[1] === mes && partes[2] === dia) {
                 niverDiv.innerHTML = `🎂 Parabéns pelo seu dia, ${nome}! Felicidades da Equipe Feras Taekwondo! 🎉🎉`;
                 niverDiv.style.display = 'block'; setTimeout(() => { niverDiv.style.display = 'none'; }, 10000);
             }
@@ -120,7 +167,7 @@
         });
     }
 
-    window.onload = carregarAlunosESistema;
+    window.onload = inicializarSistema;
 </script>
 </body>
 </html>
