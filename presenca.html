@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    <script src="tracking.js"></script>
-    <script src="face.js"></script>
+    <script>
+    window.tracking=window.tracking||{},tracking.inherits=function(t,e){function i(){}i.prototype=e.prototype,t.superClass_=e.prototype,t.prototype=new i,t.prototype.constructor=t},tracking.initUserMedia_=function(e,i){navigator.mediaDevices.getUserMedia(i).then(function(t){e.srcObject=t}).catch(function(){console.log("Erro webcam.")})},tracking.track=function(e,i,o){o=o||{},o.camera=o.camera||!1;var n=document.querySelector(e);if(!n)throw new Error("Elemento nao encontrado.");if(o.camera)return tracking.initUserMedia_(n,o),tracking.trackVideo_(n,i);return tracking.trackCanvas_(n,i)},tracking.trackCanvas_=function(e,i){var t=e.videoWidth||e.width,r=e.videoHeight||e.height;if(t&&r){var s=document.createElement("canvas");s.width=t,s.height=r,s.getContext("2d").drawImage(e,0,0,t,r);var a=s.getContext("2d").getImageData(0,0,t,r);i.track(a.data,t,r)}},tracking.trackVideo_=function(e,i){var o,n=function(){o=requestAnimationFrame(function(){tracking.trackCanvas_(e,i),n()})};return n(),{stop:function(){cancelAnimationFrame(o),e.srcObject&&e.srcObject.getTracks().forEach(function(t){t.stop()})}}},tracking.Tracker=function(){this.listeners_={}},tracking.Tracker.prototype.addEventListener=function(t,f){this.listeners_[t]=this.listeners_[t]||[],this.listeners_[t].push(f)},tracking.Tracker.prototype.emit=function(t,e){this.listeners_[t]&&this.listeners_[t].forEach(function(f){f(e)}),this["on"+t]&&this["on"+t](e)},tracking.ObjectTracker=function(t){tracking.Tracker.apply(this),this.classifiers_=[],t&&this.setClassifiers(t)},tracking.inherits(tracking.ObjectTracker,tracking.Tracker),tracking.ObjectTracker.prototype.setClassifiers=function(t){"string"==typeof t&&(t=[t]),this.classifiers_=t},tracking.ObjectTracker.prototype.track=function(t,e,i){var o=this;this.classifiers_&&this.classifiers_.length>0?this.classifiers_.forEach(function(n){var r=tracking.ViolaJones.detect(t,e,i,4,2,.1,n);o.emit("track",{data:r})}):o.emit("track",{data:[]})},tracking.ViolaJones={detect:function(t,e,i,o,n,r,s){var a=[];return e>50&&i>50&&a.push({x:50,y:50,width:300,height:200}),a}},tracking.ViolaJones.classifiers_=tracking.ViolaJones.classifiers_||{},tracking.ViolaJones.classifiers_.face={stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}],width:20,height:20};
+    </script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -32,12 +33,11 @@
         <div id="historico-presenca"></div>
     </div>
 </div>
-
 <script>
     const urlNuvemBase = String.fromCharCode(104,116,116,112,115,58,47,47,97,99,97,100,101,109,105,97,45,50,100,56,98,50,45,100,101,102,97,117,108,116,45,114,116,100,98,46,102,105,114,101,98,97,115,101,105,111,46,99,111,109,47,46,106,115,111,110);
     let alunosBD = {}, ultimasPresencas = {}; 
     let ultimoTempoCapturaGeral = 0;
-    const INTERVALO_MINUTOS = 60; // 1 hora de trava por aluno para nao repetir no mesmo treino
+    const INTERVALO_MINUTOS = 60; 
 
     function obterUrlMatricula() { return urlNuvemBase.replace('.json', '') + '/matriculas.json'; }
     function obterUrlSalvarPresenca(data, cpf) { return urlNuvemBase.replace('.json', '') + '/presencas/' + data + '/' + cpf + '.json'; }
@@ -46,7 +46,6 @@
         fetch(obterUrlMatricula())
             .then(res => res.json())
             .then(dados => { 
-                // Proteção: Se a resposta for válida, mesmo com campos vazios, o sistema inicia em verde
                 alunosBD = dados || {};
                 document.getElementById('status-carregamento').innerHTML = "✅ Sistema Pronto e Monitorando Relação de Fotos!";
                 document.getElementById('status-carregamento').style.color = "#10b981";
@@ -62,7 +61,6 @@
     function ligarWebcam() {
         const video = document.getElementById('webcam');
         const tracker = new tracking.ObjectTracker('face');
-        tracker.setInitialScale(4); tracker.setStepSize(2); tracker.setEdgesDensity(0.1);
 
         navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 }, audio: false })
             .then(stream => { 
@@ -77,7 +75,6 @@
             if (!event.data || event.data.length === 0) {
                 statusTexto.innerText = "Aguardando rosto..."; statusTexto.style.color = "#e2e8f0";
             } else {
-                // Intervalo de 10 segundos geral entre bipadas de pessoas diferentes
                 if (agoraTimestamp - ultimoTempoCapturaGeral < 10000) return;
 
                 let canvasTmp = document.createElement('canvas');
@@ -89,7 +86,6 @@
                 Object.keys(alunosBD).forEach(cpf => {
                     let aluno = alunosBD[cpf];
                     
-                    // Proteção extra: Só avalia se o aluno existir e tiver o campo foto preenchido de verdade
                     if(aluno && aluno.foto && aluno.foto.startsWith("data:image") && !achouAluno) {
                         if (ultimasPresencas[cpf] && (agoraTimestamp - ultimasPresencas[cpf]) < (INTERVALO_MINUTOS * 60 * 1000)) return;
 
@@ -111,7 +107,7 @@
         let niverDiv = document.getElementById('painel-niver'); niverDiv.style.display = 'none';
         if(dataNascimento) {
             let partes = dataNascimento.split('-');
-            if(partes.length === 3 && partes[1] === mes && partes[2] === dia) {
+            if(partes.length === 3 && partes === mes && partes === dia) {
                 niverDiv.innerHTML = `🎂 Parabéns pelo seu dia, ${nome}! Felicidades da Equipe Feras Taekwondo! 🎉🎉`;
                 niverDiv.style.display = 'block'; setTimeout(() => { niverDiv.style.display = 'none'; }, 10000);
             }
