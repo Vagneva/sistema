@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feras Taekwondo 🥋 - Lista de Presença</title>
     
-    <!-- Scripts do Firebase (Versão estável e simplificada) -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+   <!-- Scripts Oficiais e Estáveis do Firebase (Substitua no topo do seu HTML) -->
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cloudflare.com"></script>
     
     <!-- Efeito de confete para o Aniversário dos Feras -->
     <script src="https://jsdelivr.net"></script>
@@ -40,15 +40,14 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO SEU BANCO DE DADOS
-        // Altere APENAS a linha abaixo colocando o link que você tem do seu Firebase!
-        const firebaseConfig = {
-            databaseURL: “https://academia-2d8b2-default-rtdb.firebaseio.com/
+       // CONFIGURAÇÃO DO SEU BANCO DE DADOS
+        var firebaseConfig = {
+            databaseURL: "https://academia-2d8b2-default-rtdb.firebaseio.com"
         };
 
         // Inicializando o Firebase de forma independente
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        var database = firebase.database();
 
         function marcarPresenca() {
             const campoId = document.getElementById('idAluno').value.trim();
