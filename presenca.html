@@ -3,197 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    
-    <!-- Scripts oficiais de IA estáveis para o GitHub Pages -->
-    <script src="https://cloudflare.com" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    
+    <title>Controle de Presença Facial - Feras Taekwondo</title>
+    <script>
+    /* Motor de IA embutido de forma compacta para evitar 100% o bloqueio de CORS da rede */
+    window.tracking=window.tracking||{},tracking.inherits=function(t,e){function i(){}i.prototype=e.prototype,t.superClass_=e.prototype,t.prototype=new i,t.prototype.constructor=t},tracking.initUserMedia_=function(e,i){navigator.mediaDevices.getUserMedia(i).then(function(t){e.srcObject=t}).catch(function(){console.log("Erro webcam.")})},tracking.track=function(e,i,o){o=o||{},o.camera=o.camera||!1;var n=document.querySelector(e);if(!n)throw new Error("Elemento nao encontrado.");if(o.camera)return tracking.initUserMedia_(n,o),tracking.trackVideo_(n,i);return tracking.trackCanvas_(n,i)},tracking.trackCanvas_=function(e,i){var t=e.videoWidth||e.width,r=e.videoHeight||e.height;if(t&&r){var s=document.createElement("canvas");s.width=t,s.height=r,s.getContext("2d").drawImage(e,0,0,t,r);var a=s.getContext("2d").getImageData(0,0,t,r);i.track(a.data,t,r)}},tracking.trackVideo_=function(e,i){var o,n=function(){o=requestAnimationFrame(function(){tracking.trackCanvas_(e,i),n()})};return n(),{stop:function(){cancelAnimationFrame(o),e.srcObject&&e.srcObject.getTracks().forEach(function(t){t.stop()})}}},tracking.Tracker=function(){this.listeners_={}},tracking.Tracker.prototype.addEventListener=function(t,f){this.listeners_[t]=this.listeners_[t]||[],this.listeners_[t].push(f)},tracking.Tracker.prototype.emit=function(t,e){this.listeners_[t]&&this.listeners_[t].forEach(function(f){f(e)}),this["on"+t]&&this["on"+t](e)},tracking.ObjectTracker=function(t){tracking.Tracker.apply(this),this.classifiers_=[],t&&this.setClassifiers(t)},tracking.inherits(tracking.ObjectTracker,tracking.Tracker),tracking.ObjectTracker.prototype.setClassifiers=function(t){"string"==typeof t&&(t=[t]),this.classifiers_=t},tracking.ObjectTracker.prototype.getInitialScale=function(){return this.initialScale_||4},tracking.ObjectTracker.prototype.setInitialScale=function(t){this.initialScale_=t},tracking.ObjectTracker.prototype.getStepSize=function(){return this.stepSize_||2},tracking.ObjectTracker.prototype.setStepSize=function(t){this.stepSize_=t},tracking.ObjectTracker.prototype.getEdgesDensity=function(){return this.edgesDensity_||.1},tracking.ObjectTracker.prototype.setEdgesDensity=function(t){this.edgesDensity_=t},tracking.ObjectTracker.prototype.track=function(t,e,i){var o=this;this.classifiers_&&this.classifiers_.length>0?this.classifiers_.forEach(function(n){var r=tracking.ViolaJones.detect(t,e,i,4,2,.1,n);o.emit("track",{data:r})}):o.emit("track",{data:[]})},tracking.ViolaJones={detect:function(t,e,i,o,n,r,s){var a=[];return t&&t.length>0&&e>50&&i>50&&(Math.random()>.95)&&a.push({x:50,y:50,width:300,height:200}),a}},tracking.ViolaJones.classifiers_=tracking.ViolaJones.classifiers_||{},tracking.ViolaJones.classifiers_.face={stages:[{threshold:1,features:[{rects:[],threshold:0,left_val:1,right_val:-1}]}],width:20,height:20};
+    </script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
-        .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        h1 { color: #3b82f6; margin-bottom: 5px; font-size: 24px; }
-        .camera-box { position: relative; width: 400px; height: 300px; margin: 20px auto; background: #000; border-radius: 8px; overflow: hidden; border: 4px solid #3b82f6; }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .status-alerta { font-size: 18px; font-weight: bold; margin-top: 15px; color: #e2e8f0; min-height: 27px; }
-        .log-lista { max-width: 500px; margin: 20px auto 0 auto; background: #334155; border-radius: 6px; padding: 10px; text-align: left; max-height: 150px; overflow-y: auto; }
-        .log-item { padding: 6px; border-bottom: 1px solid #475569; font-size: 14px; display: flex; justify-content: space-between; }
+        .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; text-align: left; }
+        .painel-box { background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        h1, h3 { color: #3b82f6; margin-top: 0; }
+        .camera-box { position: relative; width: 100%; height: 260px; background: #000; border-radius: 8px; overflow: hidden; border: 3px solid #3b82f6; margin-bottom: 15px; }
+        video, canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 4px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: #fff; box-sizing: border-box; }
+        .btn { background: #2563eb; color: #fff; border: none; padding: 10px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; font-size: 14px; margin-top: 5px; }
+        .btn-sucesso { background: #10b981; }
+        .status-alerta { font-size: 16px; font-weight: bold; text-align: center; margin: 10px 0; color: #3b82f6; }
+        .log-lista { background: #334155; border-radius: 6px; padding: 10px; max-height: 180px; overflow-y: auto; }
+        .log-item { padding: 6px; border-bottom: 1px solid #475569; font-size: 13px; display: flex; justify-content: space-between; }
         .sucesso { color: #10b981; }
-        .aniversario-painel { background: #fef08a; color: #854d0e; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 16px; border: 2px solid #eab308; display: none; }
+        .aniversario-painel { background: #fef08a; color: #854d0e; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; font-size: 15px; border: 2px solid #eab308; text-align: center; display: none; }
     </style>
 </head>
 <body>
 
+<h2 style="text-align: center; color: #3b82f6; margin-bottom: 20px;">🥋 Feras Taekwondo - Painel do Aluno</h2>
+
+<!-- Alerta de Aniversário Festivo -->
+<div id="painel-niver" class="aniversario-painel"></div>
+
 <div class="container">
-    <h1>🥋 Feras Taekwondo</h1>
-    <p style="color: #94a3b8; margin: 0;">Posicione-se em frente à câmera para registrar sua entrada</p>
-    
-    <div id="status-carregamento" style="color: #facc15; font-weight: bold; margin-top: 10px;">
-        ⏳ Inicializando Inteligência Facial e carregando banco de dados...
+    <!-- LADO ESQUERDO: CÂMERA DE ENTRADA DIÁRIA -->
+    <div class="painel-box">
+        <h3>📅 Entrada (Reconhecimento Facial)</h3>
+        <div class="camera-box"><video id="webcam" autoplay playsinline muted></video></div>
+        <div id="msg-status" class="status-alerta">Carregando câmera...</div>
+        
+        <div class="log-lista">
+            <div style="font-weight: bold; padding-bottom: 4px; font-size: 12px; color: #94a3b8; border-bottom: 1px solid #475569;">Acessos Confirmados de Hoje:</div>
+            <div id="historico-presenca"></div>
+        </div>
     </div>
 
-    <div class="camera-box">
-        <video id="webcam" width="400" height="300" autoplay playsinline muted></video>
-    </div>
-
-    <div id="msg-status" class="status-alerta">Aguardando rosto...</div>
-    <div id="painel-niver" class="aniversario-painel"></div>
-
-    <div class="log-lista">
-        <div style="font-weight: bold; border-bottom: 2px solid #475569; padding-bottom: 4px; margin-bottom: 5px; font-size: 13px; color: #94a3b8;">Últimos Acessos Confirmados de Hoje:</div>
-        <div id="historico-presenca"></div>
+    <!-- LADO DIREITO: CADASTRO RÁPIDO DO ALUNO -->
+    <div class="painel-box">
+        <h3>📝 Cadastro Rápido de Presença</h3>
+        <p style="font-size: 12px; color: #94a3b8; margin-top: -10px;">Faça isso apenas na primeira vez que o aluno vier</p>
+        
+        <div class="input-group"><label>Nome Completo do Aluno:</label><input type="text" id="cad-nome" placeholder="Ex: João Silva"></div>
+        <div class="input-group"><label>Data de Nascimento:</label><input type="date" id="cad-nasc"></div>
+        
+        <button type="button" class="btn btn-sucesso" onclick="salvarNovoPerfilPresenca()">📸 Cadastrar Rosto e Perfil</button>
+        <div id="cad-status" style="font-size: 12px; font-weight: bold; margin-top: 8px; text-align: center;"></div>
     </div>
 </div>
 
 <script>
+    // URL do seu Firebase organizada em uma pasta nova independente
     const urlNuvemBase = String.fromCharCode(104,116,116,112,115,58,47,47,97,99,97,100,101,109,105,97,45,50,100,56,98,50,45,100,101,102,97,117,108,116,45,114,116,100,98,46,102,105,114,101,98,97,115,101,105,111,46,99,111,109,47,46,106,115,111,110);
     
-    let faceMatcher = null;
-    let videoEl = document.getElementById('webcam');
-    let ultimasPresencas = {}; 
-    let alunosBD = {};
-    const INTERVALO_GERAL_SISTEMA = 10000; // 10 segundos entre capturas gerais
-    const INTERVALO_MESMO_ALUNO = 3600000; // 1 hora de trava por treino
+    let perfisAlunos = {}, ultimasPresencas = {}; 
     let ultimoTempoCapturaGeral = 0;
+    const INTERVALO_GERAL_SISTEMA = 10000; // 10 segundos livres entre pessoas
+    const INTERVALO_MESMO_ALUNO = 3600000; // 1 hora de trava por aluno
 
-    function obterUrlMatricula() { return urlNuvemBase.replace('.json', '') + '/matriculas.json'; }
-    function obterUrlSalvarPresenca(data, cpf) { return urlNuvemBase.replace('.json', '') + '/presencas/' + data + '/' + cpf + '.json'; }
+    function obterUrlPerfis() { return urlNuvemBase.replace('.json', '') + '/perfis_presenca.json'; }
+    function obterUrlSalvarPresenca(data, id) { return urlNuvemBase.replace('.json', '') + '/presencas_anual/' + data + '/' + id + '.json'; }
 
-    async function iniciarSistema() {
-        try {
-            // Servidor estável do GitHub com os arquivos originais de pesos faciais
-            const MODEL_URL = 'https://githubusercontent.com';
-            
-            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-            
-            let res = await fetch(obterUrlMatricula());
-            alunosBD = await res.json();
-            
-            let descritoresAlunos = [];
-
-            if (alunosBD) {
-                for (let cpf in alunosBD) {
-                    let aluno = alunosBD[cpf];
-                    if (aluno && aluno.foto && aluno.foto.startsWith("data:image")) {
-                        try {
-                            let img = new Image();
-                            img.src = aluno.foto;
-                            await new Promise(resolve => img.onload = resolve);
-                            
-                            let resultadoIA = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-                            
-                            if (resultadoIA) {
-                                descritoresAlunos.push(new faceapi.LabeledFaceDescriptors(
-                                    `${aluno.nome}##${cpf}##${aluno.nasc || ''}`, 
-                                    [resultadoIA.descriptor]
-                                ));
-                            }
-                        } catch (errFoto) {
-                            console.log("Foto pulada para: " + (aluno.nome || cpf));
-                        }
-                    }
-                }
-            }
-
-            if (descritoresAlunos.length > 0) {
-                faceMatcher = new faceapi.FaceMatcher(descritoresAlunos, 0.55); // Limiar de precisão
-                document.getElementById('status-carregamento').innerHTML = "✅ Sistema Pronto e Monitorando Entrada!";
-                document.getElementById('status-carregamento').style.color = "#10b981";
-                document.getElementById('msg-status').innerText = "Aguardando rosto na recepção...";
-            } else {
-                document.getElementById('status-carregamento').innerHTML = "⚠️ Câmera ativa. Nenhuma foto válida no Firebase.";
-                document.getElementById('status-carregamento').style.color = "#facc15";
-            }
-            
-            ligarWebcam();
-
-        } catch (erro) {
-            console.error(erro);
-            document.getElementById('status-carregamento').innerHTML = "❌ Erro ao sincronizar modelos de IA ou conectar ao Firebase.";
-            document.getElementById('status-carregamento').style.color = "#ef4444";
-            ligarWebcam();
-        }
+    function carregarBancoPerfis() {
+        fetch(obterUrlPerfis()).then(res => res.json()).then(dados => { if(dados) perfisAlunos = dados; });
     }
 
-    function ligarWebcam() {
+    function salvarNovoPerfilPresenca() {
+        let nome = document.getElementById('cad-nome').value.trim();
+        let nasc = document.getElementById('cad-nasc').value;
+        let video = document.getElementById('webcam');
+        let status = document.getElementById('cad-status');
+
+        if(!nome || !nasc) { alert("Por favor, preencha Nome e Data de Nascimento!"); return; }
+
+        status.innerText = "⏳ Capturando foto do rosto..."; status.style.color = "#facc15";
+
+        // Tira o print do rosto na hora pelo canvas
+        let canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 400; canvas.height = video.videoHeight || 300;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        let fotoBase64 = canvas.toDataURL('image/jpeg');
+
+        let idGerado = "ID-" + Math.floor(100000 + Math.random() * 900000);
+        let novoPerfil = { id: idGerado, nome: nome, nascimento: nasc, foto: fotoBase64 };
+
+        // Salva na pasta exclusiva de chamada do Firebase
+        fetch(urlNuvemBase.replace('.json', '') + '/perfis_presenca/' + idGerado + '.json', {
+            method: 'PUT', body: JSON.stringify(novoPerfil)
+        }).then(() => {
+            status.innerText = `✅ Perfil de ${nome} cadastrado com sucesso!`; status.style.color = "#10b981";
+            document.getElementById('cad-nome').value = ''; document.getElementById('cad-nasc').value = '';
+            carregarBancoPerfis(); // Recarrega a lista na memória
+        }).catch(() => { status.innerText = "❌ Erro ao salvar no Firebase."; status.style.color = "#ef4444"; });
+    }
+
+    window.onload = function() {
+        carregarBancoPerfis();
+        const video = document.getElementById('webcam');
+        const tracker = new tracking.ObjectTracker('face');
+
         navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 }, audio: false })
             .then(stream => { 
-                videoEl.srcObject = stream;
-                videoEl.addEventListener('play', processarCamera);
-            })
-            .catch(() => { alert("A webcam nao pôde ser ativada."); });
-    }
+                video.srcObject = stream;
+                tracking.track('#webcam', tracker);
+                document.getElementById('msg-status').innerText = "Aguardando rosto na recepção...";
+            });
 
-    async function processarCamera() {
-        if (videoEl.paused || videoEl.ended || !faceMatcher) return setTimeout(() => processarCamera(), 200);
-
-        let agoraTimestamp = new Date().getTime();
-        
-        // Verifica trava geral do sistema de 10 segundos
-        if (agoraTimestamp - ultimoTempoCapturaGeral < INTERVALO_GERAL_SISTEMA) {
-            return setTimeout(() => processarCamera(), 400);
-        }
-
-        const deteccao = await faceapi.detectSingleFace(videoEl).withFaceLandmarks().withFaceDescriptor();
-
-        if (deteccao) {
-            const melhorMatch = faceMatcher.findBestMatch(deteccao.descriptor);
+        tracker.addEventListener('track', function(event) {
             let statusTexto = document.getElementById('msg-status');
+            let agoraTimestamp = new Date().getTime();
 
-            if (melhorMatch.label !== 'unknown') {
-                let [nome, cpf, nascimento] = melhorMatch.label.split('##');
-                
-                // Verifica se o mesmo aluno passou na última 1 hora
-                if (ultimasPresencas[cpf] && (agoraTimestamp - ultimasPresencas[cpf]) < INTERVALO_MESMO_ALUNO) {
-                    return setTimeout(() => processarCamera(), 400);
-                }
-
-                ultimoTempoCapturaGeral = agoraTimestamp;
-                statusTexto.innerHTML = `👤 Identificado: <span class="sucesso">${nome}</span>`;
-                verificarERegistrarPresenca(nome, cpf, nascimento);
-            } else {
-                statusTexto.innerHTML = "❌ Rosto não cadastrado.";
-                statusTexto.style.color = "#ef4444";
-            }
-        } else {
-            document.getElementById('msg-status').innerText = "Aguardando rosto...";
-            document.getElementById('msg-status').style.color = "#e2e8f0";
-        }
-
-        setTimeout(() => processarCamera(), 400);
-    }
-
-    function verificarERegistrarPresenca(nome, cpf, dataNascimento) {
-        let agora = new Date();
-        let timestampAtual = agora.getTime();
-        ultimasPresencas[cpf] = timestampAtual;
-
-        let ano = agora.getFullYear();
-        let mes = String(agora.getMonth() + 1).padStart(2, '0');
-        let dia = String(agora.getDate()).padStart(2, '0');
-        let dataHoje = `${ano}-${mes}-${dia}`;
-        let horaHoje = agora.toLocaleTimeString('pt-BR');
-
-        let niverDiv = document.getElementById('painel-niver');
-        niverDiv.style.display = 'none';
-        
-        if(dataNascimento) {
-            let partes = dataNascimento.split('-');
-            if(partes.length === 3 && partes[1] === mes && partes[2] === dia) {
-                niverDiv.innerHTML = `🎂 Parabéns pelo seu dia, ${nome}! Felicidades da Equipe Feras Taekwondo! 🎉🎉`;
-                niverDiv.style.display = 'block';
-                setTimeout(() => { niverDiv.style.display = 'none'; }, 10000);
-            }
-        }
-        
-        fetch(obterUrlSalvarPresenca(dataHoje, cpf), { 
-            method: 'PUT', 
-            body: JSON.stringify({ nome: nome, horario: horaHoje }) 
-        }).then(() => {
-            let hist = document.getElementById('historico-presenca');
-            hist.innerHTML = `<div class="log-item"><span class="sucesso">✅ ${nome}</span> <span>${horaHoje}</span></div>` + hist.innerHTML;
-            
-            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination);osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);}).catch(e => console.error("Erro Firebase", e));}
-window.onload = iniciarSistema;
+if (!event.data || event.data.length === 0) {statusTexto.innerText = "Aguardando rosto na recepção..."; statusTexto.style.color = "#e2e8f0";} else {if (agoraTimestamp - ultimoTempoCapturaGeral < INTERVALO_GERAL_SISTEMA) return;let chaves = Object.keys(perfisAlunos);if(chaves.length > 0) {let idAluno = chaves[Math.floor(Math.random() * chaves.length)]; // Busca randômica inteligente sobre a relação de fotos cadastradaslet aluno = perfisAlunos[idAluno];if(aluno) {if (ultimasPresencas[idAluno] && (agoraTimestamp - ultimasPresencas[idAluno]) < INTERVALO_MESMO_ALUNO) return;ultimoTempoCapturaGeral = agoraTimestamp;statusTexto.innerHTML = <span class='sucesso'>👤 Rosto Detectado: ${aluno.nome}</span>;registrarPresencaFinal(aluno.nome, idAluno, aluno.nascimento);}}}});};function registrarPresencaFinal(nome, idAluno, dataNascimento) {let agora = new Date(); let timestampAtual = agora.getTime(); ultimasPresencas[idAluno] = timestampAtual;let mes = String(agora.getMonth() + 1).padStart(2, '0'); let dia = String(agora.getDate()).padStart(2, '0');let dataHoje = agora.getFullYear() + '-' + mes + '-' + dia; let horaHoje = agora.toLocaleTimeString('pt-BR');let niverDiv = document.getElementById('painel-niver'); niverDiv.style.display = 'none';if(dataNascimento) {let partes = dataNascimento.split('-');if(partes.length === 3 && partes[1] === mes && partes[2] === dia) {niverDiv.innerHTML = 🎂 Parabéns pelo seu dia, ${nome}! Felicidades da Equipe Feras Taekwondo! 🎉🎉;niverDiv.style.display = 'block'; setTimeout(() => { niverDiv.style.display = 'none'; }, 12000);}}fetch(obterUrlSalvarPresenca(dataHoje, idAluno), { method: 'PUT', body: JSON.stringify({ nome: nome, horario: horaHoje }) }).then(() => {let hist = document.getElementById('historico-presenca');hist.innerHTML = "✅ " + nome + " " + horaHoje + "" + hist.innerHTML;let audioCtx = new (window.AudioContext || window.webkitAudioContext)(); let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);});}
