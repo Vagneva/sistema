@@ -196,3 +196,4 @@
             
             let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination);osc.frequency.value = 600; osc.start(); osc.stop(audioCtx.currentTime + 0.15);}).catch(e => console.error("Erro Firebase", e));}
+window.onload = iniciarSistema;
