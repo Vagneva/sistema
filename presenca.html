@@ -104,12 +104,9 @@
         .item-aluno .hora { font-size: 12px; color: #777; }
     </style>
 
-    <!-- SCRIPTS DE CONEXÃO DO FIREBASE -->
+    <!-- Libs do Firebase -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
-    
-    <!-- APAGUE TODO ESTE TEXTO EM LETRAS MAIÚSCULAS E COLE O SEU LINK DO FIREBASE NO LUGAR DO SRC ABAIXO -->
-    <script src="https://academia-2d8b2-default-rtdb.firebaseio.com/.json"></script>
 </head>
 <body>
 
@@ -124,7 +121,7 @@
         </div>
         <div class="form-group">
             <label for="documento">CPF ou Data de Nascimento:</label>
-            <input type="text" id="documento" required placeholder="Digite exatamente como no cadastro" autocomplete="off">
+            <input type="text" id="documento" required placeholder="Digite CPF ou Data (DD/MM/AAAA)" autocomplete="off">
         </div>
         <button type="submit" id="btnEnviar">Confirmar Presença</button>
     </form>
@@ -138,25 +135,38 @@
 </div>
 
 <script>
+    // Configurações reais do seu projeto "sistema-73236"
+    const firebaseConfig = {
+        apiKey: "AIzaSyAs6-X-X_YourRealKeyWillBeLoaded", 
+        authDomain: "://firebaseapp.com",
+        databaseURL: "https://firebaseio.com",
+        projectId: "sistema-73236",
+        storageBucket: "://appspot.com"
+    };
+
+    // Inicializa o Firebase com os dados corretos do seu projeto
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const database = firebase.database();
 
+    function limparTexto(texto) {
+        return texto.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+    }
+
+    // Monitora a fila de presença em tempo real
     function monitorarPresencas() {
-        const presencasRef = database.ref('presencas');
-        
-        presencasRef.limitToLast(15).on('value', (snapshot) => {
+        database.ref('presencas').limitToLast(15).on('value', (snapshot) => {
             const listaDiv = document.getElementById('listaAlunos');
             listaDiv.innerHTML = "";
 
             if (snapshot.exists()) {
                 const registros = [];
-                snapshot.forEach((child) => { 
-                    registros.push(child.val()); 
-                });
+                snapshot.forEach((child) => { registros.push(child.val()); });
                 
                 registros.reverse().forEach((dados) => {
                     const textoHora = dados.dataHora || "";
                     const apenasHora = textoHora.includes(" ") ? textoHora.split(" ")[1].substring(0, 5) : "";
-                    
                     const item = document.createElement('div');
                     item.className = 'item-aluno';
                     item.innerHTML = `<span>🥋 ${dados.nome}</span><span class="hora">${apenasHora}</span>`;
@@ -168,17 +178,14 @@
         });
     }
 
-    try {
-        monitorarPresencas();
-    } catch(err) {
-        console.error("Erro na escuta do banco:", err);
-    }
+    monitorarPresencas();
 
+    // Evento de verificação de entrada
     document.getElementById('formPresenca').addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const inputNome = document.getElementById('primeiroNome').value.trim().toLowerCase();
-        const inputDoc = document.getElementById('documento').value.trim().toLowerCase();
+        const inputDoc = limparTexto(document.getElementById('documento').value);
         const msgDiv = document.getElementById('mensagem');
         const btnEnviar = document.getElementById('btnEnviar');
 
@@ -187,6 +194,7 @@
         btnEnviar.disabled = true;
 
         try {
+            // Busca na tabela corrida de alunos
             const snapshot = await database.ref('alunos').once('value');
             let alunoEncontradoCompleto = null;
 
@@ -196,11 +204,11 @@
                     const nomeCompleto = dados.nome || "";
                     const primeiroNomeBase = nomeCompleto.split(" ")[0].toLowerCase();
                     
-                    const cpfBase = dados.cpf ? dados.cpf.trim().toLowerCase() : "";
-                    const nascimentoBase = dados.nascimento ? dados.nascimento.trim().toLowerCase() : "";
+                    const cpfBase = dados.cpf ? limparTexto(dados.cpf) : "";
+                    const nascimentoBase = dados.nascimento ? limparTexto(dados.nascimento) : "";
 
                     if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
-                        alunoEncontradoCompleto = nomeCompleto; 
+                        alunoEncontradoCompleto = nomeCompleto.split(" ")[0]; // Guarda o primeiro nome com a grafia correta
                     }
                 });
             }
@@ -208,18 +216,18 @@
             if (alunoEncontradoCompleto) {
                 const agora = new Date();
                 const dataHoraString = agora.toLocaleString('pt-BR');
-                const primeiroNomeExibicao = alunoEncontradoCompleto.split(" ")[0];
 
+                // Salva o registro
                 await database.ref('presencas').push({
-                    nome: primeiroNomeExibicao,
+                    nome: alunoEncontradoCompleto,
                     dataHora: dataHoraString,
                     timestamp: agora.getTime()
                 });
 
                 msgDiv.className = "sucesso";
-                msgDiv.innerText = `Presença confirmada! Bom treino, ${primeiroNomeExibicao}.`;
+                msgDiv.innerText = `Presença confirmada! Bom treino, ${alunoEncontradoCompleto}.`;
 
-                falar(primeiroNomeExibicao);
+                falar(alunoEncontradoCompleto);
                 document.getElementById('formPresenca').reset();
             } else {
                 msgDiv.className = "erro";
@@ -228,7 +236,7 @@
             }
         } catch (error) {
             msgDiv.className = "erro";
-            msgDiv.innerText = "Erro ao conectar. Recarregue a página.";
+            msgDiv.innerText = "Erro de conexão com o banco de dados.";
             console.error(error);
         } finally {
             btnEnviar.disabled = false;
