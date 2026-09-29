@@ -86,7 +86,7 @@
             justify-content: space-between;
         }
         .lista-alunos {
-            max-height: 200px;
+            max-height: 220px;
             overflow-y: auto;
             padding-right: 5px;
         }
@@ -104,12 +104,12 @@
         .item-aluno .hora { font-size: 12px; color: #777; }
     </style>
 
-    <!-- LINKS DO SCRIPT DO FIREBASE (Igual ao modelo simplificado que você usa) -->
+    <!-- SCRIPTS DE CONEXÃO DO FIREBASE -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     
-    <!-- Este é o link mágico que puxa suas credenciais sozinho no servidor -->
-    <script src="/__/firebase/init.js"></script>
+    <!-- APAGUE TODO ESTE TEXTO EM LETRAS MAIÚSCULAS E COLE O SEU LINK DO FIREBASE NO LUGAR DO SRC ABAIXO -->
+    <script src="https://academia-2d8b2-default-rtdb.firebaseio.com/.json"></script>
 </head>
 <body>
 
@@ -119,12 +119,12 @@
 
     <form id="formPresenca">
         <div class="form-group">
-            <label for="primeiroNome">Primeiro Nome:</label>
+            <label for="primeiroNome">Primeiro Nome do Aluno:</label>
             <input type="text" id="primeiroNome" required placeholder="Ex: João" autocomplete="off">
         </div>
         <div class="form-group">
             <label for="documento">CPF ou Data de Nascimento:</label>
-            <input type="text" id="documento" required placeholder="Digite CPF ou Data (DD/MM/AAAA)" autocomplete="off">
+            <input type="text" id="documento" required placeholder="Digite exatamente como no cadastro" autocomplete="off">
         </div>
         <button type="submit" id="btnEnviar">Confirmar Presença</button>
     </form>
@@ -138,28 +138,25 @@
 </div>
 
 <script>
-    // Inicializa o banco de dados usando a conexão automática do seu link
     const database = firebase.database();
 
-    function limparTexto(texto) {
-        return texto.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
-    }
-
-    // Monitora a fila de presenças em tempo real na tela
     function monitorarPresencas() {
         const presencasRef = database.ref('presencas');
         
-        presencasRef.limitToLast(20).on('value', (snapshot) => {
+        presencasRef.limitToLast(15).on('value', (snapshot) => {
             const listaDiv = document.getElementById('listaAlunos');
             listaDiv.innerHTML = "";
 
             if (snapshot.exists()) {
                 const registros = [];
-                snapshot.forEach((child) => { registros.push(child.val()); });
+                snapshot.forEach((child) => { 
+                    registros.push(child.val()); 
+                });
                 
                 registros.reverse().forEach((dados) => {
                     const textoHora = dados.dataHora || "";
                     const apenasHora = textoHora.includes(" ") ? textoHora.split(" ")[1].substring(0, 5) : "";
+                    
                     const item = document.createElement('div');
                     item.className = 'item-aluno';
                     item.innerHTML = `<span>🥋 ${dados.nome}</span><span class="hora">${apenasHora}</span>`;
@@ -171,14 +168,17 @@
         });
     }
 
-    monitorarPresencas();
+    try {
+        monitorarPresencas();
+    } catch(err) {
+        console.error("Erro na escuta do banco:", err);
+    }
 
-    // Evento de envio do formulário de presença
     document.getElementById('formPresenca').addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const inputNome = document.getElementById('primeiroNome').value.trim().toLowerCase();
-        const inputDoc = limparTexto(document.getElementById('documento').value);
+        const inputDoc = document.getElementById('documento').value.trim().toLowerCase();
         const msgDiv = document.getElementById('mensagem');
         const btnEnviar = document.getElementById('btnEnviar');
 
@@ -187,7 +187,6 @@
         btnEnviar.disabled = true;
 
         try {
-            // Busca na pasta de alunos cadastrados pela matrícula
             const snapshot = await database.ref('alunos').once('value');
             let alunoEncontradoCompleto = null;
 
@@ -197,8 +196,8 @@
                     const nomeCompleto = dados.nome || "";
                     const primeiroNomeBase = nomeCompleto.split(" ")[0].toLowerCase();
                     
-                    const cpfBase = dados.cpf ? limparTexto(dados.cpf) : "";
-                    const nascimentoBase = dados.nascimento ? limparTexto(dados.nascimento) : "";
+                    const cpfBase = dados.cpf ? dados.cpf.trim().toLowerCase() : "";
+                    const nascimentoBase = dados.nascimento ? dados.nascimento.trim().toLowerCase() : "";
 
                     if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
                         alunoEncontradoCompleto = nomeCompleto; 
@@ -211,7 +210,6 @@
                 const dataHoraString = agora.toLocaleString('pt-BR');
                 const primeiroNomeExibicao = alunoEncontradoCompleto.split(" ")[0];
 
-                // Salva a presença confirmada
                 await database.ref('presencas').push({
                     nome: primeiroNomeExibicao,
                     dataHora: dataHoraString,
@@ -230,7 +228,7 @@
             }
         } catch (error) {
             msgDiv.className = "erro";
-            msgDiv.innerText = "Erro ao conectar. Tente novamente.";
+            msgDiv.innerText = "Erro ao conectar. Recarregue a página.";
             console.error(error);
         } finally {
             btnEnviar.disabled = false;
