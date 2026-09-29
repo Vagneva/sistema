@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feras Taekwondo - Presença</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .logo-academia {
+            color: #e50914;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .subtitulo {
+            color: #4CAF50;
+            font-size: 16px;
+            margin-top: 5px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        label { display: block; margin-bottom: 6px; color: #aaa; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus { border-color: #4CAF50; outline: none; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #45a049; }
+        #mensagem { margin-top: 15px; font-weight: bold; min-height: 24px; font-size: 15px; line-height: 1.4; }
+        .sucesso { color: #4CAF50; }
+        .erro { color: #f44336; }
+        .carregando { color: #ffeb3b; }
+        .painel-presenca {
+            margin-top: 30px;
+            border-top: 2px solid #333;
+            padding-top: 20px;
+            text-align: left;
+        }
+        .painel-presenca h3 {
+            font-size: 16px;
+            color: #bbb;
+            margin: 0 0 15px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .lista-alunos {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .item-aluno {
+            background-color: #252525;
+            padding: 10px 15px;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+        }
+        .item-aluno .hora { font-size: 12px; color: #777; }
+    </style>
+
+    <!-- LINKS DO SCRIPT DO FIREBASE (Igual ao modelo simplificado que você usa) -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    
+    <!-- Este é o link mágico que puxa suas credenciais sozinho no servidor -->
+    <script src="/__/firebase/init.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="logo-academia">Feras Taekwondo</h1>
+    <div class="subtitulo">🥋 Registrar Entrada</div>
+
+    <form id="formPresenca">
+        <div class="form-group">
+            <label for="primeiroNome">Primeiro Nome:</label>
+            <input type="text" id="primeiroNome" required placeholder="Ex: João" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="documento">CPF ou Data de Nascimento:</label>
+            <input type="text" id="documento" required placeholder="Digite CPF ou Data (DD/MM/AAAA)" autocomplete="off">
+        </div>
+        <button type="submit" id="btnEnviar">Confirmar Presença</button>
+    </form>
+    
+    <div id="mensagem"></div>
+
+    <div class="painel-presenca">
+        <h3>Alunos no Treino de Hoje <span style="font-size:12px; color:#4CAF50;">● Online</span></h3>
+        <div id="listaAlunos" class="lista-alunos"></div>
+    </div>
+</div>
+
+<script>
+    // Inicializa o banco de dados usando a conexão automática do seu link
+    const database = firebase.database();
+
+    function limparTexto(texto) {
+        return texto.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+    }
+
+    // Monitora a fila de presenças em tempo real na tela
+    function monitorarPresencas() {
+        const presencasRef = database.ref('presencas');
+        
+        presencasRef.limitToLast(20).on('value', (snapshot) => {
+            const listaDiv = document.getElementById('listaAlunos');
+            listaDiv.innerHTML = "";
+
+            if (snapshot.exists()) {
+                const registros = [];
+                snapshot.forEach((child) => { registros.push(child.val()); });
+                
+                registros.reverse().forEach((dados) => {
+                    const textoHora = dados.dataHora || "";
+                    const apenasHora = textoHora.includes(" ") ? textoHora.split(" ")[1].substring(0, 5) : "";
+                    const item = document.createElement('div');
+                    item.className = 'item-aluno';
+                    item.innerHTML = `<span>🥋 ${dados.nome}</span><span class="hora">${apenasHora}</span>`;
+                    listaDiv.appendChild(item);
+                });
+            } else {
+                listaDiv.innerHTML = '<div style="color:#666; font-size:14px; text-align:center;">Fila de treino vazia.</div>';
+            }
+        });
+    }
+
+    monitorarPresencas();
+
+    // Evento de envio do formulário de presença
+    document.getElementById('formPresenca').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const inputNome = document.getElementById('primeiroNome').value.trim().toLowerCase();
+        const inputDoc = limparTexto(document.getElementById('documento').value);
+        const msgDiv = document.getElementById('mensagem');
+        const btnEnviar = document.getElementById('btnEnviar');
+
+        msgDiv.className = "carregando";
+        msgDiv.innerText = "Buscando matrícula...";
+        btnEnviar.disabled = true;
+
+        try {
+            // Busca na pasta de alunos cadastrados pela matrícula
+            const snapshot = await database.ref('alunos').once('value');
+            let alunoEncontradoCompleto = null;
+
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    const dados = child.val();
+                    const nomeCompleto = dados.nome || "";
+                    const primeiroNomeBase = nomeCompleto.split(" ")[0].toLowerCase();
+                    
+                    const cpfBase = dados.cpf ? limparTexto(dados.cpf) : "";
+                    const nascimentoBase = dados.nascimento ? limparTexto(dados.nascimento) : "";
+
+                    if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
+                        alunoEncontradoCompleto = nomeCompleto; 
+                    }
+                });
+            }
+
+            if (alunoEncontradoCompleto) {
+                const agora = new Date();
+                const dataHoraString = agora.toLocaleString('pt-BR');
+                const primeiroNomeExibicao = alunoEncontradoCompleto.split(" ")[0];
+
+                // Salva a presença confirmada
+                await database.ref('presencas').push({
+                    nome: primeiroNomeExibicao,
+                    dataHora: dataHoraString,
+                    timestamp: agora.getTime()
+                });
+
+                msgDiv.className = "sucesso";
+                msgDiv.innerText = `Presença confirmada! Bom treino, ${primeiroNomeExibicao}.`;
+
+                falar(primeiroNomeExibicao);
+                document.getElementById('formPresenca').reset();
+            } else {
+                msgDiv.className = "erro";
+                msgDiv.innerText = "Matrícula não encontrada ou dados incorretos.";
+                falarErro();
+            }
+        } catch (error) {
+            msgDiv.className = "erro";
+            msgDiv.innerText = "Erro ao conectar. Tente novamente.";
+            console.error(error);
+        } finally {
+            btnEnviar.disabled = false;
+        }
+    });
+
+    function falar(nome) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(`Presença confirmada! Bom treino, ${nome}.`);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function falarErro() {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance("Dados não encontrados.");
+            utterance.lang = 'pt-BR';
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+</script>
+</body>
+</html>
