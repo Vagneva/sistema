@@ -1,33 +1,92 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feras Taekwondo - Controle de Presença</title>
+    <title>Presença - Feras Taekwondo</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-        h2 { color: #d32f2f; margin-bottom: 5px; }
-        h3 { color: #333; margin-top: 0; font-weight: normal; margin-bottom: 25px; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #d32f2f; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        button:hover { background: #b71c1c; }
-        #mensagem { margin-top: 20px; padding: 10px; border-radius: 4px; display: none; font-weight: bold; }
-        .sucesso { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .erro { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        h2 {
+            color: #d32f2f; /* Vermelho marcial */
+            margin-bottom: 5px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 0;
+            font-weight: 400;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #b71c1c;
+        }
+        #mensagem {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            font-weight: 500;
+        }
+        .sucesso { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .erro { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Feras Taekwondo</h2>
-    <h3>Controle de Presença</h3>
+    <h3>Registro de Presença</h3>
 
     <div class="form-group">
-        <label for="busca">Digite seu Nome, CPF ou Data de Nascimento:</label>
-        <input type="text" id="busca" placeholder="Ex: João Silva, 12345678900 ou 15/04/2005" required>
+        <label for="busca">Busque por Nome, CPF ou Data de Nascimento:</label>
+        <input type="text" id="busca" placeholder="Ex: João, 12345678900 ou 01/01/2000">
     </div>
 
     <button onclick="registrarPresenca()">Marcar Presença</button>
@@ -36,97 +95,107 @@
 </div>
 
 <script>
-    // COLE O SEU LINK DO FIREBASE AQUI (Lembre-se de remover a barra '/' do final se houver)
-    const FIREBASE_URL = “https://academia-2d8b2-default-rtdb.firebaseio.com/json”;
+    // URL BASE DO SEU FIREBASE (Adicione a barra '/' no final se não houver)
+    const FIREBASE_URL = "SEU_LINK_DO_FIREBASE"; 
 
-    // Função auxiliar para limpar e normalizar strings de busca (remove espaços e caracteres especiais)
-    function normalizar(texto) {
-        return texto.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+    // Função auxiliar para normalizar textos (remover acentos e espaços extras)
+    function normalizarTexto(texto) {
+        return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    }
+
+    // Função auxiliar para limpar pontuação de CPF ou datas
+    function limparPontuacao(texto) {
+        return texto.replace(/[^\w\s]/gi, '');
     }
 
     async function registrarPresenca() {
-        const campoBusca = document.getElementById('busca').value.trim();
+        const termoBusca = document.getElementById('busca').value;
         const divMensagem = document.getElementById('mensagem');
         
-        if (!campoBusca) {
-            exibirMensagem("Por favor, insira um termo para busca.", "erro");
+        if (!termoBusca) {
+            exibirMensagem("Por favor, digite um termo para busca.", "erro");
             return;
         }
 
-        exibirMensagem("Buscando matrícula...", "sucesso");
+        exibirMensagem("Buscando matrícula...", "info");
 
         try {
-            // 1. Busca todos os alunos matriculados usando a API REST (.json)
-            const respostaMatriculas = await fetch(`${FIREBASE_URL}/matriculas.json`);
-            const alunos = await respostaMatriculas.json();
+            // 1. Busca todas as matrículas via REST API
+            const response = await fetch(`${FIREBASE_URL}matriculas.json`);
+            
+            if (!response.ok) throw new Error("Erro ao conectar com o banco de dados.");
+            
+            const matriculas = await response.json();
 
-            if (!alunos) {
-                exibirMensagem("Nenhum aluno cadastrado no banco de dados.", "erro");
+            if (!matriculas) {
+                exibirMensagem("Nenhuma matrícula encontrada no sistema.", "erro");
                 return;
             }
 
-            let alunoEncontradoId = null;
-            let nomeAluno = "";
-            const termoBuscaNorm = normalizar(campoBusca);
+            let alunoEncontrado = null;
+            let idAlunoEncontrado = null;
 
-            // 2. Percorre os alunos cadastrados procurando por Nome, CPF ou Data de Nascimento
-            for (let id in alunos) {
-                const aluno = alunos[id];
+            // Termos tratados para comparação flexível
+            const buscaNormalizada = normalizarTexto(termoBusca);
+            const buscaLimpa = limparPontuacao(termoBusca);
+
+            // 2. Percorre as matrículas para encontrar o aluno correto
+            for (const id in matriculas) {
+                const aluno = matriculas[id];
                 
-                const nomeNorm = aluno.nome ? normalizar(aluno.nome) : "";
-                const cpfNorm = aluno.cpf ? normalizar(aluno.cpf) : "";
-                const dataNorm = aluno.dataNascimento ? normalizar(aluno.dataNascimento) : "";
+                const nomeMatch = aluno.nome && normalizarTexto(aluno.nome).includes(buscaNormalizada);
+                const cpfMatch = aluno.cpf && limparPontuacao(aluno.cpf) === buscaLimpa;
+                const dataMatch = aluno.dataNascimento && limparPontuacao(aluno.dataNascimento) === buscaLimpa;
 
-                if (nomeNorm.includes(termoBuscaNorm) || cpfNorm === termoBuscaNorm || dataNorm === termoBuscaNorm) {
-                    alunoEncontradoId = id;
-                    nomeAluno = aluno.nome;
-                    break;
+                if (nomeMatch || cpfMatch || dataMatch) {
+                    alunoEncontrado = aluno;
+                    idAlunoEncontrado = id;
+                    break; // Para no primeiro que encontrar
                 }
             }
 
-            // 3. Se não encontrar o aluno
-            if (!alunoEncontradoId) {
-                exibirMensagem("Aluno não encontrado. Verifique os dados informados.", "erro");
-                return;
-            }
+            // 3. Se encontrar, registra a presença
+            if (alunoEncontrado) {
+                const dataAtual = new Date();
+                
+                // Objeto da presença que será salvo
+                const dadosPresenca = {
+                    idAluno: idAlunoEncontrado,
+                    nome: alunoEncontrado.nome,
+                    timestamp: dataAtual.toISOString(),
+                    dataFormatada: dataAtual.toLocaleDateString('pt-BR'),
+                    horaFormatada: dataAtual.toLocaleTimeString('pt-BR')
+                };
 
-            // 4. Se encontrar, monta o objeto de presença com a data e hora atual do fuso local
-            const agora = new Date();
-            const dataHoje = agora.toISOString().split('T')[0]; // Formato: AAAA-MM-DD
-            const horaAtual = agora.toLocaleTimeString('pt-BR');
+                // Envia a presença para o nó 'presencas' usando o método POST
+                const salvarResponse = await fetch(`${FIREBASE_URL}presencas.json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosPresenca)
+                });
 
-            const dadosPresenca = {
-                alunoId: alunoEncontradoId,
-                nome: nomeAluno,
-                data: dataHoje,
-                hora: horaAtual
-            };
+                if (salvarResponse.ok) {
+                    exibirMensagem(`Presença confirmada para: <strong>${alunoEncontrado.nome}</strong>! 🥋`, "sucesso");
+                    document.getElementById('busca').value = ""; // Limpa o campo
+                } else {
+                    throw new Error("Não foi possível salvar a presença.");
+                }
 
-            // 5. Salva a presença na coleção usando o método POST da API REST
-            const respostaPresenca = await fetch(`${FIREBASE_URL}/presencas.json`, {
-                method: 'POST', // POST gera um ID único automático para cada presença
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dadosPresenca)
-            });
-
-            if (respostaPresenca.ok) {
-                exibirMensagem(`Presença confirmada! Seja bem-vindo(a), ${nomeAluno}.`, "sucesso");
-                document.getElementById('busca').value = ""; // Limpa o campo
             } else {
-                exibirMensagem("Erro ao gravar presença no servidor.", "erro");
+                exibirMensagem("Aluno não encontrado. Verifique os dados digitados.", "erro");
             }
 
         } catch (error) {
             console.error(error);
-            exibirMensagem("Erro de comunicação com o banco de dados.", "erro");
+            exibirMensagem("Ocorreu um erro na comunicação. Tente novamente.", "erro");
         }
     }
 
     function exibirMensagem(texto, tipo) {
         const divMensagem = document.getElementById('mensagem');
-        divMensagem.innerText = texto;
         divMensagem.style.display = "block";
-        divMensagem.className = tipo === "sucesso" ? "sucesso" : "erro";
+        divMensagem.className = tipo;
+        divMensagem.innerHTML = texto;
     }
 </script>
 
