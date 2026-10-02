@@ -472,6 +472,7 @@ function registrarPresencaExpressa(e) {
     }).catch(function() { btn.disabled = false; });
 }
 
+
 function atualizarListaPresencasDoDia() {
     var urlSalvarPresenca = urlNuvemBase.replace('.json', '') + "/presencas.json";
     var listaDiv = document.getElementById('listaPresencasDoDia');
@@ -481,70 +482,49 @@ function atualizarListaPresencasDoDia() {
         listaDiv.innerHTML = "";
         if (dados) {
             Object.keys(dados).reverse().forEach(function(chave) {
-                var r = dados[chave]; var item = document.createElement('div');
-                item.style.padding = "6px 0"; item.style.borderBottom = "1px dashed #cbd5e1";
-                var horaExibir = r.dataHora ? r.dataHora.split(" ")[1].substring(0, 5) : "";
+                var r = dados[chave]; 
+                var item = document.createElement('div');
+                item.style.padding = "6px 0"; 
+                item.style.borderBottom = "1px dashed #cbd5e1";
+                
+                var horaExibir = r.dataHora ? r.dataHora.split(" ").substring(0, 5) : "";
                 item.innerHTML = "🥋 " + r.nome + " <span style='font-size:12px; color:#65a30d; margin-left:10px;'>" + horaExibir + "</span>";
                 listaDiv.appendChild(item);
-            }
-        } else { listaDiv.innerHTML = "<span>Nenhum aluno registrou entrada hoje.</span>"; 
-}
-}
-
-// =================================================================
-// CONTROLE DO SCANNER DE QR CODE (MÓDULO SEGURO E INDEPENDENTE)
-// =================================================================
-let codeReader = null;
-
-async function inicializarLeitorQrCode() {
-    if (!codeReader) {
-        // Carrega a biblioteca nativamente via módulo sem depender de tags no head
-        const { BrowserQRCodeReader } = await import('https://jsdelivr.net');
-        codeReader = new BrowserQRCodeReader();
-    }
+            });
+        } else { 
+            listaDiv.innerHTML = "<span>Nenhum aluno registrou entrada hoje.</span>"; 
+        }
+    }).catch(function(err) { console.error(err); });
 }
 
-async function abrirChamadaExpressa() {
+var codeReader = new ZXing.BrowserQRCodeReader();
+
+function abrirChamadaExpressa() {
     document.getElementById('modalPresenca').style.display = 'flex';
-    document.getElementById('msgPresenca').innerText = "Iniciando câmera do notebook...";
-    document.getElementById('msgPresenca').style.color = "#ffeb3b";
+    document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
+    document.getElementById('msgPresenca').style.color = "#4CAF50";
     
-    try {
-        // Garante que o leitor foi carregado com sucesso
-        await inicializarLeitorQrCode();
-        
-        document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
-        document.getElementById('msgPresenca').style.color = "#4CAF50";
-
-        // Inicializa a captura da webcam
-        codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
-            if (resultado) {
-                var textoInjetado = resultado.text.trim();
-                document.getElementById('presencaDoc').value = textoInjetado;
-                fazerBipeSucesso(); 
-                buscarPresencaPorQrCode(textoInjetado);
-            }
-        });
-    } catch (err) {
-        document.getElementById('msgPresenca').innerText = "Erro ao iniciar câmera. Verifique as permissões.";
-        document.getElementById('msgPresenca').style.color = "#f44336";
-        console.error(err);
-    }
+    codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
+        if (resultado) {
+            var textoInjetado = resultado.text.trim();
+            document.getElementById('presencaDoc').value = textoInjetado;
+            fazerBipeSucesso(); 
+            buscarPresencaPorQrCode(textoInjetado);
+        }
+    });
 }
 
 function fecharModalPresenca() {
     document.getElementById('modalPresenca').style.display = 'none';
     document.getElementById('formPresencaRapida').reset();
-    document.getElementById('msgPresenca').innerText = "";
-    if (codeReader) {
-        codeReader.reset(); // Desliga a luz da webcam do notebook com segurança
-    }
+    codeReader.reset(); 
 }
+
 function buscarPresencaPorQrCode(documentoQr) {
     var textoQr = documentoQr.trim().toLowerCase();
     var msgDiv = document.getElementById('msgPresenca');
     var partes = textoQr.split(" "); 
-    var qrNome = partes[0] || "";
+    var qrNome = partes ? partes[0] : "";
     var qrDoc = textoQr.replace(qrNome, "").replace(/[^a-z0-9]/g, "").trim();
 
     var urlMatriculas = urlNuvemBase.replace('.json', '') + "/matriculas.json";
@@ -552,7 +532,8 @@ function buscarPresencaPorQrCode(documentoQr) {
         var alunoEncontrado = null;
         if (dadosMatriculas) {
             Object.keys(dadosMatriculas).forEach(function(chave) {
-                var d = dadosMatriculas[chave]; var nomeCompleto = d.nome || "";
+                var d = dadosMatriculas[chave]; 
+                var nomeCompleto = d.nome || "";
                 var primeiroNomeBase = nomeCompleto.trim().split(" ")[0].toLowerCase();
                 var cpfBase = d.cpf ? d.cpf.toString().toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
                 var nascimentoBase = d.nascimento ? d.nascimento.toString().toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
@@ -569,7 +550,8 @@ function buscarPresencaPorQrCode(documentoQr) {
                 method: 'POST',
                 body: JSON.stringify({ nome: alunoEncontrado, dataHora: new Date().toLocaleString('pt-BR'), timestamp: new Date().getTime() })
             }).then(function() {
-                msgDiv.style.color = "#4CAF50"; msgDiv.innerText = "Entrada liberada! Bom treino, " + alunoEncontrado + ".";
+                msgDiv.style.color = "#4CAF50"; 
+                msgDiv.innerText = "Entrada liberada! Bom treino, " + alunoEncontrado + ".";
                 if ('speechSynthesis' in window) {
                     window.speechSynthesis.cancel();
                     var u = new SpeechSynthesisUtterance("Presença confirmada! Bom treino, " + alunoEncontrado + ".");
@@ -577,16 +559,24 @@ function buscarPresencaPorQrCode(documentoQr) {
                 }
                 atualizarListaPresencasDoDia();
             });
-        } else { msgDiv.style.color = "#f44336"; msgDiv.innerText = "Dados do QR Code não conferem."; }
+        } else { 
+            msgDiv.style.color = "#f44336"; 
+            msgDiv.innerText = "Dados do QR Code não conferem."; 
+        }
     });
 }
 
 function fazerBipeSucesso() {
     if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
         var context = new (window.AudioContext || window.webkitAudioContext)();
-        var o = context.createOscillator(); var g = context.createGain();
-        o.connect(g); g.connect(context.destination); o.frequency.value = 1200; g.gain.setValueAtTime(0.1, context.currentTime);
-        o.start(); o.stop(context.currentTime + 0.1);
+        var o = context.createOscillator(); 
+        var g = context.createGain();
+        o.connect(g); 
+        g.connect(context.destination); 
+        o.frequency.value = 1200; 
+        g.gain.setValueAtTime(0.1, context.currentTime);
+        o.start(); 
+        o.stop(context.currentTime + 0.1);
     }
 }
 
@@ -595,4 +585,3 @@ setInterval(atualizarListaPresencasDoDia, 10000);
 </script>
 </body>
 </html>
-
