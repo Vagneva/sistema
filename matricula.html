@@ -423,8 +423,8 @@ function renderizarPrePainel() {
 }
     // =================================================================
 // 3. SISTEMA DE PRESENÇA EXPRESSA E LEITURA DE QR CODE (FERAS)
-// =================================================================
-function registrarPresencaExpressa(e) {
+// ================================================================
+    function registrarPresencaExpressa(e) {
     e.preventDefault();
     var inputNome = document.getElementById('presencaNome').value.trim().toLowerCase();
     var inputDoc = document.getElementById('presencaDoc').value.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
@@ -472,7 +472,6 @@ function registrarPresencaExpressa(e) {
     }).catch(function() { btn.disabled = false; });
 }
 
-
 function atualizarListaPresencasDoDia() {
     var urlSalvarPresenca = urlNuvemBase.replace('.json', '') + "/presencas.json";
     var listaDiv = document.getElementById('listaPresencasDoDia');
@@ -486,8 +485,7 @@ function atualizarListaPresencasDoDia() {
                 var item = document.createElement('div');
                 item.style.padding = "6px 0"; 
                 item.style.borderBottom = "1px dashed #cbd5e1";
-                
-                var horaExibir = r.dataHora ? r.dataHora.split(" ").substring(0, 5) : "";
+                var horaExibir = r.dataHora ? r.dataHora.split(" ")[1].substring(0, 5) : "";
                 item.innerHTML = "🥋 " + r.nome + " <span style='font-size:12px; color:#65a30d; margin-left:10px;'>" + horaExibir + "</span>";
                 listaDiv.appendChild(item);
             });
@@ -497,35 +495,67 @@ function atualizarListaPresencasDoDia() {
     }).catch(function(err) { console.error(err); });
 }
 
-var codeReader = new ZXing.BrowserQRCodeReader();
+let codeReader = null;
 
-function abrirChamadaExpressa() {
+async function inicializarLeitorQrCode() {
+    if (!codeReader) {
+        const { BrowserQRCodeReader } = await import('https://jsdelivr.net');
+        codeReader = new BrowserQRCodeReader();
+    }
+}
+
+async function abrirChamadaExpressa() {
     document.getElementById('modalPresenca').style.display = 'flex';
-    document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
-    document.getElementById('msgPresenca').style.color = "#4CAF50";
+    document.getElementById('msgPresenca').innerText = "Iniciando câmera...";
+    document.getElementById('msgPresenca').style.color = "#ffeb3b";
     
-    codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
-        if (resultado) {
-            var textoInjetado = resultado.text.trim();
-            document.getElementById('presencaDoc').value = textoInjetado;
-            fazerBipeSucesso(); 
-            buscarPresencaPorQrCode(textoInjetado);
-        }
-    });
+    try {
+        await inicializarLeitorQrCode();
+        document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
+        document.getElementById('msgPresenca').style.color = "#4CAF50";
+
+        codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
+            if (resultado) {
+                var textoInjetado = resultado.text.trim();
+                document.getElementById('presencaDoc').value = textoInjetado;
+                fazerBipeSucesso(); 
+                buscarPresencaPorQrCode(textoInjetado);
+            }
+        });
+    } catch (err) {
+        document.getElementById('msgPresenca').innerText = "Erro ao iniciar câmera.";
+        document.getElementById('msgPresenca').style.color = "#f44336";
+        console.error(err);
+    }
 }
 
 function fecharModalPresenca() {
     document.getElementById('modalPresenca').style.display = 'none';
     document.getElementById('formPresencaRapida').reset();
-    codeReader.reset(); 
+    document.getElementById('msgPresenca').innerText = "";
+    if (codeReader) {
+        codeReader.reset(); 
+    }
 }
 
 function buscarPresencaPorQrCode(documentoQr) {
     var textoQr = documentoQr.trim().toLowerCase();
     var msgDiv = document.getElementById('msgPresenca');
+    var btn = document.getElementById('btnEnviarPresenca');
+    
     var partes = textoQr.split(" "); 
-var qrNome = (partes && partes.length > 0) ? partes[0] : "";
+    var qrNome = (partes && partes.length > 0) ? partes[0] : "";
     var qrDoc = textoQr.replace(qrNome, "").replace(/[^a-z0-9]/g, "").trim();
+
+    if (!qrNome || !qrDoc) {
+        msgDiv.style.color = "#f44336";
+        msgDiv.innerText = "Erro: QR Code inválido. Use 'Nome Data'.";
+        return;
+    }
+
+    msgDiv.style.color = "#ffeb3b";
+    msgDiv.innerText = "Validando QR Code...";
+    btn.disabled = true;
 
     var urlMatriculas = urlNuvemBase.replace('.json', '') + "/matriculas.json";
     fetch(urlMatriculas).then(function(res) { return res.json(); }).then(function(dadosMatriculas) {
@@ -558,12 +588,18 @@ var qrNome = (partes && partes.length > 0) ? partes[0] : "";
                     u.lang = 'pt-BR'; window.speechSynthesis.speak(u);
                 }
                 atualizarListaPresencasDoDia();
+                setTimeout(function() {
+                    document.getElementById('formPresencaRapida').reset();
+                    msgDiv.innerText = "Próximo aluno, pode mostrar o código...";
+                    msgDiv.style.color = "#4CAF50";
+                }, 3000);
             });
         } else { 
             msgDiv.style.color = "#f44336"; 
             msgDiv.innerText = "Dados do QR Code não conferem."; 
+            btn.disabled = false;
         }
-    });
+    }).catch(function() { btn.disabled = false; });
 }
 
 function fazerBipeSucesso() {
