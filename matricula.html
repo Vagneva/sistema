@@ -212,6 +212,30 @@
             <div id="l-corpo"></div>
         </div>
     </div>
+    <!-- Botão flutuante para abrir o painel de presença rápida -->
+<button onclick="document.getElementById('modalPresenca').style.display='flex'" style="position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; background-color: #e50914; color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-size: 16px;">🥋 Abrir Chamada Expressa</button>
+
+<!-- Janela Pop-up da Presença -->
+<div id="modalPresenca" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; font-family: 'Segoe UI', Arial, sans-serif;">
+    <div style="background-color: #1e1e1e; padding: 30px; border-radius: 12px; width: 100%; max-width: 380px; text-align: center; color: white; position: relative; border: 1px solid #333;">
+        <button onclick="document.getElementById('modalPresenca').style.display='none'" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer;">✕</button>
+        <h2 style="color: #e50914; margin: 0; font-size: 26px; text-transform: uppercase;">Feras Taekwondo</h2>
+        <div style="color: #4CAF50; font-size: 14px; font-weight: bold; margin-bottom: 20px;">⚡ Entrada Rápida</div>
+        
+        <form id="formPresencaRapida" onsubmit="registrarPresencaExpressa(event)">
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="display: block; margin-bottom: 5px; color: #aaa; font-size: 14px;">Primeiro Nome:</label>
+                <input type="text" id="presencaNome" required placeholder="Ex: João" autocomplete="off" style="width: 100%; padding: 12px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 16px;">
+            </div>
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="display: block; margin-bottom: 5px; color: #aaa; font-size: 14px;">CPF ou Data de Nascimento:</label>
+                <input type="text" id="presencaDoc" required placeholder="Digite CPF ou Data (DD/MM/AAAA)" autocomplete="off" style="width: 100%; padding: 12px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 16px;">
+            </div>
+            <button type="submit" id="btnEnviarPresenca" style="width: 100%; padding: 14px; background-color: #4CAF50; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: bold; cursor: pointer;">Confirmar Entrada</button>
+        </form>
+        <div id="msgPresenca" style="margin-top: 15px; font-weight: bold; min-height: 20px; font-size: 15px;"></div>
+    </div>
+</div>
 <script>
         // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
         const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
@@ -321,6 +345,81 @@ function recusarPreCadastro(id) { if(confirm("Remover esta pré-inscrição?")) 
                 });
             } else { alert("Salvo local!"); atLista(); resetF(); }
         }
+    function registrarPresencaExpressa(e) {
+    e.preventDefault();
+    
+    // Captura os dados digitados na tela flutuante
+    var inputNome = document.getElementById('presencaNome').value.trim().toLowerCase();
+    var inputDoc = document.getElementById('presencaDoc').value.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+    var msgDiv = document.getElementById('msgPresenca');
+    var btn = document.getElementById('btnEnviarPresenca');
+    
+    msgDiv.style.color = "#ffeb3b";
+    msgDiv.innerText = "Validando cadastro...";
+    btn.disabled = true;
+
+    // Busca na exata pasta de matrículas do seu Firebase ativo
+    database.ref('matriculas').once('value').then(function(snapshot) {
+        var alunoEncontrado = null;
+
+        if (snapshot.exists()) {
+            snapshot.forEach(function(childSnapshot) {
+                var dados = childSnapshot.val();
+                var nomeCompleto = dados.nome || "";
+                var primeiroNomeBase = nomeCompleto.trim().split(" ")[0].toLowerCase();
+                
+                // Limpa máscaras de CPF e nascimento do banco para comparar perfeitamente
+                var cpfBase = dados.cpf ? dados.cpf.toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+                var nascimentoBase = dados.nascimento ? dados.nascimento.toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+
+                if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
+                    alunoEncontrado = nomeCompleto.trim().split(" ")[0]; // Guarda o primeiro nome original
+                }
+            });
+        }
+
+        if (alunoEncontrado) {
+            var agora = new Date();
+            var dataHoraString = agora.toLocaleString('pt-BR');
+
+            // Grava o histórico de presença na nuvem do seu projeto ativo
+            database.ref('presencas').push({
+                nome: alunoEncontrado,
+                dataHora: dataHoraString,
+                timestamp: agora.getTime()
+            }).then(function() {
+                msgDiv.style.color = "#4CAF50";
+                msgDiv.innerText = "Presença confirmada! Bom treino, " + alunoEncontrado + ".";
+                
+                // Emite a voz eletrônica nativa com o nome do aluno
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    var utterance = new SpeechSynthesisUtterance("Presença confirmada! Bom treino, " + alunoEncontrado + ".");
+                    utterance.lang = 'pt-BR';
+                    utterance.rate = 1.1;
+                    window.speechSynthesis.speak(utterance);
+                }
+                
+                document.getElementById('formPresencaRapida').reset();
+            });
+        } else {
+            msgDiv.style.color = "#f44336";
+            msgDiv.innerText = "Dados incorretos ou matrícula não encontrada.";
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                var utteranceErro = new SpeechSynthesisUtterance("Dados não encontrados.");
+                utteranceErro.lang = 'pt-BR';
+                window.speechSynthesis.speak(utteranceErro);
+            }
+        }
+        btn.disabled = false;
+    }).catch(function(error) {
+        msgDiv.style.color = "#f44336";
+        msgDiv.innerText = "Erro na conexão.";
+        console.error(error);
+        btn.disabled = false;
+    });
+}
         function resetF() { document.getElementById('form-cadastro').reset(); document.getElementById('foto-preview').style.display = "none"; document.getElementById('video').style.display = "block"; document.getElementById('res-imc').innerText = "Digite peso/altura"; document.getElementById('idade-calculada').value=''; foto = ""; idxEd = null; ['b-doenca', 'b-alergia', 'b-remedio', 'b-lesao', 'secao-pais-menor'].forEach(id => document.getElementById(id).classList.add('hidden')); document.getElementById('detalhe-obs').value=''; }
 function atLista() { let div = document.getElementById('l-corpo'), b = document.getElementById('c-busca').value.toLowerCase().trim(); div.innerHTML = ''; if(!bd) return; let chaves = Object.keys(bd).filter(id => bd[id] !== null); if(chaves.length === 0) { div.innerHTML = "<p style='color:gray;font-size:13px;'>Nenhum registro.</p>"; return; } chaves.forEach(id => { let f = bd[id]; if(f) { if (b === "" || (f.nome||"").toLowerCase().includes(b) || (f.cpf||"").toLowerCase().includes(b) || (f.nasc||"").toLowerCase().includes(b)) { div.innerHTML += `<div class="aluno-linha"><span style="font-size:14px;"><b>${f.nome}</b> (${f.cpf})</span><div style="display:flex; gap:4px;"><button type="button" class="btn-acao-financeira" style="background:#10b981;" onclick="abrirFinanceiro('${f.id}')">💰 Finanças / Recibo</button><button type="button" class="btn-acao-financeira" onclick="carregar('${f.id}')">Editar</button><button type="button" class="btn-acao-financeira" style="background:#ef4444;" onclick="excluir('${f.id}')">X</button></div></div>`; } } }); }
         function abrirFinanceiro(id) { let cPura = id.replace(/\D/g, ""); if(!bd[cPura]) { alert('Não localizado!'); return; } if(prompt('Senha Admin:') !== SENHA_ADMIN) { alert('Incorreta!'); return; } alunoFinId = cPura; carregarGrelhaMeses(cPura); }
