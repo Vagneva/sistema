@@ -103,13 +103,13 @@
         }
         .item-aluno .hora { font-size: 12px; color: #777; }
     </style>
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
 </head>
 <body>
+
 <div class="container">
     <h1 class="logo-academia">Feras Taekwondo</h1>
     <div class="subtitulo"> Hartree 🥋 Registrar Entrada</div>
+
     <form id="formPresenca">
         <div class="form-group">
             <label for="primeiroNome">Primeiro Nome do Aluno:</label>
@@ -121,38 +121,46 @@
         </div>
         <button type="submit" id="btnEnviar">Confirmar Presença</button>
     </form>
+    
     <div id="mensagem"></div>
+
     <div class="painel-presenca">
         <h3>Alunos no Treino de Hoje <span style="font-size:12px; color:#4CAF50;">● Online</span></h3>
         <div id="listaAlunos" class="lista-alunos"></div>
     </div>
 </div>
 
-<script>
+<!-- Scripts de Inicialização por Módulos Modernos (Evita bloqueios do navegador) -->
+<script type="module">
+    import { initializeApp } from "https://gstatic.com";
+    import { getDatabase, ref, push, set, get, onValue, query, limitToLast } from "https://gstatic.com";
+
     const firebaseConfig = {
-        apiKey: "AIzaSyAs6-X-X_YourRealKeyWillBeLoaded",
-        authDomain: "://firebaseapp.com",
         databaseURL: "https://academia-2d8b2-default-rtdb.firebaseio.com",
-        projectId: "academia-2d8b2",
-        storageBucket: "://appspot.com"
+        projectId: "academia-2d8b2"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const database = firebase.database();
+    // Inicializa o Firebase no formato modular
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
     function limparTexto(texto) {
         return texto.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
     }
 
+    // Monitora a fila de presença na parte inferior da tela
     function monitorarPresencas() {
-        database.ref('presencas').limitToLast(15).on('value', (snapshot) => {
+        const presencasRef = ref(database, 'presencas');
+        const consulta = query(presencasRef, limitToLast(15));
+
+        onValue(consulta, (snapshot) => {
             const listaDiv = document.getElementById('listaAlunos');
             listaDiv.innerHTML = "";
+
             if (snapshot.exists()) {
                 const registros = [];
                 snapshot.forEach((child) => { registros.push(child.val()); });
+                
                 registros.reverse().forEach((dados) => {
                     const textoHora = dados.dataHora || "";
                     const apenasHora = textoHora.includes(" ") ? textoHora.split(" ")[1].substring(0, 5) : "";
@@ -166,10 +174,13 @@
             }
         });
     }
+
     monitorarPresencas();
 
+    // Evento de verificação do formulário
     document.getElementById('formPresenca').addEventListener('submit', async function(e) {
         e.preventDefault();
+
         const inputNome = document.getElementById('primeiroNome').value.trim().toLowerCase();
         const inputDoc = limparTexto(document.getElementById('documento').value);
         const msgDiv = document.getElementById('mensagem');
@@ -180,7 +191,8 @@
         btnEnviar.disabled = true;
 
         try {
-            const snapshot = await database.ref('matriculas').once('value');
+            const matriculasRef = ref(database, 'matriculas');
+            const snapshot = await get(matriculasRef);
             let alunoEncontradoCompleto = null;
 
             if (snapshot.exists()) {
@@ -188,11 +200,12 @@
                     const dados = child.val();
                     const nomeCompleto = dados.nome || "";
                     const primeiroNomeBase = nomeCompleto.trim().split(" ")[0].toLowerCase();
+                    
                     const cpfBase = dados.cpf ? limparTexto(dados.cpf) : "";
                     const nascimentoBase = dados.nascimento ? limparTexto(dados.nascimento) : "";
 
                     if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
-                        alunoEncontradoCompleto = nomeCompleto.trim().split(" ")[0];
+                        alunoEncontradoCompleto = nomeCompleto.trim().split(" ")[0]; 
                     }
                 });
             }
@@ -200,13 +213,19 @@
             if (alunoEncontradoCompleto) {
                 const agora = new Date();
                 const dataHoraString = agora.toLocaleString('pt-BR');
-                await database.ref('presencas').push({
+
+                const presencasRef = ref(database, 'presencas');
+                const novaPresencaRef = push(presencasRef);
+
+                await set(novaPresencaRef, {
                     nome: alunoEncontradoCompleto,
                     dataHora: dataHoraString,
                     timestamp: agora.getTime()
                 });
+
                 msgDiv.className = "sucesso";
                 msgDiv.innerText = `Presença confirmada! Bom treino, ${alunoEncontradoCompleto}.`;
+
                 falar(alunoEncontradoCompleto);
                 document.getElementById('formPresenca').reset();
             } else {
@@ -216,7 +235,7 @@
             }
         } catch (error) {
             msgDiv.className = "erro";
-            msgDiv.innerText = "Erro de conexão com o banco de dados.";
+            msgDiv.innerText = "Erro ao conectar com o banco de dados.";
             console.error(error);
         } finally {
             btnEnviar.disabled = false;
