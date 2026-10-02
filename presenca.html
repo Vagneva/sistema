@@ -104,7 +104,7 @@
         .item-aluno .hora { font-size: 12px; color: #777; }
     </style>
 
-    <!-- Libs do Firebase -->
+    <!-- Importação das bibliotecas do Firebase -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
 </head>
@@ -112,7 +112,7 @@
 
 <div class="container">
     <h1 class="logo-academia">Feras Taekwondo</h1>
-    <div class="subtitulo">🥋 Registrar Entrada</div>
+    <div class="subtitulo"> Hartree 🥋 Registrar Entrada</div>
 
     <form id="formPresenca">
         <div class="form-group">
@@ -135,16 +135,13 @@
 </div>
 
 <script>
-    // Configurações reais do seu projeto "sistema-73236"
+    // Configurações EXATAS puxadas da imagem do seu painel do Firebase
     const firebaseConfig = {
-        apiKey: "AIzaSyAs6-X-X_YourRealKeyWillBeLoaded", 
-        authDomain: "://firebaseapp.com",
-        databaseURL: "https://firebaseio.com",
-        projectId: "sistema-73236",
-        storageBucket: "://appspot.com"
+        databaseURL: "https://academia-2d8b2-default-rtdb.firebaseio.com",
+        projectId: "academia-2d8b2"
     };
 
-    // Inicializa o Firebase com os dados corretos do seu projeto
+    // Inicializa o banco de dados
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -154,7 +151,7 @@
         return texto.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
     }
 
-    // Monitora a fila de presença em tempo real
+    // Monitora e exibe a fila de presença na parte inferior da tela
     function monitorarPresencas() {
         database.ref('presencas').limitToLast(15).on('value', (snapshot) => {
             const listaDiv = document.getElementById('listaAlunos');
@@ -180,7 +177,7 @@
 
     monitorarPresencas();
 
-    // Evento de verificação de entrada
+    // Validação e registro de presença
     document.getElementById('formPresenca').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -194,8 +191,8 @@
         btnEnviar.disabled = true;
 
         try {
-            // Busca na tabela corrida de alunos
-            const snapshot = await database.ref('alunos').once('value');
+            // CORREÇÃO: Buscando na pasta correta 'matriculas' vista na sua foto
+            const snapshot = await database.ref('matriculas').once('value');
             let alunoEncontradoCompleto = null;
 
             if (snapshot.exists()) {
@@ -208,7 +205,7 @@
                     const nascimentoBase = dados.nascimento ? limparTexto(dados.nascimento) : "";
 
                     if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
-                        alunoEncontradoCompleto = nomeCompleto.split(" ")[0]; // Guarda o primeiro nome com a grafia correta
+                        alunoEncontradoCompleto = nomeCompleto.split(" ")[0]; // Pega o primeiro nome formatado
                     }
                 });
             }
@@ -217,7 +214,7 @@
                 const agora = new Date();
                 const dataHoraString = agora.toLocaleString('pt-BR');
 
-                // Salva o registro
+                // Salva a presença na nova pasta 'presencas'
                 await database.ref('presencas').push({
                     nome: alunoEncontradoCompleto,
                     dataHora: dataHoraString,
@@ -254,7 +251,7 @@
 
     function falarErro() {
         if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance("Dados não encontrados.");
+            const utterance = new SpeechSynthesisUtutlerance("Dados não encontrados.");
             utterance.lang = 'pt-BR';
             window.speechSynthesis.speak(utterance);
         }
