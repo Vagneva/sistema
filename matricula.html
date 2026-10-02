@@ -524,7 +524,7 @@ function buscarPresencaPorQrCode(documentoQr) {
     var textoQr = documentoQr.trim().toLowerCase();
     var msgDiv = document.getElementById('msgPresenca');
     var partes = textoQr.split(" "); 
-    var qrNome = partes ? partes[0] : "";
+var qrNome = (partes && partes.length > 0) ? partes[0] : "";
     var qrDoc = textoQr.replace(qrNome, "").replace(/[^a-z0-9]/g, "").trim();
 
     var urlMatriculas = urlNuvemBase.replace('.json', '') + "/matriculas.json";
