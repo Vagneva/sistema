@@ -312,6 +312,61 @@ function sincronizarPreMatriculas() {
     }
 }
 
+    // =================================================================
+// RECONEXÃO DA TABELA DE ALUNOS CADASTRADOS (MATRÍCULA ORIGINAL)
+// =================================================================
+function sincronizarMatriculasFirebase() {
+    var urlMatriculas = urlNuvemBase.replace('.json', '') + "/matriculas.json";
+    fetch(urlMatriculas)
+    .then(function(res) { return res.json(); })
+    .then(function(dados) {
+        bd = dados || {};
+        // Chama a função para desenhar a tabela de alunos cadastrados na tela
+        if (typeof atlista === 'function') {
+            atlista();
+        } else {
+            renderizarTabelaAlunosOriginal(bd);
+        }
+    }).catch(function(err) {
+        console.error("Erro ao sincronizar cadastrados:", err);
+    });
+}
+
+function atlista() {
+    // Pega o termo digitado no campo de pesquisa
+    var filtro = document.querySelector('input[oninput*="atlista"]') ? document.querySelector('input[oninput*="atlista"]').value.toLowerCase() : "";
+    var tabelaCorpo = document.getElementById('corpo-tabela-alunos') || document.querySelector('.lista-cadastrados table tbody');
+    
+    if (!tabelaCorpo) return;
+    tabelaCorpo.innerHTML = ""; // Limpa a tabela antes de desenhar
+
+    if (bd) {
+        Object.keys(bd).forEach(function(id) {
+            var aluno = bd[id];
+            var nome = (aluno.nome || "").toLowerCase();
+            var cpf = (aluno.cpf || "").toString().toLowerCase();
+            var nascimento = (aluno.nascimento || "").toString().toLowerCase();
+
+            // Se o aluno bater com o filtro da pesquisa, desenha a linha dele na tabela
+            if (nome.includes(filtro) || cpf.includes(filtro) || nascimento.includes(filtro)) {
+                var linha = document.createElement('tr');
+                
+                // Estrutura padrão das colunas do seu painel jeitado
+                linha.innerHTML = `
+                    <td>${aluno.nome || ''}</td>
+                    <td>${aluno.nascimento || ''}</td>
+                    <td>${aluno.cpf || ''}</td>
+                    <td class="hidden-print">
+                        <button class="btn btn-primary btn-sm" onclick="editarAluno('${id}')">✏️ Editar</button>
+                        <button class="btn btn-info btn-sm" onclick="gerarRecibo('${id}')">🧾 Recibo</button>
+                        <button class="btn btn-danger btn-sm" onclick="excluirAluno('${id}')">❌ Excluir</button>
+                    </td>
+                `;
+                tabelaCorpo.appendChild(linha);
+            }
+        });
+    }
+}
 function renderizarPrePainel() { 
     let div = document.getElementById('lista-pre-pendentes'); 
     if(!div) return;
