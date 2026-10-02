@@ -348,18 +348,18 @@ function registrarPresencaExpressa(e) {
     msgDiv.style.color = "#ffeb3b"; msgDiv.innerText = "Validando cadastro..."; btn.disabled = true;
     var urlMatriculas = urlNuvemBase.replace('.json', '') + "/matriculas.json";
 
-    fetch(urlMatriculas).then(res => res.json()).then(dadosMatriculas => {
+    fetch(urlMatriculas).then(function(res) { return res.json(); }).then(function(dadosMatriculas) {
         var alunoEncontrado = null;
         if (dadosMatriculas) {
             Object.keys(dadosMatriculas).forEach(function(chave) {
                 var d = dadosMatriculas[chave];
                 var nomeCompleto = d.nome || "";
-                var primeiroNomeBase = nomeCompleto.trim().split(" ").toLowerCase();
+                var primeiroNomeBase = nomeCompleto.trim().split(" ")[0].toLowerCase();
                 var cpfBase = d.cpf ? d.cpf.toString().toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
                 var nascimentoBase = d.nascimento ? d.nascimento.toString().toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
 
                 if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
-                    alunoEncontrado = nomeCompleto.trim().split(" ");
+                    alunoEncontrado = nomeCompleto.trim().split(" ")[0];
                 }
             });
         }
@@ -369,7 +369,7 @@ function registrarPresencaExpressa(e) {
             fetch(urlSalvarPresenca, {
                 method: 'POST',
                 body: JSON.stringify({ nome: alunoEncontrado, dataHora: new Date().toLocaleString('pt-BR'), timestamp: new Date().getTime() })
-            }).then(() => {
+            }).then(function() {
                 msgDiv.style.color = "#4CAF50"; msgDiv.innerText = "Presença confirmada! Bom treino, " + alunoEncontrado + ".";
                 atualizarListaPresencasDoDia();
                 if ('speechSynthesis' in window) {
@@ -383,7 +383,7 @@ function registrarPresencaExpressa(e) {
             msgDiv.style.color = "#f44336"; msgDiv.innerText = "Dados incorretos ou matrícula não encontrada.";
         }
         btn.disabled = false;
-    }).catch(() => { btn.disabled = false; });
+    }).catch(function() { btn.disabled = false; });
 }
 
 function atualizarListaPresencasDoDia() {
@@ -391,13 +391,13 @@ function atualizarListaPresencasDoDia() {
     var listaDiv = document.getElementById('listaPresencasDoDia');
     if (!listaDiv) return;
 
-    fetch(urlSalvarPresenca).then(res => res.json()).then(dados => {
+    fetch(urlSalvarPresenca).then(function(res) { return res.json(); }).then(function(dados) {
         listaDiv.innerHTML = "";
         if (dados) {
             Object.keys(dados).reverse().forEach(function(chave) {
                 var r = dados[chave]; var item = document.createElement('div');
                 item.style.padding = "6px 0"; item.style.borderBottom = "1px dashed #cbd5e1";
-                var horaExibir = r.dataHora ? r.dataHora.split(" ").substring(0, 5) : "";
+                var horaExibir = r.dataHora ? r.dataHora.split(" ")[1].substring(0, 5) : "";
                 item.innerHTML = "🥋 " + r.nome + " <span style='font-size:12px; color:#65a30d; margin-left:10px;'>" + horaExibir + "</span>";
                 listaDiv.appendChild(item);
             });
@@ -430,11 +430,12 @@ function fecharModalPresenca() {
 function buscarPresencaPorQrCode(documentoQr) {
     var textoQr = documentoQr.trim().toLowerCase();
     var msgDiv = document.getElementById('msgPresenca');
-    var partes = textoQr.split(" "); var qrNome = partes[0] || "";
+    var partes = textoQr.split(" "); 
+    var qrNome = partes[0] || "";
     var qrDoc = textoQr.replace(qrNome, "").replace(/[^a-z0-9]/g, "").trim();
 
     var urlMatriculas = urlNuvemBase.replace('.json', '') + "/matriculas.json";
-    fetch(urlMatriculas).then(res => res.json()).then(dadosMatriculas => {
+    fetch(urlMatriculas).then(function(res) { return res.json(); }).then(function(dadosMatriculas) {
         var alunoEncontrado = null;
         if (dadosMatriculas) {
             Object.keys(dadosMatriculas).forEach(function(chave) {
@@ -454,7 +455,7 @@ function buscarPresencaPorQrCode(documentoQr) {
             fetch(urlSalvarPresenca, {
                 method: 'POST',
                 body: JSON.stringify({ nome: alunoEncontrado, dataHora: new Date().toLocaleString('pt-BR'), timestamp: new Date().getTime() })
-            }).then(() => {
+            }).then(function() {
                 msgDiv.style.color = "#4CAF50"; msgDiv.innerText = "Entrada liberada! Bom treino, " + alunoEncontrado + ".";
                 if ('speechSynthesis' in window) {
                     window.speechSynthesis.cancel();
