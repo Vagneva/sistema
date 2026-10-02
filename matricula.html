@@ -247,33 +247,39 @@
 }
 </style>
 
-<!-- Importação da biblioteca que lê o QR Code pela câmera -->
-<script src="https://unpkg.com"></script>
-        // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
-        const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
-        const SENHA_ADMIN = "2004";
+    <!-- Procure por esta linha onde começa o texto vazado e garanta que o <script> está ali em cima: -->
+<script>
+// RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM /
+const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+const SENHA_ADMIN = "2004";
 
-        let bd = {}, foto = "", idxEd = null, alunoFinId = null, preBD = {};
+let bd = {}, foto = "", idXed = null, idPreBId = {}, preBD = {};
 
-        function obterUrlMatricula(idAluno) {
-            let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
-            return idAluno ? base + "/matriculas/" + idAluno + ".json" : base + "/matriculas.json";
-        }
-        function obterUrlPreMatricula(idAluno) {
-            let base = urlNuvemBase.replace('.json', ''); if (base.endsWith('/')) { base = base.slice(0, -1); }
-            return idAluno ? base + "/pre_matriculas/" + idAluno + ".json" : base + "/pre_matriculas.json";
-        }
+function obterUrlMatricula(idAluno) {
+    let base = urlNuvemBase.replace('.json', '');
+    if (base.endsWith('/')) { base = base.slice(0, -1); }
+    return idAluno ? base + "/matriculas/" + idAluno + ".json" : base + "/matriculas.json";
+}
 
-        window.onload = function() { 
-            document.getElementById('form-cadastro').classList.add('hidden');
-            document.querySelector('.lista-cadastrados').classList.add('hidden');
-            if(prompt('Área Restrita da Administração. Digite a Senha:') === SENHA_ADMIN) {
-                document.getElementById('form-cadastro').classList.remove('hidden');
-                document.querySelector('.lista-cadastrados').classList.remove('hidden');
-                sincronizarMatriculasFirebase();
-                sincronizarPreMatriculas();
-            } else { alert('Acesso negado!'); window.location.href = "treinos.html"; }
-        };
+function obterUrlPreMatricula(idAluno) {
+    let base = urlNuvemBase.replace('.json', '');
+    if (base.endsWith('/')) { base = base.slice(0, -1); }
+    return idAluno ? base + "/pre_matriculas/" + idAluno + ".json" : base + "/pre_matriculas.json";
+}
+
+window.onload = function() {
+    var senhaDigitada = prompt("Restrita da Administração. Digite a senha:");
+    if (senhaDigitada === SENHA_ADMIN) {
+        document.getElementById('form-cadastro').classList.add('hidden');
+        document.querySelector('.lista-cadastrados').classList.remove('hidden');
+        if (typeof sincronizarMatriculasFirebase === 'function') sincronizarMatriculasFirebase();
+        if (typeof sincronizarPreMatriculas === 'function') sincronizarPreMatriculas();
+    } else {
+        alert('Acesso negado!');
+        window.location.href = 'treinos.html';
+    }
+};
+</script>
 let hoje = new Date();
     let dataFormatada = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
     document.getElementById('filtro-data-presenca').value = dataFormatada;
