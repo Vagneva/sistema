@@ -180,6 +180,12 @@
                 <button type="button" class="btn btn-sucesso" onclick="window.print()">Imprimir / PDF</button>
             </div>
         </form>
+        <div style="margin-top: 30px; background-color: #f0fdf4; padding: 20px; border-radius: 8px; border: 1px solid #10b981;">
+    <h3 style="color: #15803d; margin-top: 0;">🥋 Alunos Presentes no Treino</h3>
+    <div id="listaPresencasDoDia" style="max-height: 200px; overflow-y: auto; color: #15803d; font-weight: bold;">
+        <!-- Os nomes que entrarem vão aparecer aqui automaticamente -->
+    </div>
+</div>
 
         <div id="painel-financeiro-aluno" class="hidden" style="background:#f8fafc; border:1px solid #cbd5e1; padding:20px; border-radius:6px; margin-top:30px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -190,21 +196,6 @@
         </div>
 
         <div id="area-recibo-impressao" class="hidden"></div>
-<!-- ================= ABA DE HISTÓRICO DE PRESENÇAS ANUAL ================= -->
-        <div class="lista-cadastrados hidden-print" style="margin-top: 30px; background: #f0fdf4; border-color: #10b981;">
-            <h3 style="color: #15803d; border-color: #bbf7d0;">📅 Histórico de Presenças Diárias (Reconhecimento Facial)</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
-                <div>
-                    <label style="font-size: 12px; color: #15803d;">Selecione o Dia:</label>
-                    <input type="date" id="filtro-data-presenca" class="busca-box" style="margin: 0; width: 180px;" onchange="puxarPresencasDoDia()">
-                </div>
-                <button type="button" class="btn btn-sucesso" style="margin-top: 20px; padding: 8px 15px; font-size: 14px; width: auto;" onclick="puxarPresencasDoDia()">🔎 Atualizar Lista</button>
-            </div>
-            <div id="corpo-lista-presencas">
-                <p style="color:gray; font-size:13px; margin: 0;">Selecione uma data acima para listar os alunos que compareceram.</p>
-            </div>
-        </div>
-        <!-- ======================================================================= -->
 
         <div class="lista-cadastrados hidden-print">
             <h3>Alunos Cadastrados</h3>
@@ -432,6 +423,7 @@ function atLista() { let div = document.getElementById('l-corpo'), b = document.
             .then(function() {
                 msgDiv.style.color = "#4CAF50";
                 msgDiv.innerText = "Presença confirmada! Bom treino, " + alunoEncontrado + ".";
+                atualizarListaPresencasDoDia();
                 
                 // Emite a voz eletrônica nativa com o nome do aluno
                 if ('speechSynthesis' in window) {
@@ -463,6 +455,45 @@ function atLista() { let div = document.getElementById('l-corpo'), b = document.
         btn.disabled = false;
     });
 }
+    // Função para carregar a lista de quem treina hoje na caixinha verde
+function atualizarListaPresencasDoDia() {
+    var urlSalvarPresenca = urlNuvemBase.replace('.json', '') + "/presencas.json";
+    var listaDiv = document.getElementById('listaPresencasDoDia');
+    
+    if (!listaDiv) return;
+
+    fetch(urlSalvarPresenca)
+    .then(function(res) { return res.json(); })
+    .then(function(dados) {
+        listaDiv.innerHTML = ""; // Limpa a lista antes de atualizar
+        
+        if (dados) {
+            // Varre as presenças salvas no banco
+            Object.keys(dados).reverse().forEach(function(chave) {
+                var registro = dados[chave];
+                var item = document.createElement('div');
+                item.style.padding = "6px 0";
+                item.style.borderBottom = "1px dashed #cbd5e1";
+                
+                // Pega só o primeiro nome e a hora
+                var nomeExibir = Array.isArray(registro.nome) ? registro.nome[0] : registro.nome;
+                var horaExibir = registro.dataHora ? registro.dataHora.split(" ")[1].substring(0, 5) : "";
+                
+                item.innerHTML = "🥋 " + nomeExibir + " <span style='font-size: 12px; color: #65a30d; font-weight: normal; margin-left: 10px;'>" + horaExibir + "</span>";
+                listaDiv.appendChild(item);
+            });
+        } else {
+            listaDiv.innerHTML = "<span style='color: #65a30d; font-weight: normal;'>Nenhum aluno registrou entrada hoje.</span>";
+        }
+    }).catch(function(err) {
+        console.error("Erro ao carregar lista de presença:", err);
+    });
+}
+
+// Executa a busca assim que a página abre
+atualizarListaPresencasDoDia();
+// Atualiza a lista automaticamente a cada 10 segundos para acompanhar a fila
+setInterval(atualizarListaPresencasDoDia, 10000);
         function excluir(id) { let cPura = id.replace(/\D/g, ""); if(confirm("Apagar permanentemente da nuvem?")) { delete bd[cPura]; localStorage.setItem('fichas_v2', JSON.stringify(bd)); if(!urlNuvemBase.includes("seu-projeto-default")) { fetch(obterUrlMatricula(cPura), { method: 'DELETE' }).then(() => { alert("Removido!"); sincronizarMatriculasFirebase(); resetF(); }); } else { atLista(); resetF(); } } }
 function puxarPresencasDoDia() {
             let dataSelecionada = document.getElementById('filtro-data-presenca').value;
