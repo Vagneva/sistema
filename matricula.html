@@ -486,9 +486,9 @@ function atualizarListaPresencasDoDia() {
                 var horaExibir = r.dataHora ? r.dataHora.split(" ")[1].substring(0, 5) : "";
                 item.innerHTML = "🥋 " + r.nome + " <span style='font-size:12px; color:#65a30d; margin-left:10px;'>" + horaExibir + "</span>";
                 listaDiv.appendChild(item);
-            });
-        } else { listaDiv.innerHTML = "<span>Nenhum aluno registrou entrada hoje.</span>"; }
-    });
+            }
+        } else { listaDiv.innerHTML = "<span>Nenhum aluno registrou entrada hoje.</span>"; 
+}
 }
 
 // =================================================================
