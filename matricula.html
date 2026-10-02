@@ -53,7 +53,6 @@
         .lista-cadastrados { margin-top: 40px; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; }
         .aluno-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0; align-items: center; }
         .painel-pre-matriculas { background: #fef08a; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #eab308; }
-  <script src="https://unpkg.com"></script>
     </style>
 </head>
 <body>
@@ -400,28 +399,55 @@ function atualizarListaPresencasDoDia() {
     });
 }
 
-var codeReader = new ZXing.BrowserQRCodeReader();
+// =================================================================
+// CONTROLE DO SCANNER DE QR CODE (MÓDULO SEGURO E INDEPENDENTE)
+// =================================================================
+let codeReader = null;
 
-function abrirChamadaExpressa() {
+async function inicializarLeitorQrCode() {
+    if (!codeReader) {
+        // Carrega a biblioteca nativamente via módulo sem depender de tags no head
+        const { BrowserQRCodeReader } = await import('https://jsdelivr.net');
+        codeReader = new BrowserQRCodeReader();
+    }
+}
+
+async function abrirChamadaExpressa() {
     document.getElementById('modalPresenca').style.display = 'flex';
-    document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
-    document.getElementById('msgPresenca').style.color = "#4CAF50";
+    document.getElementById('msgPresenca').innerText = "Iniciando câmera do notebook...";
+    document.getElementById('msgPresenca').style.color = "#ffeb3b";
     
-    codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
-        if (resultado) {
-            var textoInjetado = resultado.text.trim();
-            document.getElementById('presencaDoc').value = textoInjetado;
-            fazerBipeSucesso(); buscarPresencaPorQrCode(textoInjetado);
-        }
-    });
+    try {
+        // Garante que o leitor foi carregado com sucesso
+        await inicializarLeitorQrCode();
+        
+        document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
+        document.getElementById('msgPresenca').style.color = "#4CAF50";
+
+        // Inicializa a captura da webcam
+        codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
+            if (resultado) {
+                var textoInjetado = resultado.text.trim();
+                document.getElementById('presencaDoc').value = textoInjetado;
+                fazerBipeSucesso(); 
+                buscarPresencaPorQrCode(textoInjetado);
+            }
+        });
+    } catch (err) {
+        document.getElementById('msgPresenca').innerText = "Erro ao iniciar câmera. Verifique as permissões.";
+        document.getElementById('msgPresenca').style.color = "#f44336";
+        console.error(err);
+    }
 }
 
 function fecharModalPresenca() {
     document.getElementById('modalPresenca').style.display = 'none';
     document.getElementById('formPresencaRapida').reset();
-    codeReader.reset(); 
+    document.getElementById('msgPresenca').innerText = "";
+    if (codeReader) {
+        codeReader.reset(); // Desliga a luz da webcam do notebook com segurança
+    }
 }
-
 function buscarPresencaPorQrCode(documentoQr) {
     var textoQr = documentoQr.trim().toLowerCase();
     var msgDiv = document.getElementById('msgPresenca');
