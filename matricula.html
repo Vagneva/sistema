@@ -321,25 +321,62 @@ function sincronizarMatriculasFirebase() {
     .then(function(res) { return res.json(); })
     .then(function(dados) {
         bd = dados || {};
-        // Chama a função para desenhar a tabela de alunos cadastrados na tela
-        if (typeof atlista === 'function') {
-            atlista();
-        } else {
-            renderizarTabelaAlunosOriginal(bd);
-        }
+        // Garante a execução imediata para desenhar os nomes na tela
+        atlista();
     }).catch(function(err) {
         console.error("Erro ao sincronizar cadastrados:", err);
     });
 }
 
 function atlista() {
-    // Pega o termo digitado no campo de pesquisa
-    var filtro = document.querySelector('input[oninput*="atlista"]') ? document.querySelector('input[oninput*="atlista"]').value.toLowerCase() : "";
+    // Localiza o campo de busca na tela
+    var inputFiltro = document.querySelector('input[oninput*="atlista"]');
+    var filtro = inputFiltro ? inputFiltro.value.toLowerCase() : "";
+    
+    // Busca o corpo da tabela onde entram as linhas de alunos
     var tabelaCorpo = document.getElementById('corpo-tabela-alunos') || document.querySelector('.lista-cadastrados table tbody');
     
-    if (!tabelaCorpo) return;
-    tabelaCorpo.innerHTML = ""; // Limpa a tabela antes de desenhar
+    // Se o elemento principal ainda não foi desenhado pelo HTML, cria o contêiner dinamicamente
+    if (!tabelaCorpo) {
+        var listaDiv = document.querySelector('.lista-cadastrados');
+        if (listaDiv) {
+            listaDiv.innerHTML = '<h3 style="color:#713f12; margin:0 0 10px 0;">Alunos Cadastrados</h3><input type="text" oninput="atlista()" placeholder="Pesquisar por Nome, CPF..." class="form-control" style="margin-bottom:15px; width:100%; max-width:300px;"><table class="table table-striped"><thead><tr><th>Nome</th><th>Data Nasc.</th><th>CPF</th><th class="hidden-print">Ações</th></tr></thead><tbody id="corpo-tabela-alunos"></tbody></table>';
+            tabelaCorpo = document.getElementById('corpo-tabela-alunos');
+        }
+    }
 
+    if (!tabelaCorpo) return;
+    tabelaCorpo.innerHTML = ""; // Limpa a tabela antes de redesenhar
+
+    if (bd && Object.keys(bd).length > 0) {
+        Object.keys(bd).forEach(function(id) {
+            var aluno = bd[id];
+            var nome = (aluno.nome || "").toLowerCase();
+            var cpf = (aluno.cpf || "").toString().toLowerCase();
+            var nascimento = (aluno.nascimento || "").toString().toLowerCase();
+
+            // Filtro inteligente de pesquisa por texto
+            if (nome.includes(filtro) || cpf.includes(filtro) || nascimento.includes(filtro)) {
+                var linha = document.createElement('tr');
+                
+                // Desenha as colunas mantendo os seus botões originais integrados
+                linha.innerHTML = `
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">${aluno.nome || ''}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">${aluno.nascimento || ''}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">${aluno.cpf || ''}</td>
+                    <td class="hidden-print" style="padding: 8px; border-bottom: 1px solid #ddd;">
+                        <button class="btn btn-primary btn-sm" onclick="editarAluno('${id}')" style="margin-right:4px;">✏️ Editar</button>
+                        <button class="btn btn-info btn-sm" onclick="gerarRecibo('${id}')" style="margin-right:4px;">🧾 Recibo</button>
+                        <button class="btn btn-danger btn-sm" onclick="excluirAluno('${id}')">❌ Excluir</button>
+                    </td>
+                `;
+                tabelaCorpo.appendChild(linha);
+            }
+        });
+    } else {
+        tabelaCorpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#666;">Nenhum aluno cadastrado no banco.</td></tr>';
+    }
+}
     if (bd) {
         Object.keys(bd).forEach(function(id) {
             var aluno = bd[id];
