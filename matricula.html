@@ -207,27 +207,48 @@
 <button onclick="document.getElementById('modalPresenca').style.display='flex'" style="position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; background-color: #e50914; color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-size: 16px;">🥋 Abrir Chamada Expressa</button>
 
 <!-- Janela Pop-up da Presença -->
-<div id="modalPresenca" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; font-family: 'Segoe UI', Arial, sans-serif;">
-    <div style="background-color: #1e1e1e; padding: 30px; border-radius: 12px; width: 100%; max-width: 380px; text-align: center; color: white; position: relative; border: 1px solid #333;">
-        <button onclick="document.getElementById('modalPresenca').style.display='none'" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer;">✕</button>
-        <h2 style="color: #e50914; margin: 0; font-size: 26px; text-transform: uppercase;">Feras Taekwondo</h2>
-        <div style="color: #4CAF50; font-size: 14px; font-weight: bold; margin-bottom: 20px;">⚡ Entrada Rápida</div>
+<!-- Janela Pop-up da Presença Atualizada com Câmera para QR Code -->
+<div id="modalPresenca" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 10000; font-family: 'Segoe UI', Arial, sans-serif;">
+    <div style="background-color: #1e1e1e; padding: 25px; border-radius: 12px; width: 100%; max-width: 420px; text-align: center; color: white; position: relative; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
         
+        <!-- Botão de fechar a janela (Garante que desliga a câmera ao fechar) -->
+        <button onclick="fecharModalPresenca()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 22px; cursor: pointer;">✕</button>
+        
+        <h2 style="color: #e50914; margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px;">Feras Taekwondo</h2>
+        <div style="color: #4CAF50; font-size: 14px; font-weight: bold; margin-bottom: 15px;">⚡ Entrada Rápida & QR Code</div>
+        
+        <!-- ÁREA DA CÂMERA DO QR CODE -->
+        <div style="width: 100%; max-width: 280px; height: 210px; margin: 0 auto 15px auto; background-color: #000; border: 2px dashed #4CAF50; border-radius: 8px; overflow: hidden; position: relative;">
+            <video id="webcamQrCode" style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <div id="linhaScanner" style="position: absolute; width: 100%; height: 3px; background-color: #e50914; top: 0; box-shadow: 0 0 8px #e50914; animation: escaneando 2s linear infinite;"></div>
+        </div>
+
         <form id="formPresencaRapida" onsubmit="registrarPresencaExpressa(event)">
-            <div style="margin-bottom: 15px; text-align: left;">
-                <label style="display: block; margin-bottom: 5px; color: #aaa; font-size: 14px;">Primeiro Nome:</label>
-                <input type="text" id="presencaNome" required placeholder="Ex: João" autocomplete="off" style="width: 100%; padding: 12px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 16px;">
+            <div style="margin-bottom: 12px; text-align: left;">
+                <label style="display: block; margin-bottom: 4px; color: #aaa; font-size: 13px;">Primeiro Nome (se for digitar):</label>
+                <input type="text" id="presencaNome" placeholder="Ex: João" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 15px;">
             </div>
             <div style="margin-bottom: 15px; text-align: left;">
-                <label style="display: block; margin-bottom: 5px; color: #aaa; font-size: 14px;">CPF ou Data de Nascimento:</label>
-                <input type="text" id="presencaDoc" required placeholder="Digite CPF ou Data (DD/MM/AAAA)" autocomplete="off" style="width: 100%; padding: 12px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 16px;">
+                <label style="display: block; margin-bottom: 4px; color: #aaa; font-size: 13px;">CPF ou Data de Nascimento:</label>
+                <input type="text" id="presencaDoc" placeholder="Digite ou mostre o QR Code na câmera" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 15px;">
             </div>
-            <button type="submit" id="btnEnviarPresenca" style="width: 100%; padding: 14px; background-color: #4CAF50; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: bold; cursor: pointer;">Confirmar Entrada</button>
+            <button type="submit" id="btnEnviarPresenca" style="width: 100%; padding: 12px; background-color: #4CAF50; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: bold; cursor: pointer;">Confirmar Entrada</button>
         </form>
-        <div id="msgPresenca" style="margin-top: 15px; font-weight: bold; min-height: 20px; font-size: 15px;"></div>
+        <div id="msgPresenca" style="margin-top: 12px; font-weight: bold; min-height: 20px; font-size: 15px;"></div>
     </div>
 </div>
-<script>
+
+<!-- Estilo da linha vermelha subindo e descendo na câmera -->
+<style>
+@keyframes escaneando {
+    0% { top: 0%; }
+    50% { top: 100%; }
+    100% { top: 0%; }
+}
+</style>
+
+<!-- Importação da biblioteca que lê o QR Code pela câmera -->
+<script src="https://unpkg.com"></script>
         // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/"
         const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
         const SENHA_ADMIN = "2004";
@@ -403,6 +424,187 @@ function atLista() { let div = document.getElementById('l-corpo'), b = document.
                 }
             });
         }
+
+                           var codeReader = new ZXing.BrowserQRCodeReader();
+var carregandoCamara = null;
+
+// Função modificada para abrir a janela e ligar a webcam na hora
+function abrirChamadaExpressa() {
+    document.getElementById('modalPresenca').style.display = 'flex';
+    document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
+    document.getElementById('msgPresenca').style.color = "#4CAF50";
+    
+    // Liga a câmera do notebook para escanear
+    codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
+        if (resultado) {
+            // Se a câmera leu o QR Code com sucesso!
+            var textoInjetado = resultado.text.trim();
+            document.getElementById('presencaDoc').value = textoInjetado;
+            
+            // Toca um bipe sonoro de confirmação rápido
+            fazerBipeSucesso();
+            
+            // Executa a busca direta no Firebase usando o documento lido pelo QR Code
+            buscarPresencaPorQrCode(textoInjetado);
+        }
+    });
+}
+
+
+            // ==========================================
+// SCRIPT DE CONTROLE DO SCANNERS DE QR CODE
+// ==========================================
+var codeReader = new ZXing.BrowserQRCodeReader();
+
+function abrirChamadaExpressa() {
+    document.getElementById('modalPresenca').style.display = 'flex';
+    document.getElementById('msgPresenca').innerText = "Câmera ativada. Mostre o QR Code!";
+    document.getElementById('msgPresenca').style.color = "#4CAF50";
+    
+    // Liga a câmera do notebook para escanear
+    codeReader.decodeFromVideoDevice(null, 'webcamQrCode', function(resultado, erro) {
+        if (resultado) {
+            var textoInjetado = resultado.text.trim();
+            document.getElementById('presencaDoc').value = textoInjetado;
+            
+            // Som de confirmação
+            fazerBipeSucesso();
+            
+            // Executa a busca automática por Nome + Data
+            buscarPresencaPorQrCode(textoInjetado);
+        }
+    });
+}
+
+function fecharModalPresenca() {
+    document.getElementById('modalPresenca').style.display = 'none';
+    document.getElementById('formPresencaRapida').reset();
+    document.getElementById('msgPresenca').innerText = "";
+    // Desliga a webcam do notebook de forma segura
+    codeReader.reset(); 
+}
+
+function buscarPresencaPorQrCode(documentoQr) {
+    var textoQr = documentoQr.trim().toLowerCase();
+    var msgDiv = document.getElementById('msgPresenca');
+    var btn = document.getElementById('btnEnviarPresenca');
+    
+    var partes = textoQr.split(" ");
+    var qrNome = partes[0] ? partes[0].trim() : "";
+    var qrDoc = textoQr.replace(qrNome, "").replace(/[^a-z0-9]/g, "").trim();
+
+    if (!qrNome || !qrDoc) {
+        msgDiv.style.color = "#f44336";
+        msgDiv.innerText = "Erro: QR Code inválido. Use 'Nome Data'.";
+        return;
+    }
+    
+    msgDiv.style.color = "#ffeb3b";
+    msgDiv.innerText = "QR Code de " + qrNome.toUpperCase() + " identificado! Validando...";
+    btn.disabled = true;
+
+    var urlMatriculas = urlNuvemBase.replace('.json', '') + "/matriculas.json";
+
+    fetch(urlMatriculas)
+    .then(function(res) { return res.json(); })
+    .then(function(dadosMatriculas) {
+        var alunoEncontrado = null;
+
+        if (dadosMatriculas) {
+            Object.keys(dadosMatriculas).forEach(function(chave) {
+                var dados = dadosMatriculas[chave];
+                var nomeCompleto = dados.nome || "";
+                var primeiroNomeBase = nomeCompleto.trim().split(" ")[0].toLowerCase();
+                
+                var cpfBase = dados.cpf ? dados.cpf.toString().toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+                var nascimentoBase = dados.nascimento ? dados.nascimento.toString().toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+
+                if (primeiroNomeBase === qrNome && (qrDoc === cpfBase || qrDoc === nascimentoBase)) {
+                    alunoEncontrado = nomeCompleto.trim().split(" ")[0]; 
+                }
+            });
+        }
+
+        if (alunoEncontrado) {
+            var agora = new Date();
+            var dataHoraString = agora.toLocaleString('pt-BR');
+            var urlSalvarPresenca = urlNuvemBase.replace('.json', '') + "/presencas.json";
+
+            fetch(urlSalvarPresenca, {
+                method: 'POST',
+                body: JSON.stringify({
+                    nome: alunoEncontrado,
+                    dataHora: dataHoraString,
+                    timestamp: agora.getTime()
+                })
+            })
+            .then(function() {
+                msgDiv.style.color = "#4CAF50";
+                msgDiv.innerText = "Entrada liberada! Bom treino, " + alunoEncontrado + ".";
+                
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    var utterance = new SpeechSynthesisUtterance("Presença confirmada! Bom treino, " + alunoEncontrado + ".");
+                    utterance.lang = 'pt-BR';
+                    utterance.rate = 1.1;
+                    window.speechSynthesis.speak(utterance);
+                }
+                
+                if (typeof atualizarListaPresencasDoDia === 'function') {
+                    atualizarListaPresencasDoDia();
+                }
+                
+                setTimeout(function() {
+                    document.getElementById('formPresencaRapida').reset();
+                    msgDiv.innerText = "Próximo aluno, pode mostrar o código...";
+                    msgDiv.style.color = "#4CAF50";
+                }, 3000);
+            });
+        } else {
+            msgDiv.style.color = "#f44336";
+            msgDiv.innerText = "Dados do QR Code não conferem com as matrículas.";
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                var utteranceErro = new SpeechSynthesisUtterance("Dados não encontrados.");
+                utteranceErro.lang = 'pt-BR';
+                window.speechSynthesis.speak(utteranceErro);
+            }
+        }
+        btn.disabled = false;
+    }).catch(function(err) {
+        msgDiv.style.color = "#f44336";
+        msgDiv.innerText = "Erro na rede ao ler QR Code.";
+        btn.disabled = false;
+    });
+}
+
+function fazerBipeSucesso() {
+    if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
+        var context = new (window.AudioContext || window.webkitAudioContext)();
+        var oscillator = context.createOscillator();
+        var gain = context.createGain();
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.frequency.value = 1200;
+        gain.gain.setValueAtTime(0.1, context.currentTime);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.1);
+    }
+}
+// Faz aquele barulhinho clássico de caixa de supermercado ao ler o código
+function fazerBipeSucesso() {
+    if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
+        var context = new (window.AudioContext || window.webkitAudioContext)();
+        var oscillator = context.createOscillator();
+        var gain = context.createGain();
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.frequency.value = 1200; // Som agudo de bipe
+        gain.gain.setValueAtTime(0.1, context.currentTime);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.1); // Dura 1 décimo de segundo
+    }
+}
 
         if (alunoEncontrado) {
             var agora = new Date();
