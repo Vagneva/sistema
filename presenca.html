@@ -1,203 +1,264 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presença - Feras Taekwondo</title>
+    <title>Feras Taekwondo - Presença</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
+            background-color: #121212;
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .container {
-            background-color: #ffffff;
+            background-color: #1e1e1e;
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             text-align: center;
         }
-        h2 {
-            color: #d32f2f; /* Vermelho marcial */
-            margin-bottom: 5px;
+        .logo-academia {
+            color: #e50914;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        h3 {
-            color: #555;
-            margin-top: 0;
-            font-weight: 400;
+        .subtitulo {
+            color: #4CAF50;
+            font-size: 16px;
+            margin-top: 5px;
             margin-bottom: 25px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #666;
             font-weight: 600;
         }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        label { display: block; margin-bottom: 6px; color: #aaa; font-size: 14px; }
         input {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #fff;
             box-sizing: border-box;
             font-size: 16px;
         }
+        input:focus { border-color: #4CAF50; outline: none; }
         button {
             width: 100%;
-            padding: 12px;
-            background-color: #d32f2f;
-            color: white;
+            padding: 14px;
+            background-color: #4CAF50;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            color: white;
             font-size: 16px;
-            cursor: pointer;
             font-weight: bold;
-            transition: background 0.3s;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
         }
-        button:hover {
-            background-color: #b71c1c;
+        button:hover { background-color: #45a049; }
+        #mensagem { margin-top: 15px; font-weight: bold; min-height: 24px; font-size: 15px; line-height: 1.4; }
+        .sucesso { color: #4CAF50; }
+        .erro { color: #f44336; }
+        .carregando { color: #ffeb3b; }
+        .painel-presenca {
+            margin-top: 30px;
+            border-top: 2px solid #333;
+            padding-top: 20px;
+            text-align: left;
         }
-        #mensagem {
-            margin-top: 20px;
-            padding: 10px;
+        .painel-presenca h3 {
+            font-size: 16px;
+            color: #bbb;
+            margin: 0 0 15px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .lista-alunos {
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .item-aluno {
+            background-color: #252525;
+            padding: 10px 15px;
+            border-left: 4px solid #4CAF50;
             border-radius: 4px;
-            display: none;
-            font-weight: 500;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
         }
-        .sucesso { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .erro { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .info { background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+        .item-aluno .hora { font-size: 12px; color: #777; }
     </style>
+
+    <!-- Libs do Firebase -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 </head>
 <body>
 
 <div class="container">
-    <h2>Feras Taekwondo</h2>
-    <h3>Registro de Presença</h3>
+    <h1 class="logo-academia">Feras Taekwondo</h1>
+    <div class="subtitulo">🥋 Registrar Entrada</div>
 
-    <div class="form-group">
-        <label for="busca">Busque por Nome, CPF ou Data de Nascimento:</label>
-        <input type="text" id="busca" placeholder="Ex: João, 12345678900 ou 01/01/2000">
-    </div>
-
-    <button onclick="registrarPresenca()">Marcar Presença</button>
-
+    <form id="formPresenca">
+        <div class="form-group">
+            <label for="primeiroNome">Primeiro Nome do Aluno:</label>
+            <input type="text" id="primeiroNome" required placeholder="Ex: João" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="documento">CPF ou Data de Nascimento:</label>
+            <input type="text" id="documento" required placeholder="Digite CPF ou Data (DD/MM/AAAA)" autocomplete="off">
+        </div>
+        <button type="submit" id="btnEnviar">Confirmar Presença</button>
+    </form>
+    
     <div id="mensagem"></div>
+
+    <div class="painel-presenca">
+        <h3>Alunos no Treino de Hoje <span style="font-size:12px; color:#4CAF50;">● Online</span></h3>
+        <div id="listaAlunos" class="lista-alunos"></div>
+    </div>
 </div>
 
 <script>
-    // URL BASE DO SEU FIREBASE (Adicione a barra '/' no final se não houver)
-    const FIREBASE_URL = “https://academia-2d8b2-default-rtdb.firebaseio.com/json”;
+    // Configurações reais do seu projeto "sistema-73236"
+    const firebaseConfig = {
+        apiKey: "AIzaSyAs6-X-X_YourRealKeyWillBeLoaded", 
+        authDomain: "://firebaseapp.com",
+        databaseURL: "https://firebaseio.com",
+        projectId: "sistema-73236",
+        storageBucket: "://appspot.com"
+    };
 
-    // Função auxiliar para normalizar textos (remover acentos e espaços extras)
-    function normalizarTexto(texto) {
-        return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    // Inicializa o Firebase com os dados corretos do seu projeto
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+
+    function limparTexto(texto) {
+        return texto.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
     }
 
-    // Função auxiliar para limpar pontuação de CPF ou datas
-    function limparPontuacao(texto) {
-        return texto.replace(/[^\w\s]/gi, '');
+    // Monitora a fila de presença em tempo real
+    function monitorarPresencas() {
+        database.ref('presencas').limitToLast(15).on('value', (snapshot) => {
+            const listaDiv = document.getElementById('listaAlunos');
+            listaDiv.innerHTML = "";
+
+            if (snapshot.exists()) {
+                const registros = [];
+                snapshot.forEach((child) => { registros.push(child.val()); });
+                
+                registros.reverse().forEach((dados) => {
+                    const textoHora = dados.dataHora || "";
+                    const apenasHora = textoHora.includes(" ") ? textoHora.split(" ")[1].substring(0, 5) : "";
+                    const item = document.createElement('div');
+                    item.className = 'item-aluno';
+                    item.innerHTML = `<span>🥋 ${dados.nome}</span><span class="hora">${apenasHora}</span>`;
+                    listaDiv.appendChild(item);
+                });
+            } else {
+                listaDiv.innerHTML = '<div style="color:#666; font-size:14px; text-align:center;">Fila de treino vazia.</div>';
+            }
+        });
     }
 
-    async function registrarPresenca() {
-        const termoBusca = document.getElementById('busca').value;
-        const divMensagem = document.getElementById('mensagem');
-        
-        if (!termoBusca) {
-            exibirMensagem("Por favor, digite um termo para busca.", "erro");
-            return;
-        }
+    monitorarPresencas();
 
-        exibirMensagem("Buscando matrícula...", "info");
+    // Evento de verificação de entrada
+    document.getElementById('formPresenca').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const inputNome = document.getElementById('primeiroNome').value.trim().toLowerCase();
+        const inputDoc = limparTexto(document.getElementById('documento').value);
+        const msgDiv = document.getElementById('mensagem');
+        const btnEnviar = document.getElementById('btnEnviar');
+
+        msgDiv.className = "carregando";
+        msgDiv.innerText = "Buscando matrícula...";
+        btnEnviar.disabled = true;
 
         try {
-            // 1. Busca todas as matrículas via REST API
-            const response = await fetch(`${FIREBASE_URL}matriculas.json`);
-            
-            if (!response.ok) throw new Error("Erro ao conectar com o banco de dados.");
-            
-            const matriculas = await response.json();
+            // Busca na tabela corrida de alunos
+            const snapshot = await database.ref('alunos').once('value');
+            let alunoEncontradoCompleto = null;
 
-            if (!matriculas) {
-                exibirMensagem("Nenhuma matrícula encontrada no sistema.", "erro");
-                return;
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    const dados = child.val();
+                    const nomeCompleto = dados.nome || "";
+                    const primeiroNomeBase = nomeCompleto.split(" ")[0].toLowerCase();
+                    
+                    const cpfBase = dados.cpf ? limparTexto(dados.cpf) : "";
+                    const nascimentoBase = dados.nascimento ? limparTexto(dados.nascimento) : "";
+
+                    if (primeiroNomeBase === inputNome && (inputDoc === cpfBase || inputDoc === nascimentoBase)) {
+                        alunoEncontradoCompleto = nomeCompleto.split(" ")[0]; // Guarda o primeiro nome com a grafia correta
+                    }
+                });
             }
 
-            let alunoEncontrado = null;
-            let idAlunoEncontrado = null;
+            if (alunoEncontradoCompleto) {
+                const agora = new Date();
+                const dataHoraString = agora.toLocaleString('pt-BR');
 
-            // Termos tratados para comparação flexível
-            const buscaNormalizada = normalizarTexto(termoBusca);
-            const buscaLimpa = limparPontuacao(termoBusca);
-
-            // 2. Percorre as matrículas para encontrar o aluno correto
-            for (const id in matriculas) {
-                const aluno = matriculas[id];
-                
-                const nomeMatch = aluno.nome && normalizarTexto(aluno.nome).includes(buscaNormalizada);
-                const cpfMatch = aluno.cpf && limparPontuacao(aluno.cpf) === buscaLimpa;
-                const dataMatch = aluno.dataNascimento && limparPontuacao(aluno.dataNascimento) === buscaLimpa;
-
-                if (nomeMatch || cpfMatch || dataMatch) {
-                    alunoEncontrado = aluno;
-                    idAlunoEncontrado = id;
-                    break; // Para no primeiro que encontrar
-                }
-            }
-
-            // 3. Se encontrar, registra a presença
-            if (alunoEncontrado) {
-                const dataAtual = new Date();
-                
-                // Objeto da presença que será salvo
-                const dadosPresenca = {
-                    idAluno: idAlunoEncontrado,
-                    nome: alunoEncontrado.nome,
-                    timestamp: dataAtual.toISOString(),
-                    dataFormatada: dataAtual.toLocaleDateString('pt-BR'),
-                    horaFormatada: dataAtual.toLocaleTimeString('pt-BR')
-                };
-
-                // Envia a presença para o nó 'presencas' usando o método POST
-                const salvarResponse = await fetch(`${FIREBASE_URL}presencas.json`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dadosPresenca)
+                // Salva o registro
+                await database.ref('presencas').push({
+                    nome: alunoEncontradoCompleto,
+                    dataHora: dataHoraString,
+                    timestamp: agora.getTime()
                 });
 
-                if (salvarResponse.ok) {
-                    exibirMensagem(`Presença confirmada para: <strong>${alunoEncontrado.nome}</strong>! 🥋`, "sucesso");
-                    document.getElementById('busca').value = ""; // Limpa o campo
-                } else {
-                    throw new Error("Não foi possível salvar a presença.");
-                }
+                msgDiv.className = "sucesso";
+                msgDiv.innerText = `Presença confirmada! Bom treino, ${alunoEncontradoCompleto}.`;
 
+                falar(alunoEncontradoCompleto);
+                document.getElementById('formPresenca').reset();
             } else {
-                exibirMensagem("Aluno não encontrado. Verifique os dados digitados.", "erro");
+                msgDiv.className = "erro";
+                msgDiv.innerText = "Matrícula não encontrada ou dados incorretos.";
+                falarErro();
             }
-
         } catch (error) {
+            msgDiv.className = "erro";
+            msgDiv.innerText = "Erro de conexão com o banco de dados.";
             console.error(error);
-            exibirMensagem("Ocorreu um erro na comunicação. Tente novamente.", "erro");
+        } finally {
+            btnEnviar.disabled = false;
+        }
+    });
+
+    function falar(nome) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(`Presença confirmada! Bom treino, ${nome}.`);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
         }
     }
 
-    function exibirMensagem(texto, tipo) {
-        const divMensagem = document.getElementById('mensagem');
-        divMensagem.style.display = "block";
-        divMensagem.className = tipo;
-        divMensagem.innerHTML = texto;
+    function falarErro() {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance("Dados não encontrados.");
+            utterance.lang = 'pt-BR';
+            window.speechSynthesis.speak(utterance);
+        }
     }
 </script>
-
 </body>
 </html>
