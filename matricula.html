@@ -248,22 +248,39 @@ function aprovarPreMatricula(id) {
     document.getElementById('formMatricula').reset();
     idXed = null;
     
-    // CORREÇÃO: Força o carregamento de 100% dos dados salvos no pré-cadastro
-    foto = p.foto || "";
-    document.getElementById('nome').value = p.nome || "";
-    document.getElementById('nascimento').value = p.nascimento || "";
-    document.getElementById('cpf').value = p.cpf || "";
-    document.getElementById('telefone').value = p.telefone || "";
-    document.getElementById('endereco').value = p.endereco || "";
+    // Captura a foto independente de como foi salva
+    foto = p.foto || p.imagem || "";
     
-    if(p.nascimento) {
-        let ev = { target: { value: p.nascimento } };
-        verificaIdadeAutomatico(ev);
+    // Puxa o Nome e o CPF
+    document.getElementById('nome').value = p.nome || "";
+    document.getElementById('cpf').value = p.cpf || p.CPF || "";
+    
+    // BUSCA INTELIGENTE: Tenta ler a data de nascimento em qualquer formato salvo
+    let dataNasc = p.nascimento || p.dataNascimento || p.dataNasc || p.data_nascimento || "";
+    document.getElementById('nascimento').value = dataNasc;
+    
+    // BUSCA INTELIGENTE: Tenta ler o WhatsApp ou Telefone
+    let fone = p.telefone || p.whatsapp || p.whats || p.celular || "";
+    document.getElementById('telefone').value = fone;
+    
+    // BUSCA INTELIGENTE: Tenta ler o Endereço residencial
+    let end = p.endereco || p.enderecoResidencial || p.rua || "";
+    document.getElementById('endereco').value = end;
+    
+    // Dispara o cálculo automático da idade na tela se a data veio preenchida
+    if(dataNasc) {
+        let ev = { target: { value: dataNasc } };
+        if (typeof verificaIdadeAutomatico === 'function') {
+            verificaIdadeAutomatico(ev);
+        }
     }
+    
     if(foto) {
         let img = document.getElementById('foto-preview');
-        img.src = foto;
-        img.style.display = "block";
+        if (img) {
+            img.src = foto;
+            img.style.display = "block";
+        }
     }
     idPreBId = id;
 }
