@@ -247,12 +247,15 @@ function aprovarPreMatricula(id) {
     document.querySelector('.lista-cadastrados').classList.add('hidden');
     document.getElementById('formMatricula').reset();
     idXed = null;
+    
+    // CORREÇÃO: Força o carregamento de 100% dos dados salvos no pré-cadastro
     foto = p.foto || "";
     document.getElementById('nome').value = p.nome || "";
     document.getElementById('nascimento').value = p.nascimento || "";
     document.getElementById('cpf').value = p.cpf || "";
     document.getElementById('telefone').value = p.telefone || "";
     document.getElementById('endereco').value = p.endereco || "";
+    
     if(p.nascimento) {
         let ev = { target: { value: p.nascimento } };
         verificaIdadeAutomatico(ev);
@@ -338,12 +341,30 @@ function tirarfoto() {
     video.style.display = "none";
     if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); }
 }
-    function salvarMatricula(e) {
+// Função que calcula o IMC na hora em que você digita peso ou altura
+function calcularIMCDigitado() {
+    let peso = parseFloat(document.getElementById('peso').value) || 0;
+    let altura = parseFloat(document.getElementById('altura').value) || 0;
+    let campoIMC = document.getElementById('imc');
+    
+    if (peso > 0 && altura > 0 && campoIMC) {
+        campoIMC.value = (peso / (altura * altura)).toFixed(1);
+    } else if (campoIMC) {
+        campoIMC.value = "";
+    }
+}
+
+// Vincula o cálculo do IMC diretamente aos campos para rodar automaticamente
+if(document.getElementById('peso')) document.getElementById('peso').oninput = calcularIMCDigitado;
+if(document.getElementById('altura')) document.getElementById('altura').oninput = calcularIMCDigitado;
+
+function salvarMatricula(e) {
     e.preventDefault();
     let peso = parseFloat(document.getElementById('peso').value) || 0;
     let altura = parseFloat(document.getElementById('altura').value) || 0;
     let imcCalculado = "";
     if (peso > 0 && altura > 0) { imcCalculado = (peso / (altura * altura)).toFixed(1); }
+    
     let a = {
         nome: document.getElementById('nome').value,
         nascimento: document.getElementById('nascimento').value,
@@ -369,9 +390,10 @@ function tirarfoto() {
         coxaDir: document.getElementById('coxa-dir').value,
         coxaEsq: document.getElementById('coxa-esq').value,
         valorMensalidade: document.getElementById('valor-mensalidade').value,
-        statusPagamento: document.getElementById('status-pagamento').value, // Permite salvar como Pago ou Pendente livremente se errar
+        statusPagamento: document.getElementById('status-pagamento').value,
         dataMatricula: new Date().toLocaleDateString('pt-BR')
     };
+    
     let metodo = idXed ? 'PUT' : 'POST';
     let url = obterUrlMatricula(idXed);
     fetch(url, { method: metodo, body: JSON.stringify(a) }).then(() => {
@@ -379,7 +401,6 @@ function tirarfoto() {
         cancelarEdicao(); sincronizarMatriculasFirebase(); sincronizarPreMatriculas();
     });
 }
-
 function editarAluno(id) {
     idXed = id; idPreBId = null;
     let a = bd[id];
