@@ -132,7 +132,7 @@
         <button class="btn-success" onclick="abrirNovoCadastro()" style="float:right; margin-bottom:15px;">➕ Nova Matrícula</button>
         <table>
             <thead>
-                <tr><th>Foto</th><th>Nome</th><th>Idade</th><th>WhatsApp</th><th>Mensalidade</th><th>Ações</th></tr>
+                <tr><th>Foto</th><th>Nome</th><th>Idade</th><th>WhatsApp</th><th>Ações</th></tr>
             </thead>
             <tbody id="tabela-alunos"></tbody>
         </table>
@@ -277,24 +277,29 @@ function atlista() {
     let tbody = document.getElementById('tabela-alunos');
     if (!tbody) return;
     tbody.innerHTML = "";
+    
     Object.keys(bd).forEach(id => {
         let a = bd[id];
         let nome = (a.nome || "").toLowerCase();
         let cpf = (a.cpf || "").toLowerCase();
         let tel = (a.telefone || "").toLowerCase();
+        
         if (nome.includes(filtro) || cpf.includes(filtro) || tel.includes(filtro)) {
             let tr = document.createElement('tr');
             let tdFoto = a.foto ? `<img src="${a.foto}" style="width:65px; height:65px; object-fit:cover; border-radius:50%; border: 2px solid #007bff;">` : `❌`;
-            tr.innerHTML = `<td>${tdFoto}</td>
+            
+            // REMOVIDO A COLUNA DA MENSALIDADE DAQUI DE DENTRO:
+            tr.innerHTML = `
+                <td>${tdFoto}</td>
                 <td><strong>${a.nome}</strong><br><span style="font-size:12px; color:#666;">CPF: ${a.cpf || 'Não informado'}</span></td>
                 <td>${a.idade || '-'}</td>
                 <td>${a.telefone || 'Não informado'}</td>
-                <td><span style="padding:4px 8px; border-radius:4px; font-weight:bold; color:white; background-color:${a.statusPagamento === 'Pago' ? '#28a745' : '#dc3545'}">${a.statusPagamento || 'Pendente'}</span></td>
-                <td style="display: flex; gap: 4px;">
-                    <button class="btn-primary" style="padding:6px 12px; font-size:13px; border-radius:4px;" onclick="editarAluno('${id}')">✏️ Editar</button>
-                    <button class="btn-info" style="padding:6px 12px; font-size:13px; border-radius:4px;" onclick="imprimirRecibo('${id}')">🧾 Recibo</button>
-                    <button class="btn-danger" style="padding:6px 12px; font-size:13px; border-radius:4px;" onclick="excluirAluno('${id}')">❌ Deletar</button>
-                </td>`;
+                <td>
+                    <button class="btn-primary" style="padding:6px 12px; font-size:13px; margin-right:4px; border-radius:4px; background-color:#007bff; color:white; border:none; cursor:pointer;" onclick="editarAluno('${id}')">✏️ Editar</button>
+                    <button class="btn-info" style="padding:6px 12px; font-size:13px; margin-right:4px; border-radius:4px; background-color:#17a2b8; color:white; border:none; cursor:pointer;" onclick="imprimirRecibo('${id}')">🧾 Recibo</button>
+                    <button class="btn-danger" style="padding:6px 12px; font-size:13px; border-radius:4px; background-color:#dc3545; color:white; border:none; cursor:pointer;" onclick="excluirAluno('${id}')">❌ Deletar</button>
+                </td>
+            `;
             tbody.appendChild(tr);
         }
     });
