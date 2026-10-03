@@ -243,39 +243,41 @@ function renderizarPrePainel() {
 
 function aprovarPreMatricula(id) {
     let p = preBD[id];
+    if (!p) return;
+
     document.getElementById('form-cadastro').classList.remove('hidden');
     document.querySelector('.lista-cadastrados').classList.add('hidden');
     document.getElementById('formMatricula').reset();
     idXed = null;
     
-    // Captura a foto independente de como foi salva
-    foto = p.foto || p.imagem || "";
-    
-    // Puxa o Nome e o CPF
-    document.getElementById('nome').value = p.nome || "";
+    // 1. CAPTURA O NOME E CPF DO PRÉ-CADASTRO
+    document.getElementById('nome').value = p.nome || p.nomeAluno || "";
     document.getElementById('cpf').value = p.cpf || p.CPF || "";
     
-    // BUSCA INTELIGENTE: Tenta ler a data de nascimento em qualquer formato salvo
-    let dataNasc = p.nascimento || p.dataNascimento || p.dataNasc || p.data_nascimento || "";
+    // 2. CAPTURA A DATA DE NASCIMENTO (Testa todas as variações da internet)
+    let dataNasc = p.nascimento || p.dataNascimento || p.dataNasc || p.data_nascimento || p.data || "";
     document.getElementById('nascimento').value = dataNasc;
     
-    // BUSCA INTELIGENTE: Tenta ler o WhatsApp ou Telefone
-    let fone = p.telefone || p.whatsapp || p.whats || p.celular || "";
+    // 3. CAPTURA O WHATSAPP / TELEFONE
+    let fone = p.telefone || p.whatsapp || p.whats || p.celular || p.tel || "";
     document.getElementById('telefone').value = fone;
     
-    // BUSCA INTELIGENTE: Tenta ler o Endereço residencial
-    let end = p.endereco || p.enderecoResidencial || p.rua || "";
+    // 4. CAPTURA O ENDEREÇO RESIDENCIAL
+    let end = p.endereco || p.enderecoResidencial || p.rua || p.bairro || "";
     document.getElementById('endereco').value = end;
     
-    // Dispara o cálculo automático da idade na tela se a data veio preenchida
-    if(dataNasc) {
+    // 5. CAPTURA A FOTO
+    foto = p.foto || p.imagem || p.fotoAluno || "";
+    
+    // Dispara o cálculo automático da idade e ativa a seção de pais se menor
+    if (dataNasc) {
         let ev = { target: { value: dataNasc } };
         if (typeof verificaIdadeAutomatico === 'function') {
             verificaIdadeAutomatico(ev);
         }
     }
     
-    if(foto) {
+    if (foto) {
         let img = document.getElementById('foto-preview');
         if (img) {
             img.src = foto;
