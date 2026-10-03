@@ -226,16 +226,20 @@ function renderizarPrePainel() {
     document.getElementById('bloco-pre-matriculas').classList.remove('hidden');
     chaves.forEach(id => {
         let p = preBD[id];
+        
+        // CORREÇÃO: Descobre dinamicamente qual chave de contato o seu formulário externo usou
+        let contatoExibir = p.whatsapp || p.telefone || p.telefoneAluno || p.celular || "Não informado";
+        
         let item = document.createElement('div');
         item.style.padding = "10px";
         item.style.borderBottom = "1px solid #ddd";
         item.style.display = "flex";
         item.style.justifyContent = "space-between";
         item.style.alignItems = "center";
-        item.innerHTML = `<div><strong>${p.nome}</strong> - WhatsApp: ${p.telefone} (Pré-Cadastro via Link)</div>
+        item.innerHTML = `<div><strong>${p.nome || p.nomeAluno || 'Sem Nome'}</strong> - WhatsApp: ${contatoExibir} (Pré-Cadastro via Link)</div>
             <div>
-                <button class="btn-success" style="padding:5px 10px; font-size:12px; margin-right:5px;" onclick="aprovarPreMatricula('${id}')">✓ Aprovar</button>
-                <button class="btn-danger" style="padding:5px 10px; font-size:12px;" onclick="rejeitarPreMatricula('${id}')">✕ Excluir</button>
+                <button class="btn-success" style="padding:5px 10px; font-size:12px; margin-right:5px; background-color:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="aprovarPreMatricula('${id}')">✓ Aprovar</button>
+                <button class="btn-danger" style="padding:5px 10px; font-size:12px; background-color:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="rejeitarPreMatricula('${id}')">✕ Excluir</button>
             </div>`;
         div.appendChild(item);
     });
@@ -250,26 +254,26 @@ function aprovarPreMatricula(id) {
     document.getElementById('formMatricula').reset();
     idXed = null;
     
-    // 1. CAPTURA O NOME E CPF DO PRÉ-CADASTRO
+    // 1. CAPTURA NOME E CPF (Testando variações maiúsculas/minúsculas da pré-matrícula)
     document.getElementById('nome').value = p.nome || p.nomeAluno || "";
-    document.getElementById('cpf').value = p.cpf || p.CPF || "";
+    document.getElementById('cpf').value = p.cpf || p.CPF || p.cpfAluno || "";
     
-    // 2. CAPTURA A DATA DE NASCIMENTO (Testa todas as variações da internet)
-    let dataNasc = p.nascimento || p.dataNascimento || p.dataNasc || p.data_nascimento || p.data || "";
+    // 2. CAPTURA A DATA DE NASCIMENTO (Mapeando todas as chaves possíveis do banco)
+    let dataNasc = p.nascimento || p.dataNascimento || p.dataNasc || p.data_nascimento || p.data || p.nasc || "";
     document.getElementById('nascimento').value = dataNasc;
     
-    // 3. CAPTURA O WHATSAPP / TELEFONE
-    let fone = p.telefone || p.whatsapp || p.whats || p.celular || p.tel || "";
+    // 3. CAPTURA CONTATO (Garante que se tiver salvo como 'whatsapp' ou 'telefone' vai preencher)
+    let fone = p.whatsapp || p.telefone || p.telefoneAluno || p.celular || p.whats || p.tel || "";
     document.getElementById('telefone').value = fone;
     
-    // 4. CAPTURA O ENDEREÇO RESIDENCIAL
-    let end = p.endereco || p.enderecoResidencial || p.rua || p.bairro || "";
+    // 4. CAPTURA ENDEREÇO
+    let end = p.endereco || p.enderecoResidencial || p.rua || p.bairro || p.cidade || "";
     document.getElementById('endereco').value = end;
     
-    // 5. CAPTURA A FOTO
-    foto = p.foto || p.imagem || p.fotoAluno || "";
+    // 5. CAPTURA A FOTO ORIGINAL DO ALUNO
+    foto = p.foto || p.imagem || p.fotoAluno || p.fotoUrl || "";
     
-    // Dispara o cálculo automático da idade e ativa a seção de pais se menor
+    // Dispara o cálculo automático da idade na tela se a data veio válida
     if (dataNasc) {
         let ev = { target: { value: dataNasc } };
         if (typeof verificaIdadeAutomatico === 'function') {
