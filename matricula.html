@@ -138,7 +138,18 @@
         </table>
     </div>
 
-    <div id="bloco-comprovante" class="hidden"></div>
+    <!-- Janela de Ficha Financeira Anual (Janeiro a Dezembro) -->
+    <div id="bloco-comprovante" class="hidden" style="margin-top: 30px; background: white; padding: 25px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #333;">
+        <h2 style="color: #e50914; text-transform: uppercase; margin-bottom: 5px;">Feras Taekwondo</h2>
+        <h3 id="financeiro-nome-aluno" style="text-align: left; color: #555; margin-bottom: 20px;">Ficha Financeira do Aluno</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center;" id="grade-meses-ano">
+            <!-- Os 12 meses serão gerados aqui via javascript -->
+        </div>
+        
+        <div style="text-align: center; margin-top: 25px;" class="hidden-print">
+            <button class="btn-danger" onclick="document.getElementById('bloco-comprovante').classList.add('hidden')" style="padding: 10px 20px;">Fechar Ficha</button>
+        </div>
 </div>
 <script>
 const urlNuvemBase ="https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
@@ -407,18 +418,100 @@ function excluirAluno(id) {
     }
 }
 
+let idAlunoFinanceiroAtual = null;
+
 function imprimirRecibo(id) {
+    idAlunoFinanceiroAtual = id;
     let a = bd[id];
     let bloco = document.getElementById('bloco-comprovante');
-    if(!bloco) return;
-    bloco.className = "comprovante";
-    bloco.innerHTML = `<h2>FERAS TAEKWONDO</h2>
-        <p><strong>ALUNO:</strong> ${a.nome}</p>
-        <p><strong>VALOR:</strong> R$ ${parseFloat(a.valorMensalidade || 0).toFixed(2)}</p>
-        <p><strong>STATUS:</strong> ${a.statusPagamento}</p>
-        <p><strong>DATA:</strong> ${a.dataMatricula || new Date().toLocaleDateString('pt-BR')}</p>
-        <hr><p style="text-align:center;">Obrigado e bom treino!<br>Feras Taekwondo</p>`;
-    window.print();
+    let tituloNome = document.getElementById('financeiro-nome-aluno');
+    let gradeMeses = document.getElementById('grade-meses-ano');
+    
+    if(!bloco || !gradeMeses) return;
+    
+    tituloNome.innerText = "🥋 Ficha Financeira: " + (a.nome || "Aluno");
+    bloco.classList.remove('hidden'); // Abre o painel na tela
+    gradeMeses.innerHTML = ""; // Limpa os meses anteriores
+
+    // Lista com os 12 meses do ano
+    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    
+    // Puxa o histórico de meses pagos que já está salvo na ficha do aluno
+    let historicoPagamentos = a.mesesPagos || {};
+
+    meses.forEach(function(mes) {
+        let statusAtual = historicoPagamentos[mes] || "Pendente";
+        let botaoMes = document.createElement('div');
+        
+        // Estiliza o botão: Verde se tiver Pago, Vermelho se estiver Pendente
+        let corFundo = statusAtual === "Pago" ? "#28a745" : "#dc3545";
+        
+        botaoMes.innerHTML = `
+            <div style="background-color: ${corFundo}; color: white; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="alternarStatusMes('${mes}', '${statusAtual}')">
+                <div style="font-size: 14px;">${mes}</div>
+                <div style="font-size: 11px; margin-top: 4px; background: rgba(0,0,0,0.2); padding: 2px; border-radius: 4px;">${statusAtual}</div>
+            </div>
+            <button class="hidden-print" style="background: none; border: none; color: #007bff; font-size: 11px; cursor: pointer; margin-top: 4px; padding: 0;" onclick="imprimirCupomMes('${mes}')">🖨️ Imprimir</button>
+        `;
+        gradeMeses.appendChild(botaoMes);
+    });
+}
+
+// Função mágica que muda de Pendente para Pago (ou o contrário) ao clicar no mês
+function alternarStatusMes(mesNome, statusAtual) {
+    if (!idAlunoFinanceiroAtual) return;
+    
+    let novoStatus = statusAtual === "Pago" ? "Pendente" : "Pago";
+    
+    // Cria o link direto para atualizar a pasta de meses do aluno no seu Firebase
+    let urlMes = urlNuvemBase.replace('.json', '') + "/matriculas/" + idAlunoFinanceiroAtual + "/mesesPagos/" + mesNome + ".json";
+    
+    fetch(urlMes, {
+        method: 'PUT',
+        body: JSON.stringify(novoStatus)
+    }).then(function() {
+        // Atualiza a memória local para o visual mudar na hora
+        if (!bd[idAlunoFinanceiroAtual].mesesPagos) {
+            bd[idAlunoFinanceiroAtual].mesesPagos = {};
+        }
+        bd[idAlunoFinanceiroAtual].mesesPagos[mesNome] = novoStatus;
+        
+        // Recarrega a janelinha dos meses com a cor nova
+        imprimirRecibo(idAlunoFinanceiroAtual);
+        sincronizarMatriculasFirebase(); // Atualiza a tabela branca de trás
+    });
+}
+
+// Imprime o cupom de pagamento específico daquele mês selecionado
+function imprimirCupomMes(mesNome) {
+    let a = bd[idAlunoFinanceiroAtual];
+    let janelaImpressao = window.open('', '_blank');
+    janelaImpressao.document.write(`
+        <html>
+        <head>
+            <title>Recibo Feras Taekwondo</title>
+            <style>
+                body { font-family: monospace; padding: 20px; color: #000; }
+                .cupom { border: 2px dashed #000; padding: 15px; max-width: 300px; margin: auto; }
+                h2 { text-align: center; margin: 0 0 10px 0; font-size: 16px; }
+                p { margin: 5px 0; font-size: 13px; }
+            </style>
+        </head>
+        <body onload="window.print(); window.close();">
+            <div class="cupom">
+                <h2>FERAS TAEKWONDO</h2>
+                <p><strong>ALUNO:</strong> ${a.nome}</p>
+                <p><strong>MÊS DE REFERÊNCIA:</strong> ${mesNome.toUpperCase()}/2026</p>
+                <p><strong>VALOR MENSALIDADE:</strong> R$ ${parseFloat(a.valorMensalidade || 0).toFixed(2)}</p>
+                <p><strong>STATUS DO RECIBO:</strong> PAGO</p>
+                <p><strong>DATA DE EMISSÃO:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+                <hr>
+                <p style="text-align:center;">Obrigado e bom treino!<br>Feras Taekwondo</p>
+            </div>
+        </body>
+        </html>
+    `);
+    janelaImpressao.document.close();
 }
 
 </script>
