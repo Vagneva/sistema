@@ -161,8 +161,9 @@ function obterUrlPreMatricula(idAluno) {
 window.onload = function() {
     var senhaDigitada = prompt("Área Restrita da Administração. Digite a senha:");
     if (senhaDigitada === SENHA_ADMIN) {
-        document.getElementById('form-cadastro').classList.add('hidden');
-        document.querySelector('.lista-cadastrados').classList.remove('hidden');
+        // Deixa a lista de alunos visível e ativa a busca na nuvem
+        if(document.getElementById('form-cadastro')) document.getElementById('form-cadastro').classList.add('hidden');
+        if(document.querySelector('.lista-cadastrados')) document.querySelector('.lista-cadastrados').classList.remove('hidden');
         sincronizarMatriculasFirebase();
         sincronizarPreMatriculas();
     } else {
