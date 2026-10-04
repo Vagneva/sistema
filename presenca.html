@@ -3,126 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrada por Reconhecimento Facial - Feras Taekwondo</title>
-    
-    <!-- Scripts necessários para o Reconhecimento Facial (Face-API.js) -->
-    <script defer src="https://cloudflare.com"></script>
-    
+    <title>Presença - Feras Taekwondo</title>
     <style>
-        body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; text-align: center; padding: 20px; margin: 0; }
-        .container { max-width: 700px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        h1 { color: #3b82f6; margin-bottom: 5px; font-size: 24px; }
-        .camera-box { position: relative; width: 400px; height: 300px; margin: 20px auto; background: #000; border-radius: 8px; overflow: hidden; border: 4px solid #3b82f6; }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .status-alerta { font-size: 18px; font-weight: bold; margin-top: 15px; color: #e2e8f0; min-height: 27px; }
-        .log-lista { max-width: 500px; margin: 20px auto 0 auto; background: #334155; border-radius: 6px; padding: 10px; text-align: left; max-height: 150px; overflow-y: auto; }
-        .log-item { padding: 6px; border-bottom: 1px solid #475569; font-size: 14px; display: flex; justify-content: space-between; }
-        .sucesso { color: #10b981; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        h2 {
+            color: #d32f2f; /* Vermelho marcial */
+            margin-bottom: 5px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 0;
+            font-weight: 400;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #b71c1c;
+        }
+        #mensagem {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            font-weight: 500;
+        }
+        .sucesso { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .erro { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🥋 Feras Taekwondo</h1>
-        <div class="camera-box">
-            <video id="video" autoplay muted></video>
-        </div>
-        <div id="status" class="status-alerta">Carregando inteligência artificial...</div>
-        
-        <h2>Histórico de Entrada</h2>
-        <div id="logLista" class="log-lista">
-            <!-- Os registros de entrada aparecerão aqui -->
-        </div>
+
+<div class="container">
+    <h2>Feras Taekwondo</h2>
+    <h3>Registro de Presença</h3>
+
+    <div class="form-group">
+        <label for="busca">Busque por Nome, CPF ou Data de Nascimento:</label>
+        <input type="text" id="busca" placeholder="Ex: João, 12345678900 ou 01/01/2000">
     </div>
 
-    <script>
-        const video = document.getElementById('video');
-        const statusDiv = document.getElementById('status');
-        const logLista = document.getElementById('logLista');
-        const urlNuvem = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
-        let usuariosCarregados = {};
+    <button onclick="registrarPresenca()">Marcar Presença</button>
 
-        // 1. Carrega os dados das matrículas do Firebase
-        async function carregarMatriculas() {
-            try {
-                statusDiv.innerText = "Buscando matrículas no Firebase...";
-                const resposta = await fetch(urlNuvem);
-                const dados = await resposta.json();
-                
-                // Filtra as matrículas dentro do nó do Firebase
-                if (dados && dados.matriculas) {
-                    usuariosCarregados = dados.matriculas;
-                    statusDiv.innerText = "Matrículas carregadas! Iniciando câmera...";
-                    inicializarCamera();
-                } else {
-                    statusDiv.innerText = "Nenhuma matrícula encontrada no Firebase.";
-                }
-            } catch (erro) {
-                console.error(erro);
-                statusDiv.innerText = "Erro ao conectar com o Firebase.";
+    <div id="mensagem"></div>
+</div>
+
+<script>
+    // URL BASE DO SEU FIREBASE (Adicione a barra '/' no final se não houver)
+    const FIREBASE_URL = “https://academia-2d8b2-default-rtdb.firebaseio.com/json”;
+
+    // Função auxiliar para normalizar textos (remover acentos e espaços extras)
+    function normalizarTexto(texto) {
+        return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    }
+
+    // Função auxiliar para limpar pontuação de CPF ou datas
+    function limparPontuacao(texto) {
+        return texto.replace(/[^\w\s]/gi, '');
+    }
+
+    async function registrarPresenca() {
+        const termoBusca = document.getElementById('busca').value;
+        const divMensagem = document.getElementById('mensagem');
+        
+        if (!termoBusca) {
+            exibirMensagem("Por favor, digite um termo para busca.", "erro");
+            return;
+        }
+
+        exibirMensagem("Buscando matrícula...", "info");
+
+        try {
+            // 1. Busca todas as matrículas via REST API
+            const response = await fetch(`${FIREBASE_URL}matriculas.json`);
+            
+            if (!response.ok) throw new Error("Erro ao conectar com o banco de dados.");
+            
+            const matriculas = await response.json();
+
+            if (!matriculas) {
+                exibirMensagem("Nenhuma matrícula encontrada no sistema.", "erro");
+                return;
             }
-        }
 
-        // 2. Ativa a Webcam do dispositivo
-        function inicializarCamera() {
-            navigator.mediaDevices.getUserMedia({ video: {} })
-                .then(stream => {
-                    video.srcObject = stream;
-                    statusDiv.innerText = "Sistema Pronto. Posicione-se em frente à câmera.";
-                    iniciarReconhecimento();
-                })
-                .catch(err => {
-                    console.error("Erro ao acessar a câmera: ", err);
-                    statusDiv.innerText = "Erro: Câmera não encontrada ou permissão negada.";
-                });
-        }
+            let alunoEncontrado = null;
+            let idAlunoEncontrado = null;
 
-        // 3. Executa o algoritmo de detecção de rostos
-        async function iniciarReconhecimento() {
-            // Carrega os modelos oficiais da inteligência artificial
-            await faceapi.nets.tinyFaceDetector.loadFromUri('https://githubusercontent.com');
-            await faceapi.nets.faceLandmark68Net.loadFromUri('https://githubusercontent.com');
-            await faceapi.nets.faceRecognitionNet.loadFromUri('https://githubusercontent.com');
+            // Termos tratados para comparação flexível
+            const buscaNormalizada = normalizarTexto(termoBusca);
+            const buscaLimpa = limparPontuacao(termoBusca);
 
-            setInterval(async () => {
-                const deteccoes = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+            // 2. Percorre as matrículas para encontrar o aluno correto
+            for (const id in matriculas) {
+                const aluno = matriculas[id];
                 
-                if (deteccoes.length > 0) {
-                    statusDiv.innerText = "Rosto detectado! Processando...";
-                    
-                    // Aqui o sistema faz o cruzamento com as fotos salvas em 'usuariosCarregados'
-                    // Para fins de demonstração rápida, listamos o primeiro aluno encontrado com foto ativa
-                    let alunoIdentificado = null;
-                    for (let id in usuariosCarregados) {
-                        if (usuariosCarregados[id].foto) {
-                            alunoIdentificado = usuariosCarregados[id].nome;
-                            break;
-                        }
-                    }
+                const nomeMatch = aluno.nome && normalizarTexto(aluno.nome).includes(buscaNormalizada);
+                const cpfMatch = aluno.cpf && limparPontuacao(aluno.cpf) === buscaLimpa;
+                const dataMatch = aluno.dataNascimento && limparPontuacao(aluno.dataNascimento) === buscaLimpa;
 
-                    if (alunoIdentificado) {
-                        statusDiv.innerHTML = `<span class="sucesso">Bem-vindo(a), ${alunoIdentificado}!</span>`;
-                        registrarLog(alunoIdentificado);
-                    } else {
-                        statusDiv.innerText = "Rosto não reconhecido nas matrículas.";
-                    }
+                if (nomeMatch || cpfMatch || dataMatch) {
+                    alunoEncontrado = aluno;
+                    idAlunoEncontrado = id;
+                    break; // Para no primeiro que encontrar
                 }
-            }, 3000); // Executa a verificação a cada 3 segundos
-        }
+            }
 
-        // 4. Registra no histórico da tela
-        function registrarLog(nome) {
-            const agora = new Date();
-            const horaFormatada = agora.toLocaleTimeString('pt-BR');
-            
-            const item = document.createElement('div');
-            item.className = 'log-item';
-            item.innerHTML = `<span class="sucesso">${nome}</span> <span>${horaFormatada}</span>`;
-            
-            logLista.insertBefore(item, logLista.firstChild);
-        }
+            // 3. Se encontrar, registra a presença
+            if (alunoEncontrado) {
+                const dataAtual = new Date();
+                
+                // Objeto da presença que será salvo
+                const dadosPresenca = {
+                    idAluno: idAlunoEncontrado,
+                    nome: alunoEncontrado.nome,
+                    timestamp: dataAtual.toISOString(),
+                    dataFormatada: dataAtual.toLocaleDateString('pt-BR'),
+                    horaFormatada: dataAtual.toLocaleTimeString('pt-BR')
+                };
 
-        // Inicializa o processo ao carregar a página
-        window.onload = carregarMatriculas;
-    </script>
+                // Envia a presença para o nó 'presencas' usando o método POST
+                const salvarResponse = await fetch(`${FIREBASE_URL}presencas.json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosPresenca)
+                });
+
+                if (salvarResponse.ok) {
+                    exibirMensagem(`Presença confirmada para: <strong>${alunoEncontrado.nome}</strong>! 🥋`, "sucesso");
+                    document.getElementById('busca').value = ""; // Limpa o campo
+                } else {
+                    throw new Error("Não foi possível salvar a presença.");
+                }
+
+            } else {
+                exibirMensagem("Aluno não encontrado. Verifique os dados digitados.", "erro");
+            }
+
+        } catch (error) {
+            console.error(error);
+            exibirMensagem("Ocorreu um erro na comunicação. Tente novamente.", "erro");
+        }
+    }
+
+    function exibirMensagem(texto, tipo) {
+        const divMensagem = document.getElementById('mensagem');
+        divMensagem.style.display = "block";
+        divMensagem.className = tipo;
+        divMensagem.innerHTML = texto;
+    }
+</script>
+
 </body>
 </html>
