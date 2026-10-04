@@ -3,201 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presença - Feras Taekwondo</title>
+    <title>Registro de Presença - Feras Taekwondo</title>
+    <script src="https://cloudflare.com"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-        }
-        h2 {
-            color: #d32f2f; /* Vermelho marcial */
-            margin-bottom: 5px;
-        }
-        h3 {
-            color: #555;
-            margin-top: 0;
-            font-weight: 400;
-            margin-bottom: 25px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #666;
-            font-weight: 600;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #d32f2f;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background-color: #b71c1c;
-        }
-        #mensagem {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-            font-weight: 500;
-        }
-        .sucesso { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .erro { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .info { background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+        body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 20px; margin: 0; }
+        h1 { color: #3b82f6; margin: 0 0 5px 0; font-size: 26px; text-align: center; }
+        .subtitulo { color: #94a3b8; margin: 0 0 20px 0; text-align: center; }
+        #status-carregamento { font-size: 13px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+        .painel-principal { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1100px; margin: 0 auto; justify-content: center; }
+        .coluna-esquerda { flex: 1; min-width: 320px; max-width: 500px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .coluna-direita { flex: 1; min-width: 320px; max-width: 500px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        .qr-box { width: 100%; background: #000; border-radius: 8px; overflow: hidden; border: 4px solid #3b82f6; margin-bottom: 15px; box-sizing: border-box; }
+        #leitor-qr { width: 100%; min-height: 250px; background: #000; }
+        .busca-box { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; text-align: left; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #cbd5e1; font-size: 14px; }
+        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 16px; box-sizing: border-box; margin-bottom: 12px; }
+        input:focus { outline: none; border-color: #3b82f6; }
+        button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .status-alerta { font-size: 16px; font-weight: bold; margin-top: 15px; min-height: 24px; text-align: center; }
+        .titulo-lista { font-weight: bold; border-bottom: 2px solid #475569; padding-bottom: 8px; margin-bottom: 10px; font-size: 16px; color: #3b82f6; display: flex; justify-content: space-between; align-items: center; }
+        .contador-badge { background: #3b82f6; color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 20px; }
+        .log-lista { flex: 1; min-height: 350px; max-height: 500px; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 10px; }
+        .log-item { padding: 10px; border-bottom: 1px solid #1e293b; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .sucesso { color: #10b981; }
+        .erro { color: #ef4444; }
+        .aviso { color: #f59e0b; }
+        .info-data { font-size: 12px; color: #64748b; background: #1e293b; padding: 2px 6px; border-radius: 4px; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h2>Feras Taekwondo</h2>
-    <h3>Registro de Presença</h3>
-
-    <div class="form-group">
-        <label for="busca">Busque por Nome, CPF ou Data de Nascimento:</label>
-        <input type="text" id="busca" placeholder="Ex: João, 12345678900 ou 01/01/2000">
+<h1>🥋 Feras Taekwondo</h1>
+<p class="subtitulo">Aproxime seu QR Code da câmera ou digite seus dados abaixo</p>
+<div id="status-carregamento" style="color: #64748b;">🔄 Sincronizando banco de dados...</div>
+<div class="painel-principal">
+    <div class="coluna-esquerda">
+        <div class="qr-box"><div id="leitor-qr"></div></div>
+        <div class="busca-box">
+            <label for="identificador">CPF ou Primeiro Nome:</label>
+            <input type="text" id="identificador" placeholder="Ex: João ou CPF" autocomplete="off">
+            <button onclick="buscarEProcessar(document.getElementById('identificador').value)">Confirmar Presença ✓</button>
+        </div>
+        <div id="msg-status" class="status-alerta"></div>
     </div>
-
-    <button onclick="registrarPresenca()">Marcar Presença</button>
-
-    <div id="mensagem"></div>
+    <div class="coluna-direita">
+        <div class="titulo-lista"><span>📋 Alunos Presentes Hoje</span><span id="contador-presencas" class="contador-badge">0 Alunos</span></div>
+        <div class="log-lista" id="historico-presenca"></div>
+    </div>
 </div>
-
 <script>
-    // URL BASE DO SEU FIREBASE (Adicione a barra '/' no final se não houver)
-    const FIREBASE_URL = “https://academia-2d8b2-default-rtdb.firebaseio.com/json”;
+    const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+    let alunosBD = {}, ultimasPresencas = {}; 
+    const INTERVALO_MINUTOS = 15; 
+    const nomesMeses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
-    // Função auxiliar para normalizar textos (remover acentos e espaços extras)
-    function normalizarTexto(texto) {
-        return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    function obterDataAtual() {
+        let agora = new Date();
+        return {
+            dia: String(agora.getDate()).padStart(2, '0'),
+            mesNome: nomesMeses[agora.getMonth()],
+            ano: agora.getFullYear(),
+            hora: agora.toLocaleTimeString('pt-BR'),
+            timestamp: agora.getTime()
+        };
     }
 
-    // Função auxiliar para limpar pontuação de CPF ou datas
-    function limparPontuacao(texto) {
-        return texto.replace(/[^\w\s]/gi, '');
-    }
-
-    async function registrarPresenca() {
-        const termoBusca = document.getElementById('busca').value;
-        const divMensagem = document.getElementById('mensagem');
-        
-        if (!termoBusca) {
-            exibirMensagem("Por favor, digite um termo para busca.", "erro");
-            return;
-        }
-
-        exibirMensagem("Buscando matrícula...", "info");
-
-        try {
-            // 1. Busca todas as matrículas via REST API
-            const response = await fetch(`${FIREBASE_URL}matriculas.json`);
-            
-            if (!response.ok) throw new Error("Erro ao conectar com o banco de dados.");
-            
-            const matriculas = await response.json();
-
-            if (!matriculas) {
-                exibirMensagem("Nenhuma matrícula encontrada no sistema.", "erro");
-                return;
-            }
-
-            let alunoEncontrado = null;
-            let idAlunoEncontrado = null;
-
-            // Termos tratados para comparação flexível
-            const buscaNormalizada = normalizarTexto(termoBusca);
-            const buscaLimpa = limparPontuacao(termoBusca);
-
-            // 2. Percorre as matrículas para encontrar o aluno correto
-            for (const id in matriculas) {
-                const aluno = matriculas[id];
-                
-                const nomeMatch = aluno.nome && normalizarTexto(aluno.nome).includes(buscaNormalizada);
-                const cpfMatch = aluno.cpf && limparPontuacao(aluno.cpf) === buscaLimpa;
-                const dataMatch = aluno.dataNascimento && limparPontuacao(aluno.dataNascimento) === buscaLimpa;
-
-                if (nomeMatch || cpfMatch || dataMatch) {
-                    alunoEncontrado = aluno;
-                    idAlunoEncontrado = id;
-                    break; // Para no primeiro que encontrar
+    function inicializarSistema() {
+        fetch(`${urlNuvemBase}/matriculas.json`)
+            .then(res => res.json()).then(dados => { 
+                if(dados) {
+                    alunosBD = dados;
+                    document.getElementById('status-carregamento').innerHTML = "<span class='sucesso'>✓ Banco de dados Conectado (Jan-Dez)</span>";
+                    carregarPresencasDeHoje();
+                    inicializarScannerQR();
                 }
+            }).catch(() => { document.getElementById('status-carregamento').innerHTML = "<span class='erro'>⚠ Erro Firebase</span>"; });
+    }
+
+    function inicializarScannerQR() {
+        let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
+        html5QrcodeScanner.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 230, height: 230 } }, (textoQR) => buscarEProcessar(textoQR), () => {});
+    }
+
+    function buscarEProcessar(valorBusca) {
+        const termoBusca = valorBusca.trim().toLowerCase();
+        const statusTexto = document.getElementById('msg-status');
+        if (!termoBusca) return;
+
+        let alunoEncontrado = null; let cpfChave = null;
+        const termoLimpo = termoBusca.replace(/[^a-zA-Z0-9]/g, '');
+
+        for (let chave in alunosBD) {
+            let aluno = alunosBD[chave];
+            let nomeCompleto = aluno.nome.toLowerCase();
+            if (termoLimpo === chave.replace(/[^a-zA-Z0-9]/g, '') || nomeCompleto.split(' ')[0] === termoBusca || nomeCompleto === termoBusca || chave.toLowerCase() === termoBusca) {
+                alunoEncontrado = aluno; cpfChave = chave; break;
             }
-
-            // 3. Se encontrar, registra a presença
-            if (alunoEncontrado) {
-                const dataAtual = new Date();
-                
-                // Objeto da presença que será salvo
-                const dadosPresenca = {
-                    idAluno: idAlunoEncontrado,
-                    nome: alunoEncontrado.nome,
-                    timestamp: dataAtual.toISOString(),
-                    dataFormatada: dataAtual.toLocaleDateString('pt-BR'),
-                    horaFormatada: dataAtual.toLocaleTimeString('pt-BR')
-                };
-
-                // Envia a presença para o nó 'presencas' usando o método POST
-                const salvarResponse = await fetch(`${FIREBASE_URL}presencas.json`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dadosPresenca)
-                });
-
-                if (salvarResponse.ok) {
-                    exibirMensagem(`Presença confirmada para: <strong>${alunoEncontrado.nome}</strong>! 🥋`, "sucesso");
-                    document.getElementById('busca').value = ""; // Limpa o campo
-                } else {
-                    throw new Error("Não foi possível salvar a presença.");
-                }
-
-            } else {
-                exibirMensagem("Aluno não encontrado. Verifique os dados digitados.", "erro");
-            }
-
-        } catch (error) {
-            console.error(error);
-            exibirMensagem("Ocorreu um erro na comunicação. Tente novamente.", "erro");
         }
+        if (!alunoEncontrado) { statusTexto.innerHTML = "<span class='erro'>Aluno não cadastrado!</span>"; return; }
+        registrarPresencaFirebase(alunoEncontrado, cpfChave);
     }
 
-    function exibirMensagem(texto, tipo) {
-        const divMensagem = document.getElementById('mensagem');
-        divMensagem.style.display = "block";
-        divMensagem.className = tipo;
-        divMensagem.innerHTML = texto;
+    function registrarPresencaFirebase(aluno, cpfOriginal) {
+        const statusTexto = document.getElementById('msg-status'); const tempo = obterDataAtual();
+        if (ultimasPresencas[cpfOriginal] && (tempo.timestamp - ultimasPresencas[cpfOriginal]) < (INTERVALO_MINUTOS * 60 * 1000)) {
+            statusTexto.innerHTML = `<span class='aviso'>Olá ${aluno.nome}, chamada já efetuada!</span>`; return;
+        }
+        ultimasPresencas[cpfOriginal] = tempo.timestamp;
+        let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
+
+        fetch(urlDestino, { method: 'PUT', body: JSON.stringify({ nome: aluno.nome, horario: tempo.hora, data_completa: `${tempo.dia}/${tempo.mesNome}/${tempo.ano}` }) })
+        .then(() => {
+            statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 587.33; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+            document.getElementById('identificador').value = ""; carregarPresencasDeHoje();
+        });
     }
+
+    function carregarPresencasDeHoje() {
+        const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
+        fetch(`${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}.json`).then(res => res.json()).then(dados => {
+            listaPainel.innerHTML = "";
+            if (!dados) { listaPainel.innerHTML = "<div style='color: #64748b; text-align: center; padding-top: 30px;'>Sem registros hoje.</div>"; document.getElementById('contador-presencas').innerText = "0 Alunos"; return; }
+            let total = 0; let itensHTML = "";
+            Object.keys(dados).forEach(chave => { total++; itensHTML = `<div class="log-item"><span class="sucesso">✓ ${dados[chave].nome}</span><span class="info-data">${dados[chave].horario}</span></div>` + itensHTML; });
+            listaPainel.innerHTML = itensHTML; document.getElementById('contador-presencas').innerText = `${total} Aluno(s)`;
+        });
+    }
+
+    window.onload = inicializarSistema;
+    document.getElementById('identificador').addEventListener('keypress', function(e) { if (e.key === 'Enter') buscarEProcessar(this.value); });
 </script>
-
 </body>
 </html>
