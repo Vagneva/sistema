@@ -4,28 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Presença - Feras Taekwondo</title>
+    <!-- Biblioteca oficial estável para leitura de QR Code via câmera -->
     <script src="https://cloudflare.com"></script>
     <style>
-        body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 20px; margin: 0; }
-        h1 { color: #3b82f6; margin: 0 0 5px 0; font-size: 26px; text-align: center; }
-        .subtitulo { color: #94a3b8; margin: 0 0 20px 0; text-align: center; }
-        #status-carregamento { font-size: 13px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+        body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 15px; margin: 0; }
+        h1 { color: #3b82f6; margin: 0 0 5px 0; font-size: 24px; text-align: center; }
+        .subtitulo { color: #94a3b8; margin: 0 0 15px 0; text-align: center; font-size: 14px; }
+        #status-carregamento { font-size: 13px; margin-bottom: 15px; text-align: center; font-weight: bold; }
         .painel-principal { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1100px; margin: 0 auto; justify-content: center; }
-        .coluna-esquerda { flex: 1; min-width: 320px; max-width: 500px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        .coluna-direita { flex: 1; min-width: 320px; max-width: 500px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
-        .qr-box { width: 100%; background: #000; border-radius: 8px; overflow: hidden; border: 4px solid #3b82f6; margin-bottom: 15px; box-sizing: border-box; }
-        #leitor-qr { width: 100%; min-height: 250px; background: #000; }
+        .coluna-esquerda { flex: 1; min-width: 320px; max-width: 480px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .coluna-right { flex: 1; min-width: 320px; max-width: 480px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        .qr-box { width: 100%; background: #000; border-radius: 8px; overflow: hidden; border: 4px solid #3b82f6; margin-bottom: 15px; }
+        #leitor-qr { width: 100%; min-height: 220px; background: #000; }
         .busca-box { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; text-align: left; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #cbd5e1; font-size: 14px; }
-        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 16px; box-sizing: border-box; margin-bottom: 12px; }
+        .grupo-campo { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; color: #cbd5e1; font-size: 13px; }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 15px; box-sizing: border-box; }
         input:focus { outline: none; border-color: #3b82f6; }
-        button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .linha-nasc { display: flex; gap: 10px; }
+        button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         button:hover { background: #2563eb; }
-        .status-alerta { font-size: 16px; font-weight: bold; margin-top: 15px; min-height: 24px; text-align: center; }
-        .titulo-lista { font-weight: bold; border-bottom: 2px solid #475569; padding-bottom: 8px; margin-bottom: 10px; font-size: 16px; color: #3b82f6; display: flex; justify-content: space-between; align-items: center; }
+        .status-alerta { font-size: 15px; font-weight: bold; margin-top: 15px; min-height: 24px; text-align: center; }
+        .titulo-lista { font-weight: bold; border-bottom: 2px solid #475569; padding-bottom: 8px; margin-bottom: 10px; font-size: 15px; color: #3b82f6; display: flex; justify-content: space-between; align-items: center; }
         .contador-badge { background: #3b82f6; color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 20px; }
-        .log-lista { flex: 1; min-height: 350px; max-height: 500px; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 10px; }
-        .log-item { padding: 10px; border-bottom: 1px solid #1e293b; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .log-lista { flex: 1; min-height: 320px; max-height: 480px; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 10px; }
+        .log-item { padding: 8px; border-bottom: 1px solid #1e293b; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
         .sucesso { color: #10b981; }
         .erro { color: #ef4444; }
         .aviso { color: #f59e0b; }
@@ -34,27 +37,37 @@
 </head>
 <body>
 <h1>🥋 Feras Taekwondo</h1>
-<p class="subtitulo">Aproxime seu QR Code da câmera ou digite seus dados abaixo</p>
+<p class="subtitulo">Aproxime o QR Code ou selecione a opção de pesquisa desejada</p>
 <div id="status-carregamento" style="color: #64748b;">🔄 Sincronizando banco de dados...</div>
 <div class="painel-principal">
     <div class="coluna-esquerda">
         <div class="qr-box"><div id="leitor-qr"></div></div>
         <div class="busca-box">
-            <label for="identificador">CPF ou Primeiro Nome:</label>
-            <input type="text" id="identificador" placeholder="Ex: João ou CPF" autocomplete="off">
-            <button onclick="buscarEProcessar(document.getElementById('identificador').value)">Confirmar Presença ✓</button>
+            <div class="grupo-campo">
+                <label for="campo-nome">Para Crianças (Nome + Dia/Mês Nasc):</label>
+                <input type="text" id="campo-nome" placeholder="Primeiro nome (ex: Romeu)" autocomplete="off">
+                <div class="linha-nasc" style="margin-top: 8px;">
+                    <input type="text" id="campo-dia" placeholder="Dia (ex: 03)" maxlength="2" style="width: 50%;">
+                    <input type="text" id="campo-mes" placeholder="Mês (ex: 09)" maxlength="2" style="width: 50%;">
+                </div>
+            </div>
+            <div class="grupo-campo" style="border-top: 1px solid #233142; padding-top: 12px; margin-top: 12px;">
+                <label for="campo-cpf">Para Adultos (Somente CPF):</label>
+                <input type="text" id="campo-cpf" placeholder="Digite apenas o CPF" autocomplete="off">
+            </div>
+            <button id="btn-confirmar">Confirmar Entrada ✓</button>
         </div>
         <div id="msg-status" class="status-alerta"></div>
     </div>
-    <div class="coluna-direita">
+    <div class="coluna-right">
         <div class="titulo-lista"><span>📋 Alunos Presentes Hoje</span><span id="contador-presencas" class="contador-badge">0 Alunos</span></div>
         <div class="log-lista" id="historico-presenca"></div>
     </div>
 </div>
 <script>
     const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
-    let alunosBD = {}, ultimasPresencas = {}; 
-    const INTERVALO_MINUTOS = 15; 
+    let alunosBD = {}, ultimasPresencas = {};
+    const INTERVALO_MINUTOS = 15;
     const nomesMeses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
     function obterDataAtual() {
@@ -70,70 +83,143 @@
 
     function inicializarSistema() {
         fetch(`${urlNuvemBase}/matriculas.json`)
-            .then(res => res.json()).then(dados => { 
+            .then(res => res.json())
+            .then(dados => {
                 if(dados) {
                     alunosBD = dados;
-                    document.getElementById('status-carregamento').innerHTML = "<span class='sucesso'>✓ Banco de dados Conectado (Jan-Dez)</span>";
+                    document.getElementById('status-carregamento').innerHTML = "<span class='sucesso'>✓ Banco de dados Sincronizado</span>";
                     carregarPresencasDeHoje();
                     inicializarScannerQR();
+                } else {
+                    document.getElementById('status-carregamento').innerHTML = "<span class='aviso'>⚠ Banco vazio.</span>";
                 }
-            }).catch(() => { document.getElementById('status-carregamento').innerHTML = "<span class='erro'>⚠ Erro Firebase</span>"; });
+            })
+            .catch(err => {
+                document.getElementById('status-carregamento').innerHTML = "<span class='erro'>⚠ Erro de Conexão</span>";
+                console.error(err);
+            });
     }
 
     function inicializarScannerQR() {
-        let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
-        html5QrcodeScanner.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 230, height: 230 } }, (textoQR) => buscarEProcessar(textoQR), () => {});
+        try {
+            let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
+            html5QrcodeScanner.start(
+                { facingMode: "user" },
+                { fps: 10, qrbox: { width: 200, height: 200 } },
+                (textoQR) => processarBuscaComplexa(textoQR, "", ""),
+                () => {}
+            ).catch(err => console.warn("Câmera ociosa:", err));
+        } catch(e) { console.error(e); }
     }
 
-    function buscarEProcessar(valorBusca) {
-        const termoBusca = valorBusca.trim().toLowerCase();
+    function processarBuscaComplexa(valorPrincipal, diaNasc, mesNasc) {
         const statusTexto = document.getElementById('msg-status');
-        if (!termoBusca) return;
-
-        let alunoEncontrado = null; let cpfChave = null;
+        statusTexto.innerHTML = "";
+        
+        let termoBusca = valorPrincipal.trim().toLowerCase();
+        let diaBusca = diaNasc.trim().padStart(2, '0');
+        let mesBusca = mesNasc.trim().padStart(2, '0');
+        
+        let alunoEncontrado = null;
+        let cpfChave = null;
         const termoLimpo = termoBusca.replace(/[^a-zA-Z0-9]/g, '');
 
         for (let chave in alunosBD) {
             let aluno = alunosBD[chave];
+            if (!aluno || !aluno.nome) continue;
+
             let nomeCompleto = aluno.nome.toLowerCase();
-            if (termoLimpo === chave.replace(/[^a-zA-Z0-9]/g, '') || nomeCompleto.split(' ')[0] === termoBusca || nomeCompleto === termoBusca || chave.toLowerCase() === termoBusca) {
-                alunoEncontrado = aluno; cpfChave = chave; break;
+            let primeiroNome = nomeCompleto.split(' ')[0] || "";
+            let cpfLimpoBD = (aluno.cpf || chave).replace(/[^a-zA-Z0-9]/g, '');
+
+            // 1. Verificação por QR Code ou CPF Direto (Adultos)
+            if (diaBusca === "00" && mesBusca === "00") {
+                if (termoLimpo === cpfLimpoBD || chave.toLowerCase() === termoBusca || nomeCompleto === termoBusca) {
+                    alunoEncontrado = aluno; cpfChave = chave; break;
+                }
+            } else {
+                // 2. Verificação por Nome + Dia e Mês de Nascimento (Crianças)
+                if (termoBusca === primeiroNome || nomeCompleto.startsWith(termoBusca)) {
+                    let dataNascBD = aluno.nascimento || ""; // Formato esperado: AAAA-MM-DD
+                    if (dataNascBD.includes('-')) {
+                        let partesData = dataNascBD.split('-');
+                        let diaBD = partesData[2];
+                        let mesBD = partesData[1];
+                        if (diaBusca === diaBD && mesBusca === mesBD) {
+                            alunoEncontrado = aluno; cpfChave = chave; break;
+                        }
+                    }
+                }
             }
         }
-        if (!alunoEncontrado) { statusTexto.innerHTML = "<span class='erro'>Aluno não cadastrado!</span>"; return; }
+
+        if (!alunoEncontrado) {
+            statusTexto.innerHTML = "<span class='erro'>Aluno não localizado com os dados informados.</span>";
+            return;
+        }
         registrarPresencaFirebase(alunoEncontrado, cpfChave);
     }
 
     function registrarPresencaFirebase(aluno, cpfOriginal) {
-        const statusTexto = document.getElementById('msg-status'); const tempo = obterDataAtual();
+        const statusTexto = document.getElementById('msg-status');
+        const tempo = obterDataAtual();
+
         if (ultimasPresencas[cpfOriginal] && (tempo.timestamp - ultimasPresencas[cpfOriginal]) < (INTERVALO_MINUTOS * 60 * 1000)) {
-            statusTexto.innerHTML = `<span class='aviso'>Olá ${aluno.nome}, chamada já efetuada!</span>`; return;
+            statusTexto.innerHTML = `<span class='aviso'>Olá ${aluno.nome}, chamada já confirmada!</span>`;
+            limparFormularios(); return;
         }
+
         ultimasPresencas[cpfOriginal] = tempo.timestamp;
         let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
 
-        fetch(urlDestino, { method: 'PUT', body: JSON.stringify({ nome: aluno.nome, horario: tempo.hora, data_completa: `${tempo.dia}/${tempo.mesNome}/${tempo.ano}` }) })
+        fetch(urlDestino, {
+            method: 'PUT',
+            body: JSON.stringify({ nome: aluno.nome, horario: tempo.hora, data_completa: `${tempo.dia}/${tempo.mesNome}/${tempo.ano}` })
+        })
         .then(() => {
             statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
             let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 587.33; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-            document.getElementById('identificador').value = ""; carregarPresencasDeHoje();
-        });
+            limparFormularios(); carregarPresencasDeHoje();
+        }).catch(() => { statusTexto.innerHTML = "<span class='erro'>Erro na nuvem.</span>"; });
     }
 
     function carregarPresencasDeHoje() {
         const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
         fetch(`${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}.json`).then(res => res.json()).then(dados => {
             listaPainel.innerHTML = "";
-            if (!dados) { listaPainel.innerHTML = "<div style='color: #64748b; text-align: center; padding-top: 30px;'>Sem registros hoje.</div>"; document.getElementById('contador-presencas').innerText = "0 Alunos"; return; }
+            if (!dados) { listaPainel.innerHTML = "<div style='color:#64748b; text-align:center; padding-top:30px;'>Sem registros hoje.</div>"; document.getElementById('contador-presencas').innerText = "0 Alunos"; return; }
             let total = 0; let itensHTML = "";
-            Object.keys(dados).forEach(chave => { total++; itensHTML = `<div class="log-item"><span class="sucesso">✓ ${dados[chave].nome}</span><span class="info-data">${dados[chave].horario}</span></div>` + itensHTML; });
+            Object.keys(dados).forEach(chave => {
+                if(dados[chave] && dados[chave].nome) {
+                    total++; itensHTML = `<div class="log-item"><span class="sucesso">✓ ${dados[chave].nome}</span><span class="info-data">${dados[chave].horario}</span></div>` + itensHTML;
+                }
+            });
             listaPainel.innerHTML = itensHTML; document.getElementById('contador-presencas').innerText = `${total} Aluno(s)`;
         });
     }
 
+    function limparFormularios() {
+        document.getElementById('campo-nome').value = "";
+        document.getElementById('campo-dia').value = "";
+        document.getElementById('campo-mes').value = "";
+        document.getElementById('campo-cpf').value = "";
+    }
+
     window.onload = inicializarSistema;
-    document.getElementById('identificador').addEventListener('keypress', function(e) { if (e.key === 'Enter') buscarEProcessar(this.value); });
+
+    document.getElementById('btn-confirmar').onclick = function() {
+        let cpf = document.getElementById('campo-cpf').value;
+        let nome = document.getElementById('campo-nome').value;
+        let dia = document.getElementById('campo-dia').value;
+        let mes = document.getElementById('campo-mes').value;
+
+        if (cpf.trim() !== "") {
+            processarBuscaComplexa(cpf, "00", "00");
+        } else {
+            processarBuscaComplexa(nome, dia, mes);
+        }
+    };
 </script>
 </body>
 </html>
