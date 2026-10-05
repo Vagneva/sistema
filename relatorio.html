@@ -33,9 +33,24 @@
         </select>
         <button onclick="puxarRelatorioNuvem()">Buscar Registros 🔍</button>
     </div>
+     </div>
+
+    <h1 style="text-align: center; color: #3b82f6; margin-bottom: 15px;">Feras Taekwondo</h1>
+
     <table>
-        <h1 style="text-align: center; color: #3b82f6; margin-bottom: 5px;">Feras Taekwondo</h1>
-        <tbody id="tabela-corpo"><tr><td colspan="3" class="vazio">Escolha o mês e clique em Buscar...</td></tr></tbody>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Horário</th>
+                <th>Nome do Aluno</th>
+                <th style="color: #3b82f6; text-align: center;">Total de Treinos</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo">
+            <tr>
+                <td colspan="4" class="vazio">Escolha o mês e clique em Buscar...</td>
+            </tr>
+        </tbody>
     </table>
 </div>
 <script>
