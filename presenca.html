@@ -171,9 +171,15 @@
         ultimasPresencas[cpfOriginal] = tempo.timestamp;
         let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
 
-        fetch(urlDestino, {
-            method: 'PUT',
-            body: JSON.stringify({ nome: aluno.nome, horario: tempo.hora, data_completa: `${tempo.dia}/${tempo.mesNome}/${tempo.ano}` })
+               // Grava a presença direto na lista geral usando POST para gerar as chaves automáticas
+        fetch(`${urlNuvemBase}/presencas.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nome: aluno.nome,
+                dataHora: obterDataAtual().dia + "/" + (nomesMeses.indexOf(obterDataAtual().mesNome) + 1) + "/" + obterDataAtual().ano + " " + obterDataAtual().hora,
+                timestamp: obterDataAtual().timestamp
+            })
         })
         .then(() => {
             statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
