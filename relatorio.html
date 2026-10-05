@@ -45,6 +45,7 @@
 
 <script>
     const urlNuvemBase = “https://academia-2d8b2-default-rtdb.firebaseio.com/”;
+
     function puxarRelatorioNuvem() {
         const corpoTabela = document.getElementById('tabela-corpo');
         corpoTabela.innerHTML = '<tr><td colspan="3" class="vazio">Carregando dados da nuvem...</td></tr>';
@@ -62,7 +63,6 @@
                 let contagemAlunos = {};
                 let listaPresencas = [];
 
-                // 1º Passo: Conta as presenças acumuladas nas chaves automáticas do seu Firebase
                 Object.keys(dados).forEach(idAutomatico => {
                     let registro = dados[idAutomatico];
                     if (registro && registro.nome) {
@@ -80,12 +80,10 @@
                     }
                 });
 
-                // Inverte para exibir a marcação mais recente sempre no topo
                 listaPresencas.reverse();
 
-                // 2º Passo: Desenha as linhas na tela com o selo azul de treinos totais
                 listaPresencas.forEach(item => {
-                    let totalTreinos = contagemAlunos[item.item || item.nome] || 0;
+                    let totalTreinos = contagemAlunos[item.nome] || 0;
                     linhasHTML += `<tr>
                         <td><b>${item.dataHora}</b></td>
                         <td style="color: #10b981; font-weight: bold;">✓ ${item.nome}</td>
