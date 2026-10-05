@@ -233,7 +233,11 @@
             input.addEventListener('keypress', function(evento) {
                 if (evento.key === 'Enter') {
                     evento.preventDefault(); 
-                    buscarAluno(); 
+                    // Procura o botão de confirmar da mesma caixa onde você está digitando
+                    const botaoConfirmar = input.closest('.busca-box').querySelector('button');
+                    if (botaoConfirmar) {
+                        botaoConfirmar.click(); // Simula o clique do mouse!
+                    }
                 }
             });
         });
