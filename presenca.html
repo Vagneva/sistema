@@ -228,15 +228,15 @@
             processarBuscaComplexa(nome, dia, mes);
         }
     };
-            // Faz a pesquisa de crianças funcionar com a tecla Enter
+              // Faz a pesquisa funcionar ao apertar a tecla Enter
         document.querySelectorAll('.busca-box input').forEach(input => {
             input.addEventListener('keypress', function(evento) {
                 if (evento.key === 'Enter') {
-                    evento.preventDefault(); // Evita que a página recarregue
-                    const botaoConfirmar = document.querySelector('button[onclick*="registrarPresenca"], button[onclick*="confirmar"]');
-                    if (botaoConfirmar) botaoConfirmar.click();
+                    evento.preventDefault(); 
+                    buscarAluno(); // Chama direto a função que valida os campos da tela
                 }
             });
+        });
 </script>
 </body>
 </html>
