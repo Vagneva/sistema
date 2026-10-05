@@ -178,13 +178,14 @@
         .then(() => {
             statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
             // Código para fazer o sistema falar o nome do aluno
-if ('speechSynthesis' in window) {
-    const textoVoz = `Bom treino, ${alunoEncontrado.nome}`; // Certifique-se de usar a variável correta do nome do aluno
-    const mensagem = new SpeechSynthesisUtterance(textoVoz);
-    mensagem.lang = 'pt-BR';
-    mensagem.rate = 1.1; // Velocidade da voz (um pouquinho mais rápida fica mais natural)
-    window.speechSynthesis.speak(mensagem);
-}
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Evita que vozes fiquem travadas na fila
+            const textovoz = `Bom treino, ${aluno.nome}`;
+            const mensagem = new SpeechSynthesisUtterance(textovoz);
+            mensagem.lang = 'pt-BR';
+            mensagem.rate = 1.1;
+            window.speechSynthesis.speak(mensagem);
+        }           
             let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 587.33; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
             limparFormularios(); carregarPresencasDeHoje();
