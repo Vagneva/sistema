@@ -228,15 +228,15 @@
             processarBuscaComplexa(nome, dia, mes);
         }
     };
-              // Faz a pesquisa funcionar ao apertar a tecla Enter
+        // Faz a pesquisa funcionar ao apertar a tecla Enter
         document.querySelectorAll('.busca-box input').forEach(input => {
             input.addEventListener('keypress', function(evento) {
                 if (evento.key === 'Enter') {
                     evento.preventDefault(); 
-                    buscarAluno(); // Chama direto a função que valida os campos da tela
+                    buscarAluno(); 
                 }
             });
         });
-</script>
+    </script>
 </body>
 </html>
