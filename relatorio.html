@@ -9,8 +9,7 @@
         .container { max-width: 800px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         h1 { color: #3b82f6; text-align: center; margin-bottom: 20px; }
         .filtros { display: flex; gap: 15px; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px; justify-content: center; }
-        select, button { padding: 10px 15px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
-        button { background: #3b82f6; border: none; }
+        button { padding: 10px 20px; border-radius: 6px; border: none; background: #3b82f6; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; max-width: 300px; }
         button:hover { background: #2563eb; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #1e293b; }
@@ -22,108 +21,91 @@
 <body>
 <div class="container">
     <h1 style="text-align: center; color: #3b82f6; margin-bottom: 5px;">Feras Taekwondo</h1>
-    <h1>📊 Histórico de Presenças (Jan-Dez)</h1>
+    <h1>📊 Histórico Geral de Presenças</h1>
     
     <div class="filtros">
-        <select id="filtro-ano">
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-        </select>
-        <select id="filtro-mes">
-            <option value="janeiro">Janeiro</option>
-            <option value="fevereiro">Fevereiro</option>
-            <option value="março">Março</option>
-            <option value="abril">Abril</option>
-            <option value="maio">Maio</option>
-            <option value="junho">Junho</option>
-            <option value="julho">Julho</option>
-            <option value="agosto">Agosto</option>
-            <option value="setembro">Setembro</option>
-            <option value="outubro">Outubro</option>
-            <option value="novembro">Novembro</option>
-            <option value="dezembro">Dezembro</option>
-        </select>
-        <button onclick="puxarRelatorioNuvem()">Buscar Registros 🔍</button>
+        <button onclick="puxarRelatorioNuvem()">Atualizar Histórico Geral 🔄</button>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Data</th>
-                <th>Horário</th>
+                <th>Data e Horário</th>
                 <th>Nome do Aluno</th>
-                <th style="color: #60a5fa; text-align: center;">Total de Treinos</th>
+                <th style="color: #60a5fa; text-align: center;">Total de Treinos (Ano)</th>
             </tr>
         </thead>
         <tbody id="tabela-corpo">
             <tr>
-                <td colspan="4" class="vazio">Escolha o mês e clique em Buscar...</td>
+                <td colspan="3" class="vazio">Clique no botão acima para carregar as presenças...</td>
             </tr>
         </tbody>
     </table>
 </div>
 
 <script>
-    const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/";
+    const urlNuvemBase = “https://academia-2d8b2-default-rtdb.firebaseio.com/”;
 
     function puxarRelatorioNuvem() {
-        const ano = document.getElementById('filtro-ano').value;
-        const mes = document.getElementById('filtro-mes').value;
         const corpoTabela = document.getElementById('tabela-corpo');
-        
-        corpoTabela.innerHTML = '<tr><td colspan="4" class="vazio">Carregando dados da nuvem...</td></tr>';
+        corpoTabela.innerHTML = '<tr><td colspan="3" class="vazio">Carregando dados da nuvem...</td></tr>';
 
-        fetch(`${urlNuvemBase}/presencas/${ano}/${mes}.json`)
+        // Busca direto no nó de presenças sem depender de pastas de ano/mês
+        fetch(`${urlNuvemBase}/presencas.json`)
             .then(res => res.json())
             .then(dados => {
                 corpoTabela.innerHTML = "";
                 if (!dados) {
-                    corpoTabela.innerHTML = '<tr><td colspan="4" class="vazio">⚠ Nenhuma presença registrada neste mês.</td></tr>';
+                    corpoTabela.innerHTML = '<tr><td colspan="3" class="vazio">⚠ Nenhuma presença registrada no banco de dados.</td></tr>';
                     return;
                 }
 
                 let linhasHTML = "";
                 let contagemAlunos = {};
+                let listaPresencas = [];
 
-                // 1º Passo: Conta as presenças de cada aluno no mês selecionado
-                Object.keys(dados).forEach(dia => {
-                    let cpfsDoDia = dados[dia];
-                    if (cpfsDoDia) {
-                        Object.keys(cpfsDoDia).forEach(cpf => {
-                            let registro = cpfsDoDia[cpf];
-                            if (registro && registro.nome) {
-                                if (!contagemAlunos[registro.nome]) {
-                                    contagemAlunos[registro.nome] = 0;
-                                }
-                                contagemAlunos[registro.nome]++;
-                            }
+                // 1º Passo: Mapeia e conta todas as presenças guardadas nas chaves automáticas
+                Object.keys(dados).forEach(idAutomatico => {
+                    let registro = dados[idAutomatico];
+                    if (registro && registro.nome) {
+                        // Limpa espaços extras do nome para não errar a soma
+                        let nomeLimpo = registro.nome.trim();
+                        
+                        if (!contagemAlunos[nomeLimpo]) {
+                            contagemAlunos[nomeLimpo] = 0;
+                        }
+                        contagemAlunos[nomeLimpo]++;
+
+                        // Guarda em uma lista para montarmos a tabela depois
+                        listaPresencas.push({
+                            dataHora: registro.dataHora || 'Data indisponível',
+                            nome: nomeLimpo
                         });
                     }
                 });
 
-                // 2º Passo: Monta a tabela adicionando a coluna de totais
-                Object.keys(dados).forEach(dia => {
-                    let cpfsDoDia = dados[dia];
-                    if (cpfsDoDia) {
-                        Object.keys(cpfsDoDia).forEach(cpf => {
-                            let registro = cpfsDoDia[cpf];
-                            if (registro && registro.nome) {
-                                let totalTreinos = contagemAlunos[registro.nome] || 0;
-                                linhasHTML += `<tr>
-                                    <td><b>${dia}</b> de ${mes}</td>
-                                    <td>${registro.horario || '--:--'}</td>
-                                    <td style="color: #10b981; font-weight: bold;">✓ ${registro.nome}</td>
-                                    <td style="text-align: center;"><span style="color: #1e3a8a; font-weight: bold; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; display: inline-block;">${totalTreinos} treinos</span></td>
-                                </tr>`;
-                            }
-                        });
-                    }
+                if (listaPresencas.length === 0) {
+                    corpoTabela.innerHTML = '<tr><td colspan="3" class="vazio">⚠ Nenhuma presença válida encontrada.</td></tr>';
+                    return;
+                }
+
+                // Organiza para mostrar as presenças mais recentes no topo da tabela
+                listaPresencas.reverse();
+
+                // 2º Passo: Monta as linhas da tabela com a coluna azul do total
+                listaPresencas.forEach(item => {
+                    let totalTreinos = contagemAlunos[item.nome] || 0;
+                    linhasHTML += `<tr>
+                        <td><b>${item.dataHora}</b></td>
+                        <td style="color: #10b981; font-weight: bold;">✓ ${item.nome}</td>
+                        <td style="text-align: center;"><span style="color: #1e3a8a; font-weight: bold; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; display: inline-block;">${totalTreinos} treinos</span></td>
+                    </tr>`;
                 });
 
                 corpoTabela.innerHTML = linhasHTML;
             })
             .catch(() => {
-                corpoTabela.innerHTML = '<tr><td colspan="4" class="vazio" style="color:#ef4444;">⚠ Erro ao conectar com o banco de dados.</td></tr>';
+                corpoTabela.innerHTML = '<tr><td colspan="3" class="vazio" style="color:#ef4444;">⚠ Erro ao conectar com o banco de dados.</td></tr>';
             });
     }
 </script>
