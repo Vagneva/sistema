@@ -66,189 +66,165 @@
 <script>
     const urlNuvemBase ="https://academia-2d8b2-default-rtdb.firebaseio.com/";
         const urlNuvembase = urlNuvemBase;
-    let alunosBD = {}, ultimasPresencas = {};
-    const INTERVALO_MINUTOS = 15;
-    const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        let alunosBD = {}, ultimasPresencas = {};
+        const INTERVALO_MINUTOS = 15;
+        const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-    function obterDataAtual() {
-        let agora = new Date();
-        return {
-            dia: String(agora.getDate()).padStart(2, '0'),
-            mesNome: nomesMeses[agora.getMonth()],
-            ano: agora.getFullYear(),
-            hora: agora.toLocaleTimeString('pt-BR'),
-            timestamp: agora.getTime()
-        };
-    }
+        function obterDataAtual() {
+            let agora = new Date();
+            return {
+                dia: String(agora.getDate()).padStart(2, '0'),
+                mesNome: nomesMeses[agora.getMonth()],
+                ano: agora.getFullYear(),
+                hora: agora.toLocaleTimeString('pt-BR'),
+                timestamp: agora.getTime()
+            };
+        }
 
-    function inicializarSistema() {
-        fetch(`${urlNuvemBase}/matriculas.json`)
-            .then(res => res.json())
-            .then(dados => {
-                if(dados) {
-                    alunosBD = dados;
-                    document.getElementById('status-carregamento').innerHTML = "<span class='sucesso'>✓ Banco de dados Sincronizado</span>";
-                    carregarPresencasDeHoje();
-                    inicializarScannerQR();
-                } else {
-                    document.getElementById('status-carregamento').innerHTML = "<span class='aviso'>⚠ Banco vazio.</span>";
-                }
-            })
-            .catch(err => {
-                document.getElementById('status-carregamento').innerHTML = "<span class='erro'>⚠ Erro de Conexão</span>";
-                console.error(err);
-            });
-    }
+        // Inicializa o leitor de QR Code usando a biblioteca do topo
+        function inicializarConstrucaoLeitor() {
+            const html5QrcodeScanner = new Html5QrcodeScanner("leitor-qr", { fps: 10, qrbox: 250 });
+            html5QrcodeScanner.render(onScanSuccess, onScanError);
+        }
 
-    function inicializarScannerQR() {
-        try {
-            let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
-            html5QrcodeScanner.start(
-                { facingMode: "user" },
-                { fps: 10, qrbox: { width: 200, height: 200 } },
-                (textoQR) => processarBuscaComplexa(textoQR, "", ""),
-                () => {}
-            ).catch(err => console.warn("Câmera ociosa:", err));
-        } catch(e) { console.error(e); }
-    }
-
-    function processarBuscaComplexa(valorPrincipal, diaNasc, mesNasc) {
-        const statusTexto = document.getElementById('msg-status');
-        statusTexto.innerHTML = "";
-        
-        let termoBusca = valorPrincipal.trim().toLowerCase();
-        let diaBusca = diaNasc.trim().padStart(2, '0');
-        let mesBusca = mesNasc.trim().padStart(2, '0');
-        
-        let alunoEncontrado = null;
-        let cpfChave = null;
-        const termoLimpo = termoBusca.replace(/[^a-zA-Z0-9]/g, '');
-
-        for (let chave in alunosBD) {
-            let aluno = alunosBD[chave];
-            if (!aluno || !aluno.nome) continue;
-
-            let nomeCompleto = aluno.nome.toLowerCase();
-            let primeiroNome = nomeCompleto.split(' ')[0] || "";
-            let cpfLimpoBD = (aluno.cpf || chave).replace(/[^a-zA-Z0-9]/g, '');
-
-            // 1. Verificação por QR Code ou CPF Direto (Adultos)
-            if (diaBusca === "00" && mesBusca === "00") {
-                if (termoLimpo === cpfLimpoBD || chave.toLowerCase() === termoBusca || nomeCompleto === termoBusca) {
-                    alunoEncontrado = aluno; cpfChave = chave; break;
-                }
-            } else {
-                // 2. Verificação por Nome + Dia e Mês de Nascimento (Crianças)
-                if (termoBusca === primeiroNome || nomeCompleto.startsWith(termoBusca)) {
-                    let dataNascBD = aluno.nascimento || ""; // Formato esperado: AAAA-MM-DD
-                    if (dataNascBD.includes('-')) {
-                        let partesData = dataNascBD.split('-');
-                        let diaBD = partesData[2];
-                        let mesBD = partesData[1];
-                        if (diaBusca === diaBD && mesBusca === mesBD) {
-                            alunoEncontrado = aluno; cpfChave = chave; break;
-                        }
-                    }
-                }
+        function onScanSuccess(decodedText) {
+            // Quando o QR Code lê o CPF/Código, joga direto na busca automatizada
+            const inputs = document.querySelectorAll('.busca-box input');
+            if (inputs.length > 0) {
+                inputs[0].value = decodedText;
+                buscarAluno();
             }
         }
 
-        if (!alunoEncontrado) {
-            statusTexto.innerHTML = "<span class='erro'>Aluno não localizado com os dados informados.</span>";
-            return;
+        function onScanError(errorMessage) {
+            // Erros de leitura comuns da câmera são ignorados de forma silenciosa
         }
-        registrarPresencaFirebase(alunoEncontrado, cpfChave);
-    }
 
-    function registrarPresencaFirebase(aluno, cpfOriginal) {
-        const statusTexto = document.getElementById('msg-status');
-        const tempo = obterDataAtual();
-
-        if (ultimasPresencas[cpfOriginal] && (tempo.timestamp - ultimasPresencas[cpfOriginal]) < (INTERVALO_MINUTOS * 60 * 1000)) {
-            statusTexto.innerHTML = `<span class='aviso'>Olá ${aluno.nome}, chamada já confirmada!</span>`;
-            limparFormularios(); return;
+        // Sincroniza as matrículas ativas para busca local rápida
+        function sincronizarBancoLocal() {
+            const statusCarregamento = document.getElementById('status-carregamento');
+            fetch(`${urlNuvemBase}/matriculas.json`)
+                .then(res => res.json())
+                .then(dados => {
+                    if (dados) {
+                        alunosBD = dados;
+                        if(statusCarregamento) statusCarregamento.innerHTML = "<span class='sucesso'>✓ Banco de dados sincronizado</span>";
+                        carregarPresencasDeHoje();
+                    }
+                })
+                .catch(() => {
+                    if(statusCarregamento) statusCarregamento.innerHTML = "<span class='erro'>⚠ Erro ao sincronizar banco local</span>";
+                });
         }
-                  // Pega a data atual formatada para montar as pastas no Firebase
-        const dataInfo = obterDataAtual();
-        const anoAtual = dataInfo.ano;
-        const mesAtual = dataInfo.mesNome; // Usa o nome do mês (ex: Outubro)
-        const diaAtual = dataInfo.dia;
-        const cpfLimpo = aluno.id.replace(/\D/g, ""); // Garante que usa apenas os números do CPF/Matrícula
 
-        // Grava na pasta organizada por Ano, Mês, Dia e CPF do Aluno
-        fetch(`${urlNuvemBase}/presencas/${anoAtual}/${mesAtual}/${diaAtual}/${cpfLimpo}.json`, {
-            method: 'PUT', // Usa PUT para salvar no caminho exato sem gerar códigos com traço
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                nome: aluno.nome,
-                horario: dataInfo.hora,
-                timestamp: dataInfo.timestamp
-            })
-        })
-       
-        .then(() => {
-            statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
-            // Código para fazer o sistema falar o nome do aluno
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Evita que vozes fiquem travadas na fila
-            const textovoz = `Bom treino, ${aluno.nome}`;
-            const mensagem = new SpeechSynthesisUtterance(textovoz);
-            mensagem.lang = 'pt-BR';
-            mensagem.rate = 1.1;
-            window.speechSynthesis.speak(mensagem);
-        }           
-            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 587.33; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-            limparFormularios(); carregarPresencasDeHoje();
-        }).catch(() => { statusTexto.innerHTML = "<span class='erro'>Erro na nuvem.</span>"; });
-    }
+        function buscarAluno() {
+            const inputs = document.querySelectorAll('.busca-box input');
+            let termoBusca = "";
+            inputs.forEach(inp => { if(inp.value.trim() !== "") termoBusca = inp.value.trim().replace(/\D/g, ""); });
 
-    function carregarPresencasDeHoje() {
-        const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
-        fetch(`${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}.json`).then(res => res.json()).then(dados => {
-            listaPainel.innerHTML = "";
-            if (!dados) { listaPainel.innerHTML = "<div style='color:#64748b; text-align:center; padding-top:30px;'>Sem registros hoje.</div>"; document.getElementById('contador-presencas').innerText = "0 Alunos"; return; }
-            let total = 0; let itensHTML = "";
-            Object.keys(dados).forEach(chave => {
-                if(dados[chave] && dados[chave].nome) {
-                    total++; itensHTML = `<div class="log-item"><span class="sucesso">✓ ${dados[chave].nome}</span><span class="info-data">${dados[chave].horario}</span></div>` + itensHTML;
+            if (!termoBusca) {
+                document.getElementById('status-alerta').innerHTML = "<span class='aviso'>⚠ Digite um nome, CPF ou leia o QR Code.</span>";
+                return;
+            }
+
+            // Localiza o aluno mapeado no banco local de matrículas
+            let alunoEncontrado = null;
+            Object.keys(alunosBD).forEach(id => {
+                let aluno = alunosBD[id];
+                let cpfLimpo = id.replace(/\D/g, "");
+                if (cpfLimpo === termoBusca || (aluno.nome && aluno.nome.toLowerCase().includes(termoBusca.toLowerCase()))) {
+                    alunoEncontrado = { id: id, nome: aluno.nome };
                 }
             });
-            listaPainel.innerHTML = itensHTML; document.getElementById('contador-presencas').innerText = `${total} Aluno(s)`;
-        });
-    }
 
-    function limparFormularios() {
-        document.getElementById('campo-nome').value = "";
-        document.getElementById('campo-dia').value = "";
-        document.getElementById('campo-mes').value = "";
-        document.getElementById('campo-cpf').value = "";
-    }
-
-    window.onload = inicializarSistema;
-
-    document.getElementById('btn-confirmar').onclick = function() {
-        let cpf = document.getElementById('campo-cpf').value;
-        let nome = document.getElementById('campo-nome').value;
-        let dia = document.getElementById('campo-dia').value;
-        let mes = document.getElementById('campo-mes').value;
-
-        if (cpf.trim() !== "") {
-            processarBuscaComplexa(cpf, "00", "00");
-        } else {
-            processarBuscaComplexa(nome, dia, mes);
+            if (alunoEncontrado) {
+                salvarPresencaNuvem(alunoEncontrado);
+            } else {
+                document.getElementById('status-alerta').innerHTML = "<span class='erro'>⚠ Aluno não localizado no banco de dados.</span>";
+            }
         }
-    };
-        // Faz a pesquisa funcionar ao apertar a tecla Enter
+
+        function salvarPresencaNuvem(aluno) {
+            const statusTexto = document.getElementById('status-alerta');
+            statusTexto.innerHTML = "<span class='aviso'>Gravando presença...</span>";
+
+            const dataInfo = obterDataAtual();
+            const anoAtual = dataInfo.ano;
+            const mesAtual = dataInfo.mesNome; 
+            const diaAtual = dataInfo.dia;
+            const cpfLimpo = aluno.id.replace(/\D/g, ""); 
+
+            fetch(`${urlNuvemBase}/presencas/${anoAtual}/${mesAtual}/${diaAtual}/${cpfLimpo}.json`, {
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nome: aluno.nome,
+                    horario: dataInfo.hora,
+                    timestamp: dataInfo.timestamp
+                })
+            })
+            .then(() => {
+                statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
+                
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const mensagem = new SpeechSynthesisUtterance(`Bom treino, ${aluno.nome}`);
+                    mensagem.lang = 'pt-BR';
+                    mensagem.rate = 1.1; 
+                    window.speechSynthesis.speak(mensagem);
+                }
+                
+                carregarPresencasDeHoje(); 
+                // Limpa os campos de input da tela
+                inputs.forEach(inp => inp.value = "");
+            })
+            .catch(() => {
+                statusTexto.innerHTML = "<span class='erro'>⚠ Erro ao salvar na nuvem.</span>";
+            });
+        }
+
+        function carregarPresencasDeHoje() {
+            const listaContador = document.getElementById('contador-presencas');
+            const listaVisual = document.getElementById('historico-presenca');
+            const dataInfo = obterDataAtual();
+
+            fetch(`${urlNuvemBase}/presencas/${dataInfo.ano}/${dataInfo.mesNome}/${dataInfo.dia}.json`)
+                .then(res => res.json())
+                .then(dados => {
+                    if (!dados) {
+                        if(listaVisual) listaVisual.innerHTML = "<div class='vazio'>Sem registros hoje.</div>";
+                        if(listaContador) listaContador.innerText = "0";
+                        return;
+                    }
+                    let total = 0;
+                    let html = "";
+                    Object.keys(dados).forEach(cpf => {
+                        total++;
+                        html += `<div class='log-item'>
+                            <span>✓ <b>${dados[cpf].nome}</b></span>
+                            <span class='info-data'>${dados[cpf].horario}</span>
+                        </div>`;
+                    });
+                    if(listaVisual) listaVisual.innerHTML = html;
+                    if(listaContador) listaContador.innerText = total;
+                })
+                .catch(() => {
+                    if(listaVisual) listaVisual.innerHTML = "<div class='vazio' style='color:#ef4444;'>Erro ao carregar lista.</div>";
+                });
+        }
+
+        // Executa as configurações assim que a página abre na tela
+        window.onload = function() {
+            sincronizarBancoLocal();
+            setTimeout(inicializarConstrucaoLeitor, 1000);
+        };
+
+        // Atalho inteligente: Executa a validação ao apertar a tecla Enter no teclado
         document.querySelectorAll('.busca-box input').forEach(input => {
             input.addEventListener('keypress', function(evento) {
                 if (evento.key === 'Enter') {
                     evento.preventDefault(); 
-                    // Procura o botão de confirmar da mesma caixa onde você está digitando
-                    const botaoConfirmar = input.closest('.busca-box').querySelector('button');
-                    if (botaoConfirmar) {
-                        botaoConfirmar.click(); // Simula o clique do mouse!
-                    }
+                    buscarAluno(); 
                 }
             });
         });
