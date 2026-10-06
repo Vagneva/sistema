@@ -318,7 +318,29 @@ function atLista() { let div = document.getElementById('l-corpo'), b = document.
             map.forEach(item => { let s = (item.v !== "Não" && item.v !== ""); document.querySelector(`input[name="${item.c}"][value="${s ? 'sim' : 'nao'}"]`).checked = true; document.getElementById(item.b).classList.toggle('hidden', !s); document.getElementById(item.t).value = s ? item.v : ''; });
             if(f.foto) { foto = f.foto; let img = document.getElementById('foto-preview'); img.src = f.foto; document.getElementById('video').style.display = "none"; img.style.display = "block"; } alert("Carregado para edição!");
         }
-        function excluir(id) { let cPura = id.replace(/\D/g, ""); if(confirm("Apagar permanentemente da nuvem?")) { delete bd[cPura]; localStorage.setItem('fichas_v2', JSON.stringify(bd)); if(!urlNuvemBase.includes("seu-projeto-default")) { fetch(obterUrlMatricula(cPura), { method: 'DELETE' }).then(() => { alert("Removido!"); sincronizarMatriculasFirebase(); resetF(); }); } else { atLista(); resetF(); } } }
+       function excluir(id) { 
+    let cPura = id.replace(/\D/g, ""); 
+    if(confirm("Apagar permanentemente da nuvem?")) { 
+        delete bd[cPura]; 
+        localStorage.setItem('fichas_v2', JSON.stringify(bd)); 
+        
+        if(!urlNuvemBase.includes("seu-projeto-default")) { 
+            // 1. Apaga APENAS o aluno selecionado no Firebase
+            fetch(obterUrlMatricula(cPura), { method: 'DELETE' })
+                .then(() => { 
+                    alert("Removido com sucesso da nuvem!"); 
+                    atLista(); // Atualiza a lista na tela do computador
+                    resetF(); // Limpa os campos do formulário
+                })
+                .catch(() => {
+                    alert("Erro ao remover da nuvem. Verifique a conexão.");
+                });
+        } else { 
+            atLista(); 
+            resetF(); 
+        } 
+    } 
+}
     </script>
 </body>
 </html>
