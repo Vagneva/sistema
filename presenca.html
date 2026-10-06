@@ -167,10 +167,6 @@
             statusTexto.innerHTML = `<span class='aviso'>Olá ${aluno.nome}, chamada já confirmada!</span>`;
             limparFormularios(); return;
         }
-
-        ultimasPresencas[cpfOriginal] = tempo.timestamp;
-        let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
-
                   // Pega a data atual formatada para montar as pastas no Firebase
         const dataInfo = obterDataAtual();
         const anoAtual = dataInfo.ano;
