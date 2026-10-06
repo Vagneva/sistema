@@ -171,16 +171,24 @@
         ultimasPresencas[cpfOriginal] = tempo.timestamp;
         let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
 
-               // Grava a presença direto na lista geral usando POST para gerar as chaves automáticas
-        fetch(`${urlNuvemBase}/presencas.json`, {
-            method: 'POST',
+                  // Pega a data atual formatada para montar as pastas no Firebase
+        const dataInfo = obterDataAtual();
+        const anoAtual = dataInfo.ano;
+        const mesAtual = dataInfo.mesNome; // Usa o nome do mês (ex: Outubro)
+        const diaAtual = dataInfo.dia;
+        const cpfLimpo = aluno.id.replace(/\D/g, ""); // Garante que usa apenas os números do CPF/Matrícula
+
+        // Grava na pasta organizada por Ano, Mês, Dia e CPF do Aluno
+        fetch(`${urlNuvemBase}/presencas/${anoAtual}/${mesAtual}/${diaAtual}/${cpfLimpo}.json`, {
+            method: 'PUT', // Usa PUT para salvar no caminho exato sem gerar códigos com traço
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 nome: aluno.nome,
-                dataHora: obterDataAtual().dia + "/" + (nomesMeses.indexOf(obterDataAtual().mesNome) + 1) + "/" + obterDataAtual().ano + " " + obterDataAtual().hora,
-                timestamp: obterDataAtual().timestamp
+                horario: dataInfo.hora,
+                timestamp: dataInfo.timestamp
             })
         })
+       
         .then(() => {
             statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
             // Código para fazer o sistema falar o nome do aluno
