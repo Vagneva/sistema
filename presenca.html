@@ -103,7 +103,7 @@
         try {
             let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
             html5QrcodeScanner.start(
-                { facingMode: "environmet" },
+                { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 200, height: 200 } },
                 (textoQR) => processarBuscaComplexa(textoQR, "", ""),
                 () => {}
