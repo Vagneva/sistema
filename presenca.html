@@ -54,6 +54,10 @@
                 <label for="campo-cpf">Para Adultos (Somente CPF):</label>
                 <input type="text" id="campo-cpf" placeholder="Digite apenas o CPF" autocomplete="off">
             </div>
+            <div class="grupo-campo" style="border-top: 1px solid #233142; padding-top: 12px; margin-top: 12px; margin-bottom: 15px;">
+    <label for="campo-senha-dia">🔑 Código do Treino (Disponível no Quadro):</label>
+    <input type="text" id="campo-senha-dia" placeholder="Digite a senha do dia" autocomplete="off">
+</div>
             <button id="btn-confirmar">Confirmar Entrada ✓</button>
         </div>
         <div id="msg-status" class="status-alerta"></div>
@@ -216,18 +220,60 @@
 
     window.onload = inicializarSistema;
 
-    document.getElementById('btn-confirmar').onclick = function() {
-        let cpf = document.getElementById('campo-cpf').value;
-        let nome = document.getElementById('campo-nome').value;
-        let dia = document.getElementById('campo-dia').value;
-        let mes = document.getElementById('campo-mes').value;
+   // ATUALIZAÇÃO DO BOTÃO DE CONFIRMAÇÃO COM VALIDAÇÃO DE SENHA DO FIREBASE
+document.getElementById("btn-confirmar").addEventListener("click", async () => {
+    const campoSenha = document.getElementById("campo-senha-dia");
+    const msgStatus = document.getElementById("msg-status");
+    
+    // Se você ainda não criou o campo HTML da senha, o código busca o valor com segurança
+    const senhaDigitada = campoSenha ? campoSenha.value.trim() : prompt("🔑 Digite o Código do Treino disponível no Dojô:");
 
-        if (cpf.trim() !== "") {
-            processarBuscaComplexa(cpf, "00", "00");
-        } else {
-            processarBuscaComplexa(nome, dia, mes);
+    if (!senhaDigitada) {
+        msgStatus.className = "status-alerta erro";
+        msgStatus.innerText = "⚠️ Você precisa digitar o código do treino para confirmar!";
+        return;
+    }
+
+    try {
+        msgStatus.className = "status-alerta aviso";
+        msgStatus.innerText = "🔄 Validando código de segurança...";
+
+        // 1. Busca o código correto que você acabou de salvar no seu Firebase
+        const resposta = await fetch(`${urlNuvemBase}/codigo_diario.json`);
+        const codigoCorretoFirebase = await resposta.json();
+
+        // 2. Faz a comparação de segurança (converte ambos para texto para evitar erros)
+        if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
+            msgStatus.className = "status-alerta erro";
+            msgStatus.innerText = "❌ Código do treino incorreto! Presença não registrada.";
+            return; // Bloqueia tudo e não deixa salvar no Firebase
         }
-    };
+
+        // 3. Se a senha estiver certa, o sistema avança para registrar a presença
+        msgStatus.className = "status-alerta sucesso";
+        msgStatus.innerText = "🔓 Código correto! Registrando entrada...";
+
+        // Executa a sua função atual que faz a busca e salva os dados das crianças/adultos
+        const nome = document.getElementById("campo-nome").value.trim();
+        const dia = document.getElementById("campo-dia").value.trim();
+        const mes = document.getElementById("campo-mes").value.trim();
+        const cpf = document.getElementById("campo-cpf").value.trim();
+
+        if (cpf) {
+            processarBuscaComplexa(cpf, "", "");
+        } else if (nome && dia && mes) {
+            processarBuscaComplexa(nome, dia, mes);
+        } else {
+            msgStatus.className = "status-alerta erro";
+            msgStatus.innerText = "⚠️ Preencha o CPF ou os dados da criança!";
+        }
+
+    } catch (error) {
+        console.error("Erro na validação:", error);
+        msgStatus.className = "status-alerta erro";
+        msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
+    }
+});
         // Faz a pesquisa funcionar ao apertar a tecla Enter
         document.querySelectorAll('.busca-box input').forEach(input => {
             input.addEventListener('keypress', function(evento) {
