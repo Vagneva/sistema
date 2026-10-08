@@ -107,10 +107,38 @@
         try {
             let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
             html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 200, height: 200 } },
-                (textoQR) => processarBuscaComplexa(textoQR, "", ""),
-                () => {}
+                          { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 200, height: 200 } },
+            (textQR) => {
+                let senhaDigitada = document.getElementById('campo-senha-dia').value.trim();
+                let msgStatus = document.getElementById('msg-status');
+
+                if (!senhaDigitada) {
+                    msgStatus.className = "status-alerta erro";
+                    msgStatus.innerText = "⚠️ Digite o código do treino na tela antes de escanear o QR Code!";
+                    return;
+                }
+
+                fetch(`${urlNuvemBase}/codigo_diario.json`)
+                    .then(res => res.json())
+                    .then(codigoCorretoFirebase => {
+                        if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
+                            msgStatus.className = "status-alerta erro";
+                            msgStatus.innerText = "❌ Código incorreto! Presença pelo QR Code travada.";
+                            return;
+                        }
+                        
+                        msgStatus.className = "status-alerta sucesso";
+                        msgStatus.innerText = "🔓 Código validado! Processando QR Code...";
+                        processarBuscaComplexa(textQR, "00", "00");
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        msgStatus.className = "status-alerta erro";
+                        msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
+                    });
+            },
+            () => {}
             ).catch(err => console.warn("Câmera ociosa:", err));
         } catch(e) { console.error(e); }
     }
