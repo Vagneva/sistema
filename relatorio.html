@@ -8,7 +8,17 @@
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 20px; margin: 0; }
         .container { max-width: 850px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         
-        .filtros { display: flex; gap: 15px; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px; justify-content: center; }
+                .filtros { 
+            display: flex; 
+            gap: 15px; 
+            margin-bottom: 25px; 
+            background: #0f172a; 
+            padding: 15px; 
+            border-radius: 8px; 
+            justify-content: center;
+            flex-wrap: nowrap; /* Garante que o ano, mês e botão fiquem sempre na mesma linha */
+            align-items: center;
+        }
         
         /* Botões e Seletores com as cores do Dojô */
         select { padding: 10px 15px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
