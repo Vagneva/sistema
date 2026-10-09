@@ -8,11 +8,16 @@
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 20px; margin: 0; }
         .container { max-width: 850px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         
-        /* NOVO DESIGN DO CABEÇALHO DO DO JÔ */
-        h1 { text-align: center; margin-bottom: 20px; font-size: 28px; letter-spacing: 0.5px; }
-        .txt-vermelho { color: #ef4444; } /* Vermelho Feras */
-        .txt-azul { color: #3b82f6; }     /* Azul Taekwondo */
-        .txt-branco { color: #ffffff; font-size: 22px; display: block; margin-top: 5px; font-weight: normal; }
+       <!-- TÍTULO 100% PERSONALIZADO: LETRAS AZUIS COM CONTORNO VERMELHO -->
+<h1 style="text-align: center; margin-bottom: 20px; font-size: 32px; letter-spacing: 1px;">
+    <span style="
+        color: #3b82f6; 
+        font-weight: 900;
+        -webkit-text-stroke: 1.5px #ef4444; /* Cria o contorno vermelho em volta de todas as letras */
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    ">FERAS TAEKWONDO</span> 
+    <span class="txt-branco">📊 Histórico de Presenças Coletivas</span>
+</h1>
 
         .filtros { display: flex; gap: 15px; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px; justify-content: center; }
         
