@@ -7,18 +7,28 @@
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 20px; margin: 0; }
         .container { max-width: 850px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        h1 { color: #3b82f6; text-align: center; margin-bottom: 20px; }
-        .filtros { display: flex; gap: 15px; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px; justify-content: center; }
-        select, button { padding: 10px 15px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
-        button { background: #3b82f6; border: none; }
-        button:hover { background: #2563eb; }
         
+        /* NOVO DESIGN DO CABEÇALHO DO DO JÔ */
+        h1 { text-align: center; margin-bottom: 20px; font-size: 28px; letter-spacing: 0.5px; }
+        .txt-vermelho { color: #ef4444; } /* Vermelho Feras */
+        .txt-azul { color: #3b82f6; }     /* Azul Taekwondo */
+        .txt-branco { color: #ffffff; font-size: 22px; display: block; margin-top: 5px; font-weight: normal; }
+
+        .filtros { display: flex; gap: 15px; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px; justify-content: center; }
+        
+        /* Botões e Seletores com as cores do Dojô */
+        select { padding: 10px 15px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
+        button.btn-buscar { padding: 10px 20px; border-radius: 6px; background: #ef4444; color: white; font-size: 15px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+        button.btn-buscar:hover { background: #dc2626; }
+        
+        /* Mantido o amarelo de destaque para o prêmio dos alunos */
         .painel-ranking { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #ffb300; display: none; }
         .painel-ranking h3 { margin: 0 0 10px 0; color: #ffb300; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-ranking { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
         .item-ranking { background: #1e293b; padding: 8px 12px; border-radius: 6px; font-size: 14px; display: flex; justify-content: space-between; border: 1px solid #334155; }
         .item-ranking span { font-weight: bold; color: #ffb300; }
 
+        /* Tabela com cabeçalho azul oficial */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #1e293b; }
         th { background: #3b82f6; color: white; }
@@ -32,19 +42,24 @@
 </head>
 <body>
 <div class="container">
-    <!-- Opção 2 integrada conforme solicitado -->
-    <h1>📊 Feras Taekwondo - Histórico de Presenças</h1>
+    
+    <!-- TÍTULO ATUALIZADO COM AS CORES TRADICIONAIS DO TAEKWONDO -->
+    <h1>
+        <span class="txt-vermelho">FERAS</span> 
+        <span class="txt-azul">TAEKWONDO</span> 
+        <span class="txt-branco">📊 Histórico de Presenças Coletivas</span>
+    </h1>
+
     <div class="filtros">
         <select id="filtro-ano"><option value="2026">2026</option><option value="2027">2027</option></select>
         <select id="filtro-mes">
-            <!-- NOVA OPÇÃO ADICIONADA PARA O CALCULO ANUAL -->
             <option value="ano_todo">⭐ O Ano Todo (Acumulado)</option>
             <option value="janeiro">Janeiro</option><option value="fevereiro">Fevereiro</option><option value="março">Março</option>
             <option value="abril">Abril</option><option value="maio">Maio</option><option value="junho">Junho</option>
             <option value="julho">Julho</option><option value="agosto">Agosto</option><option value="setembro">Setembro</option>
             <option value="outubro">Outubro</option><option value="novembro">Novembro</option><option value="dezembro">Dezembro</option>
         </select>
-        <button onclick="puxarRelatorioNuvem()">Buscar Registros 🔍</button>
+        <button class="btn-buscar" onclick="puxarRelatorioNuvem()">Buscar Registros 🔍</button>
     </div>
 
     <div id="painel-ranking" class="painel-ranking">
