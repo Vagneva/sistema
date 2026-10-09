@@ -6,14 +6,13 @@
     <title>Relatório de Presenças - Feras Taekwondo</title>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 20px; margin: 0; }
-        .container { max-width: 800px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .container { max-width: 850px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         h1 { color: #3b82f6; text-align: center; margin-bottom: 20px; }
         .filtros { display: flex; gap: 15px; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px; justify-content: center; }
         select, button { padding: 10px 15px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
         button { background: #3b82f6; border: none; }
         button:hover { background: #2563eb; }
         
-        /* Estilo do novo painel de contagem para o brinde */
         .painel-ranking { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #10b981; display: none; }
         .painel-ranking h3 { margin: 0 0 10px 0; color: #10b981; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-ranking { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
@@ -25,6 +24,21 @@
         th { background: #3b82f6; color: white; }
         tr:hover { background: #1e293b; }
         .vazio { text-align: center; color: #64748b; padding: 30px; font-style: italic; }
+
+        /* Estilo do Botão de Lixeira */
+        .btn-excluir {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-excluir:hover { background: #b91c1c; }
+        .col-acao { text-align: right; }
     </style>
 </head>
 <body>
@@ -41,15 +55,14 @@
         <button onclick="puxarRelatorioNuvem()">Buscar Registros 🔍</button>
     </div>
 
-    <!-- NOVO CONTENEDOR VISUAL DO RANKING DE AULAS -->
     <div id="painel-ranking" class="painel-ranking">
         <h3>🏆 Ranking de Presenças (Total de Aulas)</h3>
         <div id="grid-ranking" class="grid-ranking"></div>
     </div>
 
     <table>
-        <thead><tr><th>Data</th><th>Horário</th><th>Nome do Aluno</th></tr></thead>
-        <tbody id="tabela-corpo"><tr><td colspan="3" class="vazio">Escolha o mês e clique em Buscar...</td></tr></tbody>
+        <thead><tr><th>Data</th><th>Horário</th><th>Nome do Aluno</th><th class="col-acao">Ação</th></tr></thead>
+        <tbody id="tabela-corpo"><tr><td colspan="4" class="vazio">Escolha o mês e clique em Buscar...</td></tr></tbody>
     </table>
 </div>
 <script>
@@ -62,8 +75,7 @@
         const painelRanking = document.getElementById('painel-ranking');
         const gridRanking = document.getElementById('grid-ranking');
         
-        // Reseta as telas antes de carregar
-        corpoTable.innerHTML = '<tr><td colspan="3" class="vazio">🔄 Carregando dados da nuvem...</td></tr>';
+        corpoTable.innerHTML = '<tr><td colspan="4" class="vazio">🔄 Carregando dados da nuvem...</td></tr>';
         painelRanking.style.display = "none";
         gridRanking.innerHTML = "";
 
@@ -73,58 +85,79 @@
                 corpoTable.innerHTML = "";
                 
                 if (!dados) {
-                    corpoTable.innerHTML = '<tr><td colspan="3" class="vazio">❌ Nenhuma presença registrada neste mês.</td></tr>';
+                    corpoTable.innerHTML = '<tr><td colspan="4" class="vazio">❌ Nenhuma presença registrada neste mês.</td></tr>';
                     return;
                 }
 
                 let linhasHTML = "";
-                let dicionarioContagem = {}; // Objeto temporário para somar as aulas
+                let dicionarioContagem = {};
 
-                // Varre os dias salvos no mês
+                // Varre os dias salvos
                 Object.keys(dados).forEach(dia => {
                     let cpfsDoDia = dados[dia];
                     
-                    // Varre os alunos que entraram naquele dia
-                    Object.keys(cpfsDoDia).forEach(cpf => {
-                        let registro = cpfsDoDia[cpf];
+                    // Varre os IDs/CPFs do dia
+                    Object.keys(cpfsDoDia).forEach(idAluno => {
+                        let registro = cpfsDoDia[idAluno];
                         
-                        // Monta as linhas tradicionais da tabela
+                        // Cria a linha adicionando o botão com a rota exata do registro para exclusão
                         linhasHTML += `<tr> 
                             <td><b>${dia}</b> de ${mes}</td> 
                             <td>${registro.horario}</td> 
-                            <td style="color: #10b981;">✓ ${registro.nome}</td> 
+                            <td style="color: #10b981;">✓ ${registro.nome}</td>
+                            <td class="col-acao">
+                                <button class="btn-excluir" onclick="removerPresencaNuvem('${ano}', '${mes}', '${dia}', '${idAluno}', '${registro.nome}')">🗑️ Excluir</button>
+                            </td>
                         </tr>`;
 
-                        // LÓGICA DO BRINDE: Conta +1 aula para o aluno no dicionário
                         let nomeFormatado = registro.nome.trim();
                         dicionarioContagem[nomeFormatado] = (dicionarioContagem[nomeFormatado] || 0) + 1;
                     });
                 });
 
-                // Renderiza as linhas na tabela
                 corpoTable.innerHTML = linhasHTML;
 
-                // CONSTRUÇÃO DO PAINEL DO RANKING DE BRINDES
                 let listaOrdenada = Object.entries(dicionarioContagem).sort((a, b) => b[1] - a[1]);
                 
                 if (listaOrdenada.length > 0) {
                     let rankingHTML = "";
                     listaOrdenada.forEach(item => {
-                        let nomeAluno = item[0];
-                        let totalAulas = item[1];
                         rankingHTML += `
                             <div class="item-ranking">
-                                👤 ${nomeAluno} <span>${totalAulas} ${totalAulas === 1 ? 'aula' : 'aulas'}</span>
+                                👤 ${item[0]} <span>${item[1]} ${item[1] === 1 ? 'aula' : 'aulas'}</span>
                             </div>`;
                     });
                     gridRanking.innerHTML = rankingHTML;
-                    painelRanking.style.display = "block"; // Torna o painel visível na tela
+                    painelRanking.style.display = "block";
                 }
             })
             .catch((error) => {
                 console.error(error);
-                corpoTable.innerHTML = '<tr><td colspan="3" class="vazio" style="color:#ef4444;">⚠ Erro ao conectar com o banco de dados.</td></tr>';
+                corpoTable.innerHTML = '<tr><td colspan="4" class="vazio" style="color:#ef4444;">⚠ Erro ao conectar com o banco de dados.</td></tr>';
             });
+    }
+
+    // NOVA FUNÇÃO: Deleta o registro específico do Firebase
+    function removerPresencaNuvem(ano, mes, dia, idAluno, nomeAluno) {
+        if (confirm(`⚠️ Tem certeza de que deseja apagar a presença de "${nomeAluno}" no dia ${dia} de ${mes}?`)) {
+            
+            // Envia o comando DELETE para a pasta exata daquele registro na nuvem
+            fetch(`${urlNuvemBase}/presencas/${ano}/${mes}/${dia}/${idAluno}.json`, {
+                method: 'DELETE'
+            })
+            .then(res => {
+                if (res.ok) {
+                    alert("🗑️ Presença removida com sucesso!");
+                    puxarRelatorioNuvem(); // Atualiza a tabela e recalcula o ranking na hora
+                } else {
+                    alert("❌ Não foi possível excluir. Verifique as regras do Firebase.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("❌ Erro de conexão ao tentar excluir.");
+            });
+        }
     }
 </script>
 </body>
