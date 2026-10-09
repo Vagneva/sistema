@@ -13,11 +13,11 @@
         button { background: #3b82f6; border: none; }
         button:hover { background: #2563eb; }
         
-        .painel-ranking { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #10b981; display: none; }
-        .painel-ranking h3 { margin: 0 0 10px 0; color: #10b981; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .painel-ranking { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #ffb300; display: none; }
+        .painel-ranking h3 { margin: 0 0 10px 0; color: #ffb300; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-ranking { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
         .item-ranking { background: #1e293b; padding: 8px 12px; border-radius: 6px; font-size: 14px; display: flex; justify-content: space-between; border: 1px solid #334155; }
-        .item-ranking span { font-weight: bold; color: #3b82f6; }
+        .item-ranking span { font-weight: bold; color: #ffb300; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #1e293b; }
@@ -25,29 +25,20 @@
         tr:hover { background: #1e293b; }
         .vazio { text-align: center; color: #64748b; padding: 30px; font-style: italic; }
 
-        /* Estilo do Botão de Lixeira */
-        .btn-excluir {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            font-size: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
+        .btn-excluir { background: #ef4444; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-excluir:hover { background: #b91c1c; }
         .col-acao { text-align: right; }
     </style>
 </head>
 <body>
 <div class="container">
-   <h1 style="margin-bottom: 5px;">🥋 FERAS TAEKWONDO</h1>
-<h2 style="color: #64748b; text-align: center; font-size: 16px; margin: 0 0 25px 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">📊 Histórico de Presenças Coletivas</h2>
+    <!-- Opção 2 integrada conforme solicitado -->
+    <h1>📊 Feras Taekwondo - Histórico de Presenças</h1>
     <div class="filtros">
         <select id="filtro-ano"><option value="2026">2026</option><option value="2027">2027</option></select>
         <select id="filtro-mes">
+            <!-- NOVA OPÇÃO ADICIONADA PARA O CALCULO ANUAL -->
+            <option value="ano_todo">⭐ O Ano Todo (Acumulado)</option>
             <option value="janeiro">Janeiro</option><option value="fevereiro">Fevereiro</option><option value="março">Março</option>
             <option value="abril">Abril</option><option value="maio">Maio</option><option value="junho">Junho</option>
             <option value="julho">Julho</option><option value="agosto">Agosto</option><option value="setembro">Setembro</option>
@@ -68,10 +59,12 @@
 </div>
 <script>
     const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/";
+    // Lista completa usada para fazer a varredura anual em lote se necessário
+    const TODOS_MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
     function puxarRelatorioNuvem() {
         const ano = document.getElementById('filtro-ano').value;
-        const mes = document.getElementById('filtro-mes').value;
+        const mesSelecionado = document.getElementById('filtro-mes').value;
         const corpoTable = document.getElementById('tabela-corpo');
         const painelRanking = document.getElementById('painel-ranking');
         const gridRanking = document.getElementById('grid-ranking');
@@ -80,78 +73,94 @@
         painelRanking.style.display = "none";
         gridRanking.innerHTML = "";
 
-        fetch(`${urlNuvemBase}/presencas/${ano}/${mes}.json`)
-            .then(res => res.json())
-            .then(dados => {
-                corpoTable.innerHTML = "";
-                
-                if (!dados) {
-                    corpoTable.innerHTML = '<tr><td colspan="4" class="vazio">❌ Nenhuma presença registrada neste mês.</td></tr>';
-                    return;
-                }
+        let dicionarioContagem = {};
+        let linhasHTML = "";
 
-                let linhasHTML = "";
-                let dicionarioContagem = {};
-
-                // Varre os dias salvos
-                Object.keys(dados).forEach(dia => {
-                    let cpfsDoDia = dados[dia];
+        // FUNÇÃO INTERNA: Processa os dados brutos de um mês e soma no ranking
+        function processarMes(dadosMes, nomeMes) {
+            if (!dadosMes) return;
+            Object.keys(dadosMes).forEach(dia => {
+                let cpfsDoDia = dadosMes[dia];
+                Object.keys(cpfsDoDia).forEach(idAluno => {
+                    let registro = cpfsDoDia[idAluno];
                     
-                    // Varre os IDs/CPFs do dia
-                    Object.keys(cpfsDoDia).forEach(idAluno => {
-                        let registro = cpfsDoDia[idAluno];
-                        
-                        // Cria a linha adicionando o botão com a rota exata do registro para exclusão
-                        linhasHTML += `<tr> 
-                            <td><b>${dia}</b> de ${mes}</td> 
-                            <td>${registro.horario}</td> 
-                            <td style="color: #10b981;">✓ ${registro.nome}</td>
-                            <td class="col-acao">
-                                <button class="btn-excluir" onclick="removerPresencaNuvem('${ano}', '${mes}', '${dia}', '${idAluno}', '${registro.nome}')">🗑️ Excluir</button>
-                            </td>
-                        </tr>`;
+                    linhasHTML += `<tr> 
+                        <td><b>${dia}</b> de ${nomeMes}</td> 
+                        <td>${registro.horario}</td> 
+                        <td style="color: #10b981;">✓ ${registro.nome}</td>
+                        <td class="col-acao">
+                            <button class="btn-excluir" onclick="removerPresencaNuvem('${ano}', '${nomeMes}', '${dia}', '${idAluno}', '${registro.nome}')">🗑️ Excluir</button>
+                        </td>
+                    </tr>`;
 
-                        let nomeFormatado = registro.nome.trim();
-                        dicionarioContagem[nomeFormatado] = (dicionarioContagem[nomeFormatado] || 0) + 1;
-                    });
+                    let nomeFormatado = registro.nome.trim();
+                    dicionarioContagem[nomeFormatado] = (dicionarioContagem[nomeFormatado] || 0) + 1;
                 });
-
-                corpoTable.innerHTML = linhasHTML;
-
-                let listaOrdenada = Object.entries(dicionarioContagem).sort((a, b) => b[1] - a[1]);
-                
-                if (listaOrdenada.length > 0) {
-                    let rankingHTML = "";
-                    listaOrdenada.forEach(item => {
-                        rankingHTML += `
-                            <div class="item-ranking">
-                                👤 ${item[0]} <span>${item[1]} ${item[1] === 1 ? 'aula' : 'aulas'}</span>
-                            </div>`;
-                    });
-                    gridRanking.innerHTML = rankingHTML;
-                    painelRanking.style.display = "block";
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-                corpoTable.innerHTML = '<tr><td colspan="4" class="vazio" style="color:#ef4444;">⚠ Erro ao conectar com o banco de dados.</td></tr>';
             });
+        }
+
+        // FUNÇÃO INTERNA: Renderiza o ranking na parte de cima da tela
+        function finalizarInterface() {
+            corpoTable.innerHTML = linhasHTML || '<tr><td colspan="4" class="vazio">❌ Nenhuma presença registrada no período selecionado.</td></tr>';
+            
+            let listaOrdenada = Object.entries(dicionarioContagem).sort((a, b) => b[1] - a[1]);
+            if (listaOrdenada.length > 0) {
+                let rankingHTML = "";
+                listaOrdenada.forEach(item => {
+                    rankingHTML += `
+                        <div class="item-ranking">
+                            👤 ${item[0]} <span>${item[1]} ${item[1] === 1 ? 'aula' : 'aulas'}</span>
+                        </div>`;
+                });
+                gridRanking.innerHTML = rankingHTML;
+                painelRanking.style.display = "block";
+            }
+        }
+
+        // LÓGICA DE DECISÃO: Busca anual em lote ou busca mensal normal
+        if (mesSelecionado === "ano_todo") {
+            // Executa buscas paralelas para os 12 meses no seu Firebase
+            let promessas = TODOS_MESES.map(m => 
+                fetch(`${urlNuvemBase}/presencas/${ano}/${m}.json`).then(res => res.json())
+            );
+
+            Promise.all(promessas)
+                .then(resultados => {
+                    resultados.forEach((dadosMes, index) => {
+                        processarMes(dadosMes, TODOS_MESES[index]);
+                    });
+                    finalizarInterface();
+                })
+                .catch(err => {
+                    console.error(err);
+                    corpoTable.innerHTML = '<tr><td colspan="4" class="vazio" style="color:#ef4444;">⚠ Erro ao consolidar o relatório anual.</td></tr>';
+                });
+        } else {
+            // Busca padrão de um único mês (Lógica original)
+            fetch(`${urlNuvemBase}/presencas/${ano}/${mesSelecionado}.json`)
+                .then(res => res.json())
+                .then(dados => {
+                    processarMes(dados, mesSelecionado);
+                    finalizarInterface();
+                })
+                .catch(err => {
+                    console.error(err);
+                    corpoTable.innerHTML = '<tr><td colspan="4" class="vazio" style="color:#ef4444;">⚠ Erro ao conectar com o banco de dados.</td></tr>';
+                });
+        }
     }
 
-    // NOVA FUNÇÃO: Deleta o registro específico do Firebase
     function removerPresencaNuvem(ano, mes, dia, idAluno, nomeAluno) {
         if (confirm(`⚠️ Tem certeza de que deseja apagar a presença de "${nomeAluno}" no dia ${dia} de ${mes}?`)) {
-            
-            // Envia o comando DELETE para a pasta exata daquele registro na nuvem
             fetch(`${urlNuvemBase}/presencas/${ano}/${mes}/${dia}/${idAluno}.json`, {
                 method: 'DELETE'
             })
             .then(res => {
                 if (res.ok) {
                     alert("🗑️ Presença removida com sucesso!");
-                    puxarRelatorioNuvem(); // Atualiza a tabela e recalcula o ranking na hora
+                    puxarRelatorioNuvem();
                 } else {
-                    alert("❌ Não foi possível excluir. Verifique as regras do Firebase.");
+                    alert("❌ Não foi possível excluir.");
                 }
             })
             .catch(err => {
