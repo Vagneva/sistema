@@ -1,0 +1,663 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel - Carteirinha Feras Taekwondo</title>
+  <!-- Bibliotecas do Firebase e de exportação de imagem -->
+  <script src="https://gstatic.com"></script>
+  <script src="https://gstatic.com"></script>
+  <script src="https://cloudflare.com" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --faixa-cor: #ffffff;
+      --ponta-cor: #ffffff;
+      --bg-card: #1a1a1a;
+      --text-light: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: var(--text-light);
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 30px;
+      padding: 30px;
+      margin: 0;
+    }
+
+    .painel-controle {
+      background: #1e1e1e;
+      border: 2px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      position: sticky;
+      top: 30px;
+    }
+
+    .painel-controle h3 {
+      margin: 0 0 15px 0;
+      color: #ffb300;
+      text-align: center;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+
+    .grid-campos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .campo-grupo {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .campo-grupo.full {
+      grid-column: span 2;
+    }
+
+    .campo-grupo label {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 4px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .campo-grupo input, .campo-grupo select {
+      padding: 8px;
+      background: #2b2b2b;
+      border: 1px solid #444;
+      color: white;
+      border-radius: 6px;
+      font-size: 13px;
+      width: 100%;
+    }
+
+    .container-botoes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn-acao {
+      width: 100%;
+      color: #ffffff !important;
+      border: none;
+      padding: 12px;
+      font-weight: bold;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: background 0.2s;
+    }
+
+    .btn-buscar { background: #0288d1; }
+    .btn-buscar:hover { background: #01579b; }
+    .btn-salvar-db { background: #ffa000; }
+    .btn-salvar-db:hover { background: #ff6f00; }
+    .btn-whats { background: #2e7d32; }
+    .btn-whats:hover { background: #1b5e20; }
+
+    .preview-exportacao {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-front, .card-back {
+      width: 440px;
+      height: 260px;
+      border-radius: 14px;
+      box-sizing: border-box;
+      padding: 16px;
+      background: var(--bg-card);
+      border: 4px solid var(--faixa-cor);
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+
+    .card-front::before, .card-back::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 18px;
+      background: linear-gradient(
+        to right,
+        var(--faixa-cor) 0%,
+        var(--faixa-cor) calc(50% - 3px),
+        var(--ponta-cor) calc(50% - 3px),
+        var(--ponta-cor) calc(50% + 3px),
+        var(--faixa-cor) calc(50% + 3px),
+        var(--faixa-cor) 100%
+      );
+    }
+
+    .card-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      width: 130px;
+      margin-top: 12px;
+    }
+
+    .photo-area {
+      width: 100px;
+      height: 125px;
+      background: #252525;
+      border: 2px solid #444;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .photo-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .status-badge {
+      background: #2e7d32;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .card-right {
+      flex: 1;
+      margin-left: 16px;
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: #ffffff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .header p {
+      margin: 2px 0 0 0;
+      font-size: 10px;
+      color: #ffb300;
+      text-transform: uppercase;
+      font-weight: bold;
+      letter-spacing: 1.2px;
+    }
+
+    .user-info .name {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 6px 0 4px 0;
+      color: #fff;
+    }
+
+    .badge-graduacao-container, .badge-verso-container {
+      display: inline-block;
+      background: #ffffff;
+      padding: 4px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .extra-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      border-top: 1px solid #333;
+      padding-top: 8px;
+      font-size: 11px;
+      color: #bbb;
+    }
+
+    .card-back {
+      flex-direction: column;
+      justify-content: space-between;
+      padding-top: 24px;
+    }
+
+    .back-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 100%;
+    }
+
+    .back-info {
+      flex: 1;
+      padding-right: 15px;
+    }
+
+    .history-section h3, .principles-section h3 {
+      font-size: 11px;
+      color: #ffb300;
+      margin: 0 0 4px 0;
+      text-transform: uppercase;
+      border-bottom: 1px solid #333;
+      padding-bottom: 2px;
+    }
+
+    .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 10px 0;
+      font-size: 11px;
+    }
+
+    .history-list li {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      color: #ccc;
+      align-items: center;
+    }
+
+    .principles-text {
+      font-size: 9.5px;
+      font-style: italic;
+      color: #aaa;
+      line-height: 1.3;
+      margin: 0;
+    }
+
+    .qr-code-area {
+      background: white;
+      border: 2px solid #444;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 95px;
+      height: 95px;
+      overflow: hidden;
+      padding: 4px;
+    }
+
+    .qr-code-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .card-footer {
+      font-size: 9px;
+      color: #777;
+      text-align: center;
+      border-top: 1px solid #252525;
+      padding-top: 4px;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+        align-items: center;
+      }
+      .painel-controle {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="painel-controle">
+    <h3>Preencher Carteirinha</h3>
+    <div class="grid-campos">
+      <div class="campo-grupo full">
+        <label>Buscar / Filtrar por CPF do Aluno:</label>
+        <input type="text" id="inCPF" value="123.456.789-00" maxlength="14" placeholder="000.000.000-00">
+      </div>
+      <div class="campo-grupo full">
+        <label>Nome do Aluno:</label>
+        <input type="text" id="inNome" value="Vagner Roberto da Silva" oninput="atualizarDados()">
+      </div>
+      <div class="campo-grupo">
+        <label>Nº de Registro (REG):</label>
+        <input type="text" id="inReg" value="01" oninput="atualizarDados()">
+      </div>
+      <div class="campo-grupo">
+        <label>Data de Mudança da Faixa:</label>
+        <input type="text" id="inDataFaixa" value="03/09/2020" maxlength="10" placeholder="DD/MM/AAAA" oninput="aplicarMascaraData(this); atualizarDados()">
+      </div>
+      <div class="campo-grupo">
+        <label>Data de Validade:</label>
+        <input type="text" id="inValidade" value="23/12/2026" maxlength="10" placeholder="DD/MM/AAAA" oninput="aplicarMascaraData(this); atualizarDados()">
+      </div>
+      <div class="campo-grupo">
+        <label>Filiação:</label>
+        <input type="text" id="inFiliacao" value="FPT" oninput="atualizarDados()">
+      </div>
+      <div class="campo-grupo">
+        <label>Tipo Sanguíneo:</label>
+        <input type="text" id="inSangue" value="A+" oninput="atualizarDados()">
+      </div>
+      <div class="campo-grupo">
+        <label>Foto do Aluno (Frente):</label>
+        <input type="file" id="inFoto" accept="image/*" onchange="carregarFoto(event)">
+      </div>
+      <div class="campo-grupo">
+        <label>QR Code de Presença (Verso):</label>
+        <input type="file" id="inQRFile" accept="image/*" onchange="carregarQRCode(event)">
+      </div>
+      <div class="campo-grupo full">
+        <label>Graduação / Faixa:</label>
+        <select id="inFaixa" onchange="atualizarDados()">
+          <option value="Branca" data-cor="#7a7a7a" data-ponta="#7a7a7a">Faixa Branca - 10º Gub</option>
+          <option value="Branca ponta Amarela" data-cor="#7a7a7a" data-ponta="#fbc02d">Faixa Branca ponta Amarela - 9º Gub</option>
+          <option value="Amarela" data-cor="#fbc02d" data-ponta="#fbc02d">Faixa Amarela - 8º Gub</option>
+          <option value="Amarela ponta Verde" data-cor="#fbc02d" data-ponta="#2e7d32">Faixa Amarela ponta Verde - 7º Gub</option>
+          <option value="Verde" data-cor="#2e7d32" data-ponta="#2e7d32">Faixa Verde - 6º Gub</option>
+          <option value="Verde ponta Azul" data-cor="#2e7d32" data-ponta="#1976d2">Faixa Verde ponta Azul - 5º Gub</option>
+          <option value="Azul" data-cor="#1976d2" data-ponta="#1976d2">Faixa Azul - 4º Gub</option>
+          <option value="Azul ponta Vermelha" data-cor="#1976d2" data-ponta="#d32f2f">Faixa Azul ponta Vermelha - 3º Gub</option>
+          <option value="Vermelha" data-cor="#d32f2f" data-ponta="#d32f2f">Faixa Vermelha - 2º Gub</option>
+          <option value="Vermelha ponta Preta" data-cor="#d32f2f" data-ponta="#000000" selected>Faixa Vermelha ponta Preta - 1º Gub</option>
+          <option value="Preta" data-cor="#000000" data-ponta="#ffb300">Faixa Preta - 1º Dan</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="container-botoes">
+      <button class="btn-acao btn-buscar" onclick="buscarAlunoFirebase()">🔍 Buscar pelo CPF</button>
+      <button class="btn-acao btn-salvar-db" onclick="salvarAlunoFirebase()">💾 Salvar/Atualizar no Firebase</button>
+      <button class="btn-acao btn-whats" onclick="salvarComoImagem()">🖼️ Baixar Fotos para WhatsApp</button>
+    </div>
+  </div>
+
+  <div class="preview-exportacao" id="areaExportacao">
+    <!-- FRENTE DO CARTÃO -->
+    <div class="card-front" id="blocoFrente">
+      <div class="card-left">
+        <div class="photo-area">
+          <img id="cardFoto" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125' viewBox='0 0 100 125'><rect width='100%' height='100%' fill='%23252525'/><text x='50%' y='50%' font-family='sans-serif' font-size='12' fill='%23666' text-anchor='middle' dy='.3em'>Sem Foto</text></svg>" alt="Foto">
+        </div>
+        <span class="status-badge">Ativo</span>
+      </div>
+      <div class="card-right">
+        <div class="header">
+          <h2>FERAS TAEKWONDO</h2>
+          <p>Associação Oficial de Taekwondo</p>
+        </div>
+        <div class="user-info">
+          <div class="name" id="cardNome">Vagner Roberto da Silva</div>
+          <div class="badge-graduacao-container" id="cardBadgeContainer"></div>
+        </div>
+        <div class="extra-details">
+          <div>REG: <span id="cardReg">01</span></div>
+          <div>SANGUE: <span id="cardSangue">A+</span></div>
+          <div style="grid-column: span 2;">FILIAÇÃO: <span id="cardFiliacao">FPT</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VERSO DO CARTÃO -->
+    <div class="card-back" id="blocoVerso">
+      <div class="back-content">
+        <div class="back-info">
+          <div class="history-section">
+            <h3>Informações do Aluno</h3>
+            <ul class="history-list">
+              <li>Graduação: <div class="badge-verso-container" id="cardBadgeContainerVerso"></div></li>
+              <li>Data da Faixa: <span id="cardDataFaixa">03/09/2020</span></li>
+              <li>Validade: <span id="cardValidade">23/12/2026</span></li>
+            </ul>
+          </div>
+          <div class="principles-section">
+            <h3>Espírito do Taekwondo</h3>
+            <p class="principles-text">Cortesia • Integridade • Perseverança • Autocontrole • Espírito Indomável</p>
+          </div>
+        </div>
+        <div class="qr-code-area">
+          <img id="cardQR" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95' viewBox='0 0 95 95'><rect width='100%' height='100%' fill='%23ffffff'/><text x='50%' y='50%' font-family='sans-serif' font-size='10' fill='%23666' text-anchor='middle' dy='.3em'>Sem QR Code</text></svg>" alt="QR Code">
+        </div>
+      </div>
+      <div class="card-footer">
+        Documento de identificação pessoal da academia. Em caso de achados, devolver na recepção.
+      </div>
+    </div>
+  </div>
+  <script>
+    // ========================================================
+    // COLOQUE O LINK DO SEU FIREBASE REALTIME DATABASE AQUI
+    // Exemplo: "https://firebaseio.com"
+    // ========================================================
+    const LINK_FIREBASE =  "https://academia-2d8b2-default-rtdb.firebaseio.com/";
+
+    let fotoBase64 = "";
+    let qrBase64 = "";
+
+    function aplicarMascaraData(input) {
+      let valor = input.value.replace(/\D/g, "");
+      if (valor.length > 2 && valor.length <= 4) {
+        valor = valor.substring(0, 2) + "/" + valor.substring(2);
+      } else if (valor.length > 4) {
+        valor = valor.substring(0, 2) + "/" + valor.substring(2, 4) + "/" + valor.substring(4, 8);
+      }
+      input.value = valor;
+    }
+
+    function carregarFoto(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        fotoBase64 = reader.result;
+        document.getElementById('cardFoto').src = fotoBase64;
+      }
+      if(event.target.files && event.target.files[0]) {
+        reader.readAsDataURL(event.target.files[0]);
+      }
+    }
+
+    function carregarQRCode(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        qrBase64 = reader.result;
+        document.getElementById('cardQR').src = reader.result;
+      }
+      if(event.target.files && event.target.files[0]) {
+        reader.readAsDataURL(event.target.files[0]);
+      }
+    }
+
+    function atualizarDados() {
+      const nome = document.getElementById('inNome').value;
+      const reg = document.getElementById('inReg').value;
+      const filiacao = document.getElementById('inFiliacao').value;
+      const sangue = document.getElementById('inSangue').value;
+      const dataFaixa = document.getElementById('inDataFaixa').value;
+      const validade = document.getElementById('inValidade').value;
+      
+      const seletorFaixa = document.getElementById('inFaixa');
+      const opcaoSelecionada = seletorFaixa.options[seletorFaixa.selectedIndex];
+      const nomeFaixa = opcaoSelecionada.value;
+      const corBase = opcaoSelecionada.getAttribute('data-cor');
+      const corPonta = opcaoSelecionada.getAttribute('data-ponta');
+
+      document.getElementById('cardNome').innerText = nome;
+      document.getElementById('cardReg').innerText = reg;
+      document.getElementById('cardFiliacao').innerText = filiacao;
+      document.getElementById('cardSangue').innerText = sangue;
+      document.getElementById('cardDataFaixa').innerText = dataFaixa;
+      document.getElementById('cardValidade').innerText = validade;
+
+      const containerBadgeFrente = document.getElementById('cardBadgeContainer');
+      const containerBadgeVerso = document.getElementById('cardBadgeContainerVerso');
+      
+      let htmlRenderizado = ``;
+      
+      if (nomeFaixa.includes("ponta")) {
+        const partes = nomeFaixa.split(" ponta ");
+        htmlRenderizado = `<span style="color: ${corBase};">${partes[0]}</span>` +
+                           `<span style="color: #666666; font-weight: normal;"> ponta </span>` +
+                           `<span style="color: ${corPonta};">${partes[1]}</span>`;
+      } else {
+        const corAjustada = corBase === '#ffffff' ? '#333333' : corBase;
+        htmlRenderizado = `<span style="color: ${corAjustada};">${nomeFaixa}</span>`;
+      }
+      
+      containerBadgeFrente.innerHTML = htmlRenderizado;
+      containerBadgeVerso.innerHTML = htmlRenderizado;
+
+      const corBordaFrente = corBase === '#7a7a7a' ? '#ffffff' : corBase;
+      const corBordaPonta = corPonta === '#7a7a7a' ? '#ffffff' : corPonta;
+      document.documentElement.style.setProperty('--faixa-cor', corBordaFrente);
+      document.documentElement.style.setProperty('--ponta-cor', corBordaPonta);
+    }
+
+    // SALVAR: Envia as strings diretamente para a pasta "carteirinhas/CPF.json"
+    function salvarAlunoFirebase() {
+      const cpf = document.getElementById('inCPF').value.replace(/\D/g, "");
+      if (!cpf) {
+        alert("Por favor, digite o CPF para poder salvar.");
+        return;
+      }
+
+      // Garante que o link termine com a barra antes de montar o endereço completo do JSON
+      const urlBase = LINK_FIREBASE.endsWith('/') ? LINK_FIREBASE : LINK_FIREBASE + '/';
+      const endpoint = `${urlBase}carteirinhas/${cpf}.json`;
+
+      const dadosAluno = {
+        nome: document.getElementById('inNome').value,
+        reg: document.getElementById('inReg').value,
+        dataFaixa: document.getElementById('inDataFaixa').value,
+        validade: document.getElementById('inValidade').value,
+        filiacao: document.getElementById('inFiliacao').value,
+        sangue: document.getElementById('inSangue').value,
+        faixa: document.getElementById('inFaixa').value,
+        foto: fotoBase64,
+        qrcode: qrBase64
+      };
+
+      fetch(endpoint, {
+        method: 'PUT', // Substitui ou cria o registro com o ID do CPF
+        body: JSON.stringify(dadosAluno),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(response => {
+        if(response.ok) { alert("Carteirinha salva com sucesso no Realtime Database!"); }
+        else { alert("Falha ao salvar. Verifique as regras de gravação do banco."); }
+      })
+      .catch(erro => { console.error(erro); alert("Erro de conexão com o banco."); });
+    }
+
+    // BUSCAR: Consulta diretamente o nó "carteirinhas/CPF.json" via requisição HTTP GET
+    function buscarAlunoFirebase() {
+      const cpf = document.getElementById('inCPF').value.replace(/\D/g, "");
+      if (!cpf) {
+        alert("Digite um CPF para realizar a pesquisa.");
+        return;
+      }
+
+      const urlBase = LINK_FIREBASE.endsWith('/') ? LINK_FIREBASE : LINK_FIREBASE + '/';
+      const endpoint = `${urlBase}carteirinhas/${cpf}.json`;
+
+      fetch(endpoint)
+      .then(response => response.json())
+      .then(dados => {
+        if (dados) {
+          document.getElementById('inNome').value = dados.nome || "";
+          document.getElementById('inReg').value = dados.reg || "";
+          document.getElementById('inDataFaixa').value = dados.dataFaixa || "";
+          document.getElementById('inValidade').value = dados.validade || "";
+          document.getElementById('inFiliacao').value = dados.filiacao || "";
+          document.getElementById('inSangue').value = dados.sangue || "";
+          document.getElementById('inFaixa').value = dados.faixa || "Branca";
+          
+          if (dados.foto) {
+            fotoBase64 = dados.foto;
+            document.getElementById('cardFoto').src = fotoBase64;
+          } else {
+            fotoBase64 = "";
+            document.getElementById('cardFoto').src = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>";
+          }
+          if (dados.qrcode) {
+            qrBase64 = dados.qrcode;
+            document.getElementById('cardQR').src = qrBase64;
+          } else {
+            qrBase64 = "";
+            document.getElementById('cardQR').src = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/></svg>";
+          }
+          
+          atualizarDados();
+          alert("Aluno localizado e dados carregados!");
+        } else {
+          alert("Nenhum registro de carteirinha encontrado para este CPF.");
+        }
+      })
+      .catch(erro => { console.error(erro); alert("Erro ao consultar o banco."); });
+    }
+
+    function salvarComoImagem() {
+      if (typeof html2canvas === 'undefined') {
+        alert("Aguarde a biblioteca terminar de carregar no servidor web.");
+        return;
+      }
+
+      const frente = document.getElementById('blocoFrente');
+      const verso = document.getElementById('blocoVerso');
+      const nomeAluno = document.getElementById('inNome').value || 'carteirinha';
+      const sufixoNome = nomeAluno.replace(/\s+/g, '_');
+
+      const configRender = {
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        scale: 3
+      };
+
+      html2canvas(frente, configRender).then(canvasFrente => {
+        const linkFrente = document.createElement('a');
+        linkFrente.download = "Carteirinha_" + sufixoNome + "_FRENTE.png";
+        linkFrente.href = canvasFrente.toDataURL('image/png');
+        linkFrente.click();
+
+        setTimeout(() => {
+          html2canvas(verso, configRender).then(canvasVerso => {
+            const linkVerso = document.createElement('a');
+            linkVerso.download = "Carteirinha_" + sufixoNome + "_VERSO.png";
+            linkVerso.href = canvasVerso.toDataURL('image/png');
+            linkVerso.click();
+          });
+        }, 500);
+      });
+    }
+
+    window.onload = function() {
+      atualizarDados();
+    };
+  </script>
+</body>
+</html>
