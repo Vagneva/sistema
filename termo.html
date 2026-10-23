@@ -238,6 +238,7 @@
     }
 </script>
 <script>
+ <script>
     function enviarDadosAoFirebase() {
         const botao = document.getElementById('btn-enviar-firebase');
         const nomeAluno = document.getElementById('campo-nome-aluno').value.trim();
@@ -271,37 +272,40 @@
             xhrSave.open("PUT", urlNuvemBase + "/" + chaveDestino + ".json", true);
             xhrSave.setRequestHeader("Content-Type", "application/json");
             xhrSave.onload = function() {
-                // REALIZA A VERIFICAÇÃO REAL DE STATUS DO SERVIDOR
                 if (xhrSave.status >= 200 && xhrSave.status < 300) {
                     alert("Sucesso! O termo foi integrado à matrícula do aluno.");
                     limparAssinatura(); document.getElementById('form-termo').reset();
                     document.getElementById('campo-data-atual').value = new Date().toISOString().split('T');
                 } else {
-                    alert("Erro do Firebase: Gravação rejeitada pelas regras de segurança.");
+                    alert("Erro do Firebase: Verifique as regras de gravação.");
                 }
-                botao.disabled = false; botao.innerText = "💾 Enviar e Salvar na Matrícula";
-            };
-            xhrSave.onerror = function() {
-                alert("Erro de conexão com a nuvem.");
                 botao.disabled = false; botao.innerText = "💾 Enviar e Salvar na Matrícula";
             };
             xhrSave.send(JSON.stringify(payload));
         };
         xhrCheck.send();
     }
-
+</script>
+<script>
     function consultarTermoNoFirebase() {
         const buscaCpf = document.getElementById('busca-cpf-aluno').value.replace(/\D/g, "");
         const buscaNome = document.getElementById('busca-nome-aluno').value.trim().toLowerCase();
         const buscaNasc = document.getElementById('busca-nasc-aluno').value;
 
+        if (!buscaCpf && (!buscaNome || !buscaNasc)) {
+            alert("Preencha o CPF OU combine o Nome + Data de Nascimento para pesquisar.");
+            return;
+        }
+
         const xhr = new XMLHttpRequest();
         xhr.open("GET", urlNuvemBase + ".json", true);
         xhr.onload = function() {
             let allData = JSON.parse(xhr.responseText);
-            if (!allData) { alert("Nenhum registro encontrado no banco de dados."); return; }
+            if (!allData) { alert("Nenhum registro encontrado no banco."); return; }
             
-            let achado = null;
+            let termoAchado = null;
+            
+            // Varredura ajustada para ler exatamente a estrutura da foto do seu Firebase
             for (let chave in allData) {
                 let m = allData[chave];
                 let cpfLimpoMatricula = m.cpf ? m.cpf.replace(/\D/g, "") : "";
@@ -309,35 +313,53 @@
                 let nascMatricula = m.nasc || "";
 
                 if (buscaCpf && (chave === buscaCpf || cpfLimpoMatricula === buscaCpf)) {
-                    achado = m.termoAssinado; break;
-                } else if (!buscaCpf && (nomeMatricula.includes(buscaNome) || buscaNome.includes(nomeMatricula)) && nascMatricula === buscaNasc) {
-                    achado = m.termoAssinado; break;
+                    termoAchado = m.termoAssinado;
+                    break;
+                } else if (!buscaCpf && (nomeMatricula === buscaNome || nomeMatricula.includes(buscaNome)) && nascMatricula === buscaNasc) {
+                    termoAchado = m.termoAssinado;
+                    break;
                 }
             }
 
-            if (!achado) { alert("Termo assinado não localizado na nuvem para este aluno."); return; }
+            if (!termoAchado) {
+                alert("Termo assinado não localizado na nuvem para este aluno.");
+                return;
+            }
             
-            mudarTipoIdade(achado.tipoContrato || 'menor');
-            document.getElementById('campo-nome-aluno').value = achado.nomeAluno || "";
-            document.getElementById('campo-cpf-aluno').value = achado.cpfAluno || "";
-            document.getElementById('campo-rg-aluno').value = achado.rgAluno || "";
-            if (document.getElementById('campo-nasc-aluno-form')) {
-                document.getElementById('campo-nasc-aluno-form').value = achado.dataNascimentoAluno || "";
-            }
-            document.getElementById('campo-cidade').value = achado.cidade || "";
-            document.getElementById('campo-data-atual').value = achado.dataAssinatura || "";
-
-            if (achado.tipoContrato === 'menor') {
-                document.getElementById('campo-nome-resp').value = achado.nomeResponsavel || "";
-                document.getElementById('campo-cpf-resp').value = achado.cpfResponsavel || "";
-                document.getElementById('campo-parentesco').value = achado.parentescoResponsavel || "";
-            }
-            if(achado.assinaturaDedo) {
-                const img = new Image(); img.src = achado.assinaturaDedo;
-                img.onload = () => { limparAssinatura(); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
-            }
-            alert("🔒 Registro e assinatura com o dedo carregados com sucesso!");
+            carregarDadosNoFormulario(termoAchado);
         };
         xhr.send();
+    }
+</script>
+<script>
+    function carregarDadosNoFormulario(data) {
+        mudarTipoIdade(data.tipoContrato || 'menor');
+
+        document.getElementById('campo-nome-aluno').value = data.nomeAluno || "";
+        document.getElementById('campo-cpf-aluno').value = data.cpfAluno || "";
+        document.getElementById('campo-rg-aluno').value = data.rgAluno || "";
+        
+        if (document.getElementById('campo-nasc-aluno-form')) {
+            document.getElementById('campo-nasc-aluno-form').value = data.dataNascimentoAluno || "";
+        }
+        
+        document.getElementById('campo-cidade').value = data.cidade || "";
+        document.getElementById('campo-data-atual').value = data.dataAssinatura || "";
+
+        if (data.tipoContrato === 'menor') {
+            document.getElementById('campo-nome-resp').value = data.nomeResponsavel || "";
+            document.getElementById('campo-cpf-resp').value = data.cpfResponsavel || "";
+            document.getElementById('campo-parentesco').value = data.parentescoResponsavel || "";
+        }
+
+        if (data.assinaturaDedo) {
+            const img = new Image();
+            img.src = data.assinaturaDedo;
+            img.onload = () => {
+                limparAssinatura();
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+        }
+        alert("🔒 Registro e assinatura com o dedo carregados com sucesso!");
     }
 </script>
