@@ -246,8 +246,6 @@
         const nascimentoAluno = document.getElementById('campo-nasc-aluno-form').value;
 
         if (!nomeAluno) { alert("Por favor, preencha o Nome do Aluno."); return; }
-        
-        // Define a chave destino limpando tudo para caixa baixa
         let chaveDestino = cpfLimpo || "sem_cpf_" + nomeAluno.toLowerCase().replace(/\s+/g, "_");
 
         botao.disabled = true;
@@ -264,30 +262,27 @@
         };
 
         const xhrCheck = new XMLHttpRequest();
-        xhrCheck.open("GET", urlNuvemBase + ".json", true);
+        xhrCheck.open("GET", urlNuvemBase + "/" + chaveDestino + ".json", true);
         xhrCheck.onload = function() {
-            let allData = JSON.parse(xhrCheck.responseText) || {};
-            
-            // Procura se já existe a chave ignorando maiúsculas/minúsculas
-            let chaveRealExistente = null;
-            for (let k in allData) {
-                if (k.toLowerCase() === chaveDestino.toLowerCase()) {
-                    chaveRealExistente = k;
-                    break;
-                }
-            }
-
-            let destinoFinal = chaveRealExistente || chaveDestino;
-            let matriculaExistente = allData[destinoFinal];
-            let payload = matriculaExistente ? { ...matriculaExistente, termoAssinado: dadosTermo } : { id: destinoFinal, nome: nomeAluno, cpf: cpfComMascara, nasc: nascimentoAluno, termoAssinado: dadosTermo };
+            let matriculaExistente = JSON.parse(xhrCheck.responseText);
+            let payload = matriculaExistente ? { ...matriculaExistente, termoAssinado: dadosTermo } : { id: chaveDestino, nome: nomeAluno, cpf: cpfComMascara, nasc: nascimentoAluno, termoAssinado: dadosTermo };
 
             const xhrSave = new XMLHttpRequest();
-            xhrSave.open("PUT", urlNuvemBase + "/" + destinoFinal + ".json", true);
+            xhrSave.open("PUT", urlNuvemBase + "/" + chaveDestino + ".json", true);
             xhrSave.setRequestHeader("Content-Type", "application/json");
             xhrSave.onload = function() {
-                alert("Sucesso! O termo foi integrado à matrícula do aluno.");
-                limparAssinatura(); document.getElementById('form-termo').reset();
-                document.getElementById('campo-data-atual').value = new Date().toISOString().split('T');
+                // REALIZA A VERIFICAÇÃO REAL DE STATUS DO SERVIDOR
+                if (xhrSave.status >= 200 && xhrSave.status < 300) {
+                    alert("Sucesso! O termo foi integrado à matrícula do aluno.");
+                    limparAssinatura(); document.getElementById('form-termo').reset();
+                    document.getElementById('campo-data-atual').value = new Date().toISOString().split('T');
+                } else {
+                    alert("Erro do Firebase: Gravação rejeitada pelas regras de segurança.");
+                }
+                botao.disabled = false; botao.innerText = "💾 Enviar e Salvar na Matrícula";
+            };
+            xhrSave.onerror = function() {
+                alert("Erro de conexão com a nuvem.");
                 botao.disabled = false; botao.innerText = "💾 Enviar e Salvar na Matrícula";
             };
             xhrSave.send(JSON.stringify(payload));
@@ -296,7 +291,7 @@
     }
 
     function consultarTermoNoFirebase() {
-        const buscaCpf = document.getElementById('busca-cpf-aluno').value.replace(/\D/g, "").toLowerCase();
+        const buscaCpf = document.getElementById('busca-cpf-aluno').value.replace(/\D/g, "");
         const buscaNome = document.getElementById('busca-nome-aluno').value.trim().toLowerCase();
         const buscaNasc = document.getElementById('busca-nasc-aluno').value;
 
@@ -304,16 +299,16 @@
         xhr.open("GET", urlNuvemBase + ".json", true);
         xhr.onload = function() {
             let allData = JSON.parse(xhr.responseText);
-            if (!allData) { alert("Nenhum registro encontrado."); return; }
+            if (!allData) { alert("Nenhum registro encontrado no banco de dados."); return; }
             
             let achado = null;
             for (let chave in allData) {
                 let m = allData[chave];
-                let cpfLimpoMatricula = m.cpf ? m.cpf.replace(/\D/g, "").toLowerCase() : "";
+                let cpfLimpoMatricula = m.cpf ? m.cpf.replace(/\D/g, "") : "";
                 let nomeMatricula = m.nome ? m.nome.trim().toLowerCase() : "";
                 let nascMatricula = m.nasc || "";
 
-                if (buscaCpf && (chave.toLowerCase() === buscaCpf || cpfLimpoMatricula === buscaCpf)) {
+                if (buscaCpf && (chave === buscaCpf || cpfLimpoMatricula === buscaCpf)) {
                     achado = m.termoAssinado; break;
                 } else if (!buscaCpf && (nomeMatricula.includes(buscaNome) || buscaNome.includes(nomeMatricula)) && nascMatricula === buscaNasc) {
                     achado = m.termoAssinado; break;
@@ -326,7 +321,9 @@
             document.getElementById('campo-nome-aluno').value = achado.nomeAluno || "";
             document.getElementById('campo-cpf-aluno').value = achado.cpfAluno || "";
             document.getElementById('campo-rg-aluno').value = achado.rgAluno || "";
-            document.getElementById('campo-nasc-aluno-form').value = achado.dataNascimentoAluno || "";
+            if (document.getElementById('campo-nasc-aluno-form')) {
+                document.getElementById('campo-nasc-aluno-form').value = achado.dataNascimentoAluno || "";
+            }
             document.getElementById('campo-cidade').value = achado.cidade || "";
             document.getElementById('campo-data-atual').value = achado.dataAssinatura || "";
 
