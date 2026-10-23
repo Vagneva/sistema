@@ -155,15 +155,13 @@
     }
 </style>
 <script>
-    // Link do seu Realtime Database do Firebase
-    const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
-
+    const urlNuvemBase = "https://firebaseio.com";
     let canvas, ctx, desenhando = false;
     let tipoIdadeAtual = 'menor';
 
     window.onload = function() {
         inicializarCanvas();
-        document.getElementById('campo-data-atual').value = new Date().toISOString().split('T');
+        document.getElementById('campo-data-atual').value = new Date().toISOString().split('T')[0];
         configurarMascaras();
     };
 
@@ -176,18 +174,14 @@
         const aplicarMascaraCPF = (e) => {
             let v = e.target.value.replace(/\D/g, ""); 
             if (v.length > 11) v = v.slice(0, 11);
-            v = v.replace(/(\d{3})(\d)/, "$1.$2");
-            v = v.replace(/(\d{3})(\d)/, "$1.$2");
-            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
             e.target.value = v;
         };
 
         const aplicarMascaraRG = (e) => {
             let v = e.target.value.replace(/[^0-9xX]/g, ""); 
             if (v.length > 9) v = v.slice(0, 9);
-            v = v.replace(/(\d{2})(\d)/, "$1.$2");
-            v = v.replace(/(\d{3})(\d)/, "$1.$2");
-            v = v.replace(/(\d{3})([0-9xX]{1})$/, "$1-$2");
+            v = v.replace(/(\d{2})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})([0-9xX]{1})$/, "$1-$2");
             e.target.value = v.toUpperCase();
         };
 
@@ -201,7 +195,6 @@
         tipoIdadeAtual = tipo;
         document.getElementById('btn-menor').classList.toggle('ativa', tipo === 'menor');
         document.getElementById('btn-maior').classList.toggle('ativa', tipo === 'maior');
-
         let responsavel = document.getElementById('secao-dados-responsavel');
         let titAluno = document.getElementById('titulo-dados-aluno');
         let linhaAssinatura = document.getElementById('linha-nome-assinante');
@@ -225,10 +218,7 @@
         ctx = canvas.getContext('2d');
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
-        
-        ctx.strokeStyle = "#1e3a8a"; 
-        ctx.lineWidth = 3;            
-        ctx.lineCap = "round";
+        ctx.strokeStyle = "#1e3a8a"; ctx.lineWidth = 3; ctx.lineCap = "round";
 
         function obterPosicao(e) {
             const rect = canvas.getBoundingClientRect();
@@ -237,175 +227,82 @@
             return { x: clienteX - rect.left, y: clienteY - rect.top };
         }
 
-        canvas.addEventListener('mousedown', (e) => { 
-            desenhando = true; 
-            const pos = obterPosicao(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        });
-        canvas.addEventListener('mousemove', (e) => {
-            if (!desenhando) return;
-            const pos = obterPosicao(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-        });
+        canvas.addEventListener('mousedown', (e) => { desenhando = true; const pos = obterPosicao(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); });
+        canvas.addEventListener('mousemove', (e) => { if (!desenhando) return; const pos = obterPosicao(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
         canvas.addEventListener('mouseup', () => desenhando = false);
 
-        canvas.addEventListener('touchstart', (e) => {
-            if (e.cancelable) e.preventDefault();
-            desenhando = true;
-            const pos = obterPosicao(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
-            if (e.cancelable) e.preventDefault();
-            if (!desenhando) return;
-            const pos = obterPosicao(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-        }, { passive: false });
-
+        canvas.addEventListener('touchstart', (e) => { if (e.cancelable) e.preventDefault(); desenhando = true; const pos = obterPosicao(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => { if (e.cancelable) e.preventDefault(); if (!desenhando) return; const pos = obterPosicao(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }, { passive: false });
         canvas.addEventListener('touchend', () => desenhando = false);
     }
 
     function limparAssinatura() {
         if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-
-    function consultarTermoNoFirebase() {
-        const buscaCpf = document.getElementById('busca-cpf-aluno').value.replace(/\D/g, "");
-        const buscaNome = document.getElementById('busca-nome-aluno').value.trim().toLowerCase();
-        const buscaNasc = document.getElementById('busca-nasc-aluno').value;
-
-        if (!buscaCpf && (!buscaNome || !buscaNasc)) {
-            alert("Preencha o CPF OU combine o Nome + Data de Nascimento para pesquisar.");
-            return;
-        }
-
-        if (buscaCpf) {
-            fetch(`${urlNuvemBase}/${buscaCpf}.json`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data) { alert("Nenhum termo assinado foi encontrado para este CPF."); return; }
-                carregarDadosNoFormulario(data);
-            })
-            .catch(() => alert("Erro ao consultar a nuvem."));
-        } else {
-            fetch(`${urlNuvemBase}.json`)
-            .then(res => res.json())
-            .then(allData => {
-                if (!allData) { alert("Nenhum termo registrado no banco de dados."); return; }
-                
-                let registroEncontrado = null;
-                for (let chave in allData) {
-                    let registro = allData[chave];
-                    let nomeOriginal = registro.nomeAluno ? (registro.nomeOriginalAluno || registro.nomeAluno.trim().toLowerCase()) : "";
-                    
-                    if ((nomeOriginal === buscaNome || nomeOriginal.includes(buscaNome)) && registro.dataNascimentoAluno === buscaNasc) {
-                        registroEncontrado = registro;
-                        break;
-                    }
-                }
-
-                if (!registroEncontrado) {
-                    alert("Não encontramos nenhum termo correspondente a este Nome e Data de Nascimento.");
-                    return;
-                }
-                carregarDadosNoFormulario(registroEncontrado);
-            })
-            .catch(() => alert("Erro ao realizar busca por nome na nuvem."));
-        }
-    }
-
-    function carregarDadosNoFormulario(data) {
-        mudarTipoIdade(data.tipoContrato || 'menor');
-
-        document.getElementById('campo-nome-aluno').value = data.nomeAluno || "";
-        document.getElementById('campo-cpf-aluno').value = data.cpfAluno || "";
-        document.getElementById('campo-rg-aluno').value = data.rgAluno || "";
-        document.getElementById('campo-cidade').value = data.cidade || "";
-        document.getElementById('campo-data-atual').value = data.dataAssinatura || "";
-
-        if (data.tipoContrato === 'menor') {
-            document.getElementById('campo-nome-resp').value = data.nomeResponsavel || "";
-            document.getElementById('campo-cpf-resp').value = data.cpfResponsavel || "";
-            document.getElementById('campo-parentesco').value = data.parentescoResponsavel || "";
-        }
-
-        if (data.assinaturaDedo) {
-            const img = new Image();
-            img.src = data.assinaturaDedo;
-            img.onload = () => {
-                limparAssinatura();
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
-        }
-        alert("🔒 Registro localizado! Dados e assinatura carregados na tela.");
-    }
-
+</script>
+<script>
     function enviarDadosAoFirebase() {
         const botao = document.getElementById('btn-enviar-firebase');
         const nomeAluno = document.getElementById('campo-nome-aluno').value.trim();
-        const cpfAlunoComMascara = document.getElementById('campo-cpf-aluno').value;
-        const cpfAlunoLimpo = cpfAlunoComMascara.replace(/\D/g, "");
+        const cpfComMascara = document.getElementById('campo-cpf-aluno').value;
+        const cpfLimpo = cpfComMascara.replace(/\D/g, "");
 
-        if (!nomeAluno) {
-            alert("Por favor, preencha pelo menos o Nome do Aluno.");
-            return;
-        }
-
-        let chaveDestino = cpfAlunoLimpo;
-        if (!chaveDestino) {
-            const dataInscricaoLimpa = new Date().getTime();
-            chaveDestino = "sem_cpf_" + nomeAluno.toLowerCase().replace(/\s+/g, "_") + "_" + dataInscricaoLimpa;
-        }
+        if (!nomeAluno) { alert("Por favor, preencha o Nome do Aluno."); return; }
+        let chaveDestino = cpfLimpo || "sem_cpf_" + nomeAluno.toLowerCase().replace(/\s+/g, "_");
 
         botao.disabled = true;
         botao.innerText = "⏳ Gravando na Nuvem...";
 
-        const assinaturaImagemBase64 = canvas.toDataURL('image/png');
-        const buscaNascInput = document.getElementById('busca-nasc-aluno').value;
-
         const dadosTermo = {
-            tipoContrato: tipoIdadeAtual,
-            nomeAluno: nomeAluno,
-            nomeOriginalAluno: nomeAluno.toLowerCase(),
-            dataNascimentoAluno: buscaNascInput || "", 
-            cpfAluno: cpfAlunoComMascara,
+            tipoContrato: tipoIdadeAtual, nomeAluno: nomeAluno, cpfAluno: cpfComMascara,
             rgAluno: document.getElementById('campo-rg-aluno').value,
             nomeResponsavel: tipoIdadeAtual === 'menor' ? document.getElementById('campo-nome-resp').value : "",
             cpfResponsavel: tipoIdadeAtual === 'menor' ? document.getElementById('campo-cpf-resp').value : "",
             parentescoResponsavel: tipoIdadeAtual === 'menor' ? document.getElementById('campo-parentesco').value : "",
-            cidade: document.getElementById('campo-cidade').value,
-            dataAssinatura: document.getElementById('campo-data-atual').value,
-            assinaturaDedo: assinaturaImagemBase64,
-            dataRegistroSistema: new Date().toLocaleString("pt-BR")
+            cidade: document.getElementById('campo-cidade').value, dataAssinatura: document.getElementById('campo-data-atual').value,
+            assinaturaDedo: canvas.toDataURL('image/png'), dataRegistroSistema: new Date().toLocaleString("pt-BR")
         };
 
-        fetch(`${urlNuvemBase}/${chaveDestino}.json`, {
-            method: 'PUT',
-            body: JSON.stringify(dadosTermo),
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Falha no salvamento');
-            return response.json();
-        })
-        .then(() => {
-            alert("Sucesso! O termo e a assinatura foram registrados na nuvem.");
-            limparAssinatura();
-            document.getElementById('form-termo').reset();
-            document.getElementById('campo-data-atual').value = new Date().toISOString().split('T');
-            botao.disabled = false;
-            botao.innerText = "💾 Enviar e Salvar na Matrícula";
-        })
-        .catch((error) => {
-            console.error(error);
-            alert("Erro na gravação. Verifique os dados.");
-            botao.disabled = false;
-            botao.innerText = "💾 Enviar e Salvar na Matrícula";
-        });
+        // CORREÇÃO DE CONEXÃO: Varre o registro existente usando requisição limpa
+        const xhrCheck = new XMLHttpRequest();
+        xhrCheck.open("GET", `${urlNuvemBase}/${chaveDestino}.json`, true);
+        xhrCheck.onload = function() {
+            let matriculaExistente = JSON.parse(xhrCheck.responseText);
+            let payload = matriculaExistente ? { ...matriculaExistente, termoAssinado: dadosTermo } : { id: chaveDestino, nome: nomeAluno, cpf: cpfComMascara, termoAssinado: dadosTermo };
+
+            const xhrSave = new XMLHttpRequest();
+            xhrSave.open("PUT", `${urlNuvemBase}/${chaveDestino}.json`, true);
+            xhrSave.setRequestHeader("Content-Type", "application/json");
+            xhrSave.onload = function() {
+                alert("Sucesso! O termo foi integrado à matrícula do aluno.");
+                limparAssinatura(); document.getElementById('form-termo').reset();
+                document.getElementById('campo-data-atual').value = new Date().toISOString().split('T')[0];
+                botao.disabled = false; botao.innerText = "💾 Enviar e Salvar na Matrícula";
+            };
+            xhrSave.send(JSON.stringify(payload));
+        };
+        xhrCheck.send();
+    }
+
+    function consultarTermoNoFirebase() {
+        const buscaCpf = document.getElementById('busca-cpf-aluno').value.replace(/\D/g, "");
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `${urlNuvemBase}.json`, true);
+        xhr.onload = function() {
+            let allData = JSON.parse(xhr.responseText);
+            if (!allData) { alert("Nenhum registro encontrado."); return; }
+            let achado = allData[buscaCpf]?.termoAssinado;
+            if (!achado) { alert("Termo não localizado para este CPF."); return; }
+            
+            document.getElementById('campo-nome-aluno').value = achado.nomeAluno || "";
+            document.getElementById('campo-cpf-aluno').value = achado.cpfAluno || "";
+            document.getElementById('campo-rg-aluno').value = achado.rgAluno || "";
+            if(achado.assinaturaDedo) {
+                const img = new Image(); img.src = achado.assinaturaDedo;
+                img.onload = () => { limparAssinatura(); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+            }
+            alert("🔒 Registro e assinatura carregados!");
+        };
+        xhr.send();
     }
 </script>
