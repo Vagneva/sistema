@@ -287,6 +287,7 @@
     }
 </script>
 <script>
+<script>
     function consultarTermoNoFirebase() {
         const buscaCpf = document.getElementById('busca-cpf-aluno').value.replace(/\D/g, "");
         const buscaNome = document.getElementById('busca-nome-aluno').value.trim().toLowerCase();
@@ -305,13 +306,14 @@
             
             let termoAchado = null;
             
-            // Varredura ajustada para ler exatamente a estrutura da foto do seu Firebase
+            // Varredura precisa baseada nos nós reais da imagem do seu banco
             for (let chave in allData) {
                 let m = allData[chave];
                 let cpfLimpoMatricula = m.cpf ? m.cpf.replace(/\D/g, "") : "";
                 let nomeMatricula = m.nome ? m.nome.trim().toLowerCase() : "";
-                let nascMatricula = m.nasc || "";
+                let nascMatricula = m.nasc || m.dataNascimentoAluno || "";
 
+                // Verifica se os dados coincidem com a busca
                 if (buscaCpf && (chave === buscaCpf || cpfLimpoMatricula === buscaCpf)) {
                     termoAchado = m.termoAssinado;
                     break;
@@ -332,36 +334,33 @@
     }
 </script>
 <script>
-<script>
     function carregarDadosNoFormulario(data) {
-        // Altera o tipo de contrato (Menor/Maior) baseado no registro da nuvem
+        // Altera visualmente o botão de acordo com o contrato salvo
         mudarTipoIdade(data.tipoContrato || 'menor');
 
-        // Puxa os dados respeitando a estrutura do seu Firebase
-        document.getElementById('campo-nome-aluno').value = data.nomeAluno || data.nome || "";
-        document.getElementById('campo-cpf-aluno').value = data.cpfAluno || data.cpf || "";
-        document.getElementById('campo-rg-aluno').value = data.rgAluno || data.rg || "";
+        // Preenche os campos lendo as propriedades da subpasta do Firebase
+        document.getElementById('campo-nome-aluno').value = data.nomeAluno || "";
+        document.getElementById('campo-cpf-aluno').value = data.cpfAluno || "";
+        document.getElementById('campo-rg-aluno').value = data.rgAluno || "";
         
-        // Trata de forma inteligente o campo de data de nascimento se ele existir
         if (document.getElementById('campo-nasc-aluno-form')) {
-            document.getElementById('campo-nasc-aluno-form').value = data.dataNascimentoAluno || data.nasc || "";
+            document.getElementById('campo-nasc-aluno-form').value = data.dataNascimentoAluno || "";
         }
         
         document.getElementById('campo-cidade').value = data.cidade || "";
         document.getElementById('campo-data-atual').value = data.dataAssinatura || "";
 
-        // Se for menor de idade, preenche a seção dos responsáveis legais
         if (data.tipoContrato === 'menor') {
             document.getElementById('campo-nome-resp').value = data.nomeResponsavel || "";
             document.getElementById('campo-cpf-resp').value = data.cpfResponsavel || "";
             document.getElementById('campo-parentesco').value = data.parentescoResponsavel || "";
         }
 
-        // Renderiza o desenho feito com o dedo de volta dentro do painel (Canvas)
+        // Desenha a linha azul da assinatura de volta na tela usando o código Base64
         if (data.assinaturaDedo) {
             const img = new Image();
             img.src = data.assinaturaDedo;
-            img.onload = () => {
+            img.onload = function() {
                 limparAssinatura();
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             };
@@ -370,3 +369,4 @@
         alert("🔒 Registro e assinatura com o dedo carregados com sucesso!");
     }
 </script>
+
