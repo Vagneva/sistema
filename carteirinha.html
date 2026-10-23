@@ -218,6 +218,7 @@
       font-weight: bold;
       margin: 6px 0 4px 0;
       color: #fff;
+      min-height: 24px;
     }
 
     .badge-graduacao-container, .badge-verso-container {
@@ -335,31 +336,31 @@
     <div class="grid-campos">
       <div class="campo-grupo full">
         <label>Buscar / Filtrar por CPF do Aluno:</label>
-        <input type="text" id="inCPF" value="09453354821" placeholder="Digite apenas os números">
+        <input type="text" id="inCPF" value="" placeholder="Digite apenas números">
       </div>
       <div class="campo-grupo full">
         <label>Nome do Aluno:</label>
-        <input type="text" id="inNome" value="Vagner Roberto da Silva" oninput="atualizarDados()">
+        <input type="text" id="inNome" value="" placeholder="Nome completo" oninput="atualizarDados()">
       </div>
       <div class="campo-grupo">
         <label>Nº de Registro (REG):</label>
-        <input type="text" id="inReg" value="01" oninput="atualizarDados()">
+        <input type="text" id="inReg" value="" placeholder="Ex: 01" oninput="atualizarDados()">
       </div>
       <div class="campo-grupo">
         <label>Data de Mudança da Faixa:</label>
-        <input type="text" id="inDataFaixa" value="03/09/2020" maxlength="10" placeholder="DD/MM/AAAA" oninput="aplicarMascaraData(this); atualizarDados()">
+        <input type="text" id="inDataFaixa" value="" maxlength="10" placeholder="DD/MM/AAAA" oninput="aplicarMascaraData(this); atualizarDados()">
       </div>
       <div class="campo-grupo">
         <label>Data de Validade:</label>
-        <input type="text" id="inValidade" value="23/12/2026" maxlength="10" placeholder="DD/MM/AAAA" oninput="aplicarMascaraData(this); atualizarDados()">
+        <input type="text" id="inValidade" value="" maxlength="10" placeholder="DD/MM/AAAA" oninput="aplicarMascaraData(this); atualizarDados()">
       </div>
       <div class="campo-grupo">
         <label>Filiação:</label>
-        <input type="text" id="inFiliacao" value="FPT" oninput="atualizarDados()">
+        <input type="text" id="inFiliacao" value="" placeholder="Ex: FPT" oninput="atualizarDados()">
       </div>
       <div class="campo-grupo">
         <label>Tipo Sanguíneo:</label>
-        <input type="text" id="inSangue" value="A+" oninput="atualizarDados()">
+        <input type="text" id="inSangue" value="" placeholder="Ex: A+" oninput="atualizarDados()">
       </div>
       <div class="campo-grupo">
         <label>Foto do Aluno (Frente):</label>
@@ -372,8 +373,8 @@
       <div class="campo-grupo full">
         <label>Graduação / Faixa:</label>
         <select id="inFaixa" onchange="atualizarDados()">
-          <option value="Branca" data-cor="#7a7a7a" data-ponta="#7a7a7a">Faixa Branca - 10º Gub</option>
-          <option value="Branca ponta Amarela" data-cor="#7a7a7a" data-ponta="#fbc02d" selected>Faixa Branca ponta Amarela - 9º Gub</option>
+          <option value="Branca" data-cor="#7a7a7a" data-ponta="#7a7a7a" selected>Faixa Branca - 10º Gub</option>
+          <option value="Branca ponta Amarela" data-cor="#7a7a7a" data-ponta="#fbc02d">Faixa Branca ponta Amarela - 9º Gub</option>
           <option value="Amarela" data-cor="#fbc02d" data-ponta="#fbc02d">Faixa Amarela - 8º Gub</option>
           <option value="Amarela ponta Verde" data-cor="#fbc02d" data-ponta="#2e7d32">Faixa Amarela ponta Verde - 7º Gub</option>
           <option value="Verde" data-cor="#2e7d32" data-ponta="#2e7d32">Faixa Verde - 6º Gub</option>
@@ -409,13 +410,13 @@
           <p>Associação Oficial de Taekwondo</p>
         </div>
         <div class="user-info">
-          <div class="name" id="cardNome">Vagner Roberto da Silva</div>
+          <div class="name" id="cardNome"></div>
           <div class="badge-graduacao-container" id="cardBadgeContainer"></div>
         </div>
         <div class="extra-details">
-          <div>REG: <span id="cardReg">01</span></div>
-          <div>SANGUE: <span id="cardSangue">A+</span></div>
-          <div style="grid-column: span 2;">FILIAÇÃO: <span id="cardFiliacao">FPT</span></div>
+          <div>REG: <span id="cardReg"></span></div>
+          <div>SANGUE: <span id="cardSangue"></span></div>
+          <div style="grid-column: span 2;">FILIAÇÃO: <span id="cardFiliacao"></span></div>
         </div>
       </div>
     </div>
@@ -428,8 +429,8 @@
             <h3>Informações do Aluno</h3>
             <ul class="history-list">
               <li>Graduação: <div class="badge-verso-container" id="cardBadgeContainerVerso"></div></li>
-              <li>Data da Faixa: <span id="cardDataFaixa">03/09/2020</span></li>
-              <li>Validade: <span id="cardValidade">23/12/2026</span></li>
+              <li>Data da Faixa: <span id="cardDataFaixa"></span></li>
+              <li>Validade: <span id="cardValidade"></span></li>
             </ul>
           </div>
           <div class="principles-section">
@@ -446,8 +447,10 @@
       </div>
     </div>
   </div>
+  <!-- Tag oficial de importação do html2canvas realocada de forma assíncrona estável -->
+  <script src="https://cloudflare.com" crossorigin="anonymous"></script>
+
   <script>
-    // Link direto do seu Realtime Database extraído da sua imagem
     const LINK_FIREBASE =  "https://academia-2d8b2-default-rtdb.firebaseio.com/";
 
     let fotoBase64 = "";
@@ -499,12 +502,12 @@
       const corBase = opcaoSelecionada.getAttribute('data-cor');
       const corPonta = opcaoSelecionada.getAttribute('data-ponta');
 
-      document.getElementById('cardNome').innerText = nome;
-      document.getElementById('cardReg').innerText = reg;
-      document.getElementById('cardFiliacao').innerText = filiacao;
-      document.getElementById('cardSangue').innerText = sangue;
-      document.getElementById('cardDataFaixa').innerText = dataFaixa;
-      document.getElementById('cardValidade').innerText = validade;
+      document.getElementById('cardNome').innerText = nome || "Nome do Aluno";
+      document.getElementById('cardReg').innerText = reg || "";
+      document.getElementById('cardFiliacao').innerText = filiacao || "";
+      document.getElementById('cardSangue').innerText = sangue || "";
+      document.getElementById('cardDataFaixa').innerText = dataFaixa || "";
+      document.getElementById('cardValidade').innerText = validade || "";
 
       const containerBadgeFrente = document.getElementById('cardBadgeContainer');
       const containerBadgeVerso = document.getElementById('cardBadgeContainerVerso');
@@ -619,54 +622,43 @@
       .catch(erro => { console.error(erro); alert("Erro ao ler o banco de dados."); });
     }
 
+    // Função de exportação corrigida baseada na biblioteca oficial vinculada
     function salvarComoImagem() {
+      if (typeof html2canvas === 'undefined') {
+        alert("Aguarde a biblioteca terminar de carregar em ambiente seguro.");
+        return;
+      }
+
+      const frente = document.getElementById('blocoFrente');
+      const verso = document.getElementById('blocoVerso');
       const nomeAluno = document.getElementById('inNome').value || 'carteirinha';
       const sufixoNome = nomeAluno.replace(/\s+/g, '_');
-      
-      const processarDownload = (idElemento, tipoFim) => {
-        const el = document.getElementById(idElemento);
-        const l = el.clientWidth;
-        const a = el.clientHeight;
-        
-        const cssStyles = Array.from(document.styleSheets)
-          .map(s => { try { return Array.from(s.cssRules).map(r => r.cssText).join(''); } catch(e) { return ''; } })
-          .join('');
 
-        const svgString = `
-          <svg xmlns="http://w3.org" width="${l}" height="${a}">
-            <foreignObject width="100%" height="100%">
-              <div xmlns="http://w3.org">
-                <style>${cssStyles}</style>
-                ${el.outerHTML}
-              </div>
-            </foreignObject>
-          </svg>
-        `;
-
-        const img = new Image();
-        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          canvas.width = l * 3;
-          canvas.height = a * 3;
-          const ctx = canvas.getContext('2d');
-          ctx.scale(3, 3);
-          ctx.drawImage(img, 0, 0);
-          
-          const link = document.createElement('a');
-          link.download = `Carteirinha_${sufixoNome}_${tipoFim}.png`;
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-        };
+      const configRender = {
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        scale: 3
       };
 
-      try {
-        processarDownload('blocoFrente', 'FRENTE');
-        setTimeout(() => { processarDownload('blocoVerso', 'VERSO'); }, 500);
-      } catch(err) {
-        alert("Erro ao converter layout visível.");
+      html2canvas(frente, configRender).then(canvasFrente => {
+        const linkFrente = document.createElement('a');
+        linkFrente.download = "Carteirinha_" + sufixoNome + "_FRENTE.png";
+        linkFrente.href = canvasFrente.toDataURL('image/png');
+        linkFrente.click();
+
+        setTimeout(() => {
+          html2canvas(verso, configRender).then(canvasVerso => {
+            const linkVerso = document.createElement('a');
+            linkVerso.download = "Carteirinha_" + sufixoNome + "_VERSO.png";
+            linkVerso.href = canvasVerso.toDataURL('image/png');
+            linkVerso.click();
+          });
+        }, 500);
+      }).catch(err => {
+        alert("Falha técnica ao exportar o crachá.");
         console.error(err);
-      }
+      });
     }
 
     window.onload = function() {
