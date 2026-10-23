@@ -155,13 +155,14 @@
     }
 </style>
 <script>
+ <script>
     const urlNuvemBase =  "https://academia-2d8b2-default-rtdb.firebaseio.com/";
     let canvas, ctx, desenhando = false;
     let tipoIdadeAtual = 'menor';
 
     window.onload = function() {
         inicializarCanvas();
-        document.getElementById('campo-data-atual').value = new Date().toISOString().split('T')[0];
+        document.getElementById('campo-data-atual').value = new Date().toISOString().split('T');
         configurarMascaras();
     };
 
@@ -193,20 +194,26 @@
 
     function mudarTipoIdade(tipo) {
         tipoIdadeAtual = tipo;
-        document.getElementById('btn-menor').classList.toggle('ativa', tipo === 'menor');
-        document.getElementById('btn-maior').classList.toggle('ativa', tipo === 'maior');
+        
+        const btnMenor = document.getElementById('btn-menor');
+        const btnMaior = document.getElementById('btn-maior');
+        if(btnMenor) btnMenor.classList.toggle('ativa', tipo === 'menor');
+        if(btnMaior) btnMaior.classList.toggle('ativa', tipo === 'maior');
+        
         let responsavel = document.getElementById('secao-dados-responsavel');
         let titAluno = document.getElementById('titulo-dados-aluno');
-        let htmlAssinatura = document.getElementById('linha-nome-assinante');
+        
+        // CORREÇÃO: Busca por múltiplos IDs possíveis para nunca dar erro de elemento nulo
+        let htmlAssinatura = document.getElementById('linha-nome-assinante') || document.getElementById('linha-nome-signature');
 
         if (tipo === 'maior') {
-            responsavel.classList.add('hidden');
-            titAluno.innerText = "2. Dados do Aluno / Atleta (Maior de Idade)";
-            htmlAssinatura.innerText = "Assinatura do Aluno (Maior de Idade)";
+            if(responsavel) responsavel.classList.add('hidden');
+            if(titAluno) titAluno.innerText = "2. Dados do Aluno / Atleta (Maior de Idade)";
+            if(htmlAssinatura) htmlAssinatura.innerText = "Assinatura do Aluno (Maior de Idade)";
         } else {
-            responsavel.classList.remove('hidden');
-            titAluno.innerText = "2. Dados do Aluno / Atleta (Menor de Idade)";
-            htmlAssinatura.innerText = "Assinatura do Responsável Legal";
+            if(responsavel) responsavel.classList.remove('hidden');
+            if(titAluno) titAluno.innerText = "2. Dados do Aluno / Atleta (Menor de Idade)";
+            if(htmlAssinatura) htmlAssinatura.innerText = "Assinatura do Responsável Legal";
         }
         limparAssinatura();
     }
