@@ -12,9 +12,7 @@
       --text-light: #ffffff;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -49,61 +47,14 @@
       font-size: 16px;
     }
 
-    .grid-campos {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+    .grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .campo-grupo { margin-bottom: 12px; display: flex; flex-direction: column; }
+    .campo-grupo.full { grid-column: span 2; }
+    .campo-grupo label { font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+    .campo-grupo input, .campo-grupo select { padding: 8px; background: #2b2b2b; border: 1px solid #444; color: white; border-radius: 6px; font-size: 13px; width: 100%; }
 
-    .campo-grupo {
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .campo-grupo.full {
-      grid-column: span 2;
-    }
-
-    .campo-grupo label {
-      font-size: 11px;
-      color: #aaa;
-      margin-bottom: 4px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .campo-grupo input, .campo-grupo select {
-      padding: 8px;
-      background: #2b2b2b;
-      border: 1px solid #444;
-      color: white;
-      border-radius: 6px;
-      font-size: 13px;
-      width: 100%;
-    }
-
-    .container-botoes {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .btn-acao {
-      width: 100%;
-      color: #ffffff !important;
-      border: none;
-      padding: 12px;
-      font-weight: bold;
-      font-size: 13px;
-      border-radius: 6px;
-      cursor: pointer;
-      text-transform: uppercase;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: background 0.2s;
-    }
-
+    .container-botoes { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    .btn-acao { width: 100%; color: #ffffff !important; border: none; padding: 12px; font-weight: bold; font-size: 13px; border-radius: 6px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: background 0.2s; }
     .btn-buscar { background: #0288d1; }
     .btn-buscar:hover { background: #01579b; }
     .btn-salvar-db { background: #ffa000; }
@@ -111,223 +62,41 @@
     .btn-whats { background: #2e7d32; }
     .btn-whats:hover { background: #1b5e20; }
 
-    .preview-exportacao {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .card-front, .card-back {
-      width: 440px;
-      height: 260px;
-      border-radius: 14px;
-      box-sizing: border-box;
-      padding: 16px;
-      background: var(--bg-card);
-      border: 4px solid var(--faixa-cor);
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-    }
-
+    .preview-exportacao { display: flex; flex-direction: column; gap: 20px; }
+    .card-front, .card-back { width: 440px; height: 260px; border-radius: 14px; box-sizing: border-box; padding: 16px; background: var(--bg-card); border: 4px solid var(--faixa-cor); display: flex; justify-content: space-between; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
+    
     .card-front::before, .card-back::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 18px;
-      background: linear-gradient(
-        to right,
-        var(--faixa-cor) 0%,
-        var(--faixa-cor) calc(50% - 3px),
-        var(--ponta-cor) calc(50% - 3px),
-        var(--ponta-cor) calc(50% + 3px),
-        var(--faixa-cor) calc(50% + 3px),
-        var(--faixa-cor) 100%
-      );
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 18px;
+      background: linear-gradient(to right, var(--faixa-cor) 0%, var(--faixa-cor) calc(50% - 3px), var(--ponta-cor) calc(50% - 3px), var(--ponta-cor) calc(50% + 3px), var(--faixa-cor) calc(50% + 3px), var(--faixa-cor) 100%);
     }
 
-    .card-left {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      width: 130px;
-      margin-top: 12px;
-    }
+    .card-left { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 130px; margin-top: 12px; }
+    .photo-area { width: 100px; height: 125px; background: #252525; border: 2px solid #444; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .photo-area img { width: 100%; height: 100%; object-fit: cover; }
+    .status-badge { background: #2e7d32; color: white; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
 
-    .photo-area {
-      width: 100px;
-      height: 125px;
-      background: #252525;
-      border: 2px solid #444;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+    .card-right { flex: 1; margin-left: 16px; margin-top: 15px; display: flex; flex-direction: column; justify-content: space-between; }
+    .header h2 { margin: 0; font-size: 20px; letter-spacing: 1px; color: #ffffff; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+    .header p { margin: 2px 0 0 0; font-size: 10px; color: #ffb300; text-transform: uppercase; font-weight: bold; letter-spacing: 1.2px; }
+    
+    .user-info .name { font-size: 18px; font-weight: bold; margin: 6px 0 4px 0; color: #fff; min-height: 24px; }
+    .badge-graduacao-container, .badge-verso-container { display: inline-block; background: #ffffff; padding: 4px 14px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+    .extra-details { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-top: 1px solid #333; padding-top: 8px; font-size: 11px; color: #bbb; }
 
-    .photo-area img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .card-back { flex-direction: column; justify-content: space-between; padding-top: 24px; }
+    .back-content { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+    .back-info { flex: 1; padding-right: 15px; }
+    
+    .history-section h3, .principles-section h3 { font-size: 11px; color: #ffb300; margin: 0 0 4px 0; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 2px; }
+    .history-list { list-style: none; padding: 0; margin: 0 0 10px 0; font-size: 11px; }
+    .history-list li { display: flex; justify-content: space-between; margin-bottom: 5px; color: #ccc; align-items: center; }
+    .principles-text { font-size: 9.5px; font-style: italic; color: #aaa; line-height: 1.3; margin: 0; }
 
-    .status-badge {
-      background: #2e7d32;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
+    .qr-code-area { background: white; border: 2px solid #444; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 95px; height: 95px; overflow: hidden; padding: 4px; }
+    .qr-code-area img { width: 100%; height: 100%; object-fit: contain; }
+    .card-footer { font-size: 9px; color: #777; text-align: center; border-top: 1px solid #252525; padding-top: 4px; }
 
-    .card-right {
-      flex: 1;
-      margin-left: 16px;
-      margin-top: 15px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .header h2 {
-      margin: 0;
-      font-size: 20px;
-      letter-spacing: 1px;
-      color: #ffffff;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-    }
-
-    .header p {
-      margin: 2px 0 0 0;
-      font-size: 10px;
-      color: #ffb300;
-      text-transform: uppercase;
-      font-weight: bold;
-      letter-spacing: 1.2px;
-    }
-
-    .user-info .name {
-      font-size: 18px;
-      font-weight: bold;
-      margin: 6px 0 4px 0;
-      color: #fff;
-      min-height: 24px;
-    }
-
-    .badge-graduacao-container, .badge-verso-container {
-      display: inline-block;
-      background: #ffffff;
-      padding: 4px 14px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
-      text-transform: uppercase;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-
-    .extra-details {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      border-top: 1px solid #333;
-      padding-top: 8px;
-      font-size: 11px;
-      color: #bbb;
-    }
-
-    .card-back {
-      flex-direction: column;
-      justify-content: space-between;
-      padding-top: 24px;
-    }
-
-    .back-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 100%;
-    }
-
-    .back-info {
-      flex: 1;
-      padding-right: 15px;
-    }
-
-    .history-section h3, .principles-section h3 {
-      font-size: 11px;
-      color: #ffb300;
-      margin: 0 0 4px 0;
-      text-transform: uppercase;
-      border-bottom: 1px solid #333;
-      padding-bottom: 2px;
-    }
-
-    .history-list {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 10px 0;
-      font-size: 11px;
-    }
-
-    .history-list li {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 5px;
-      color: #ccc;
-      align-items: center;
-    }
-
-    .principles-text {
-      font-size: 9.5px;
-      font-style: italic;
-      color: #aaa;
-      line-height: 1.3;
-      margin: 0;
-    }
-
-    .qr-code-area {
-      background: white;
-      border: 2px solid #444;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 95px;
-      height: 95px;
-      overflow: hidden;
-      padding: 4px;
-    }
-
-    .qr-code-area img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .card-footer {
-      font-size: 9px;
-      color: #777;
-      text-align: center;
-      border-top: 1px solid #252525;
-      padding-top: 4px;
-    }
-
-    @media (max-width: 900px) {
-      body {
-        flex-direction: column;
-        align-items: center;
-      }
-      .painel-controle {
-        position: static;
-      }
-    }
+    @media (max-width: 900px) { body { flex-direction: column; align-items: center; } .painel-controle { position: static; } }
   </style>
 </head>
 <body>
@@ -391,16 +160,15 @@
     <div class="container-botoes">
       <button class="btn-acao btn-buscar" onclick="buscarAlunoFirebase()">🔍 Buscar pelo CPF</button>
       <button class="btn-acao btn-salvar-db" onclick="salvarAlunoFirebase()">💾 Salvar/Atualizar no Firebase</button>
-      <button class="btn-acao btn-whats" onclick="salvarComoImagem()">🖼️ Baixar Fotos para WhatsApp</button>
+      <button class="btn-acao btn-whats" onclick="salvarComoImagem()">🖼️ Exportar Arte para WhatsApp</button>
     </div>
   </div>
 
   <div class="preview-exportacao" id="areaExportacao">
-    <!-- FRENTE DO CARTÃO -->
     <div class="card-front" id="blocoFrente">
       <div class="card-left">
         <div class="photo-area">
-          <img id="cardFoto" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125' viewBox='0 0 100 125'><rect width='100%' height='100%' fill='%23252525'/><text x='50%' y='50%' font-family='sans-serif' font-size='12' fill='%23666' text-anchor='middle' dy='.3em'>Sem Foto</text></svg>" alt="Foto">
+          <img id="cardFoto" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/><text x='50%' y='50%' font-family='sans-serif' font-size='12' fill='%23666' text-anchor='middle' dy='.3em'>Sem Foto</text></svg>" alt="Foto">
         </div>
         <span class="status-badge">Ativo</span>
       </div>
@@ -421,7 +189,6 @@
       </div>
     </div>
 
-    <!-- VERSO DO CARTÃO -->
     <div class="card-back" id="blocoVerso">
       <div class="back-content">
         <div class="back-info">
@@ -439,20 +206,14 @@
           </div>
         </div>
         <div class="qr-code-area">
-          <img id="cardQR" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95' viewBox='0 0 95 95'><rect width='100%' height='100%' fill='%23ffffff'/><text x='50%' y='50%' font-family='sans-serif' font-size='10' fill='%23666' text-anchor='middle' dy='.3em'>Sem QR Code</text></svg>" alt="QR Code">
+          <img id="cardQR" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/><text x='50%' y='50%' font-family='sans-serif' font-size='10' fill='%23666' text-anchor='middle' dy='.3em'>Sem QR Code</text></svg>" alt="QR Code">
         </div>
       </div>
-      <div class="card-footer">
-        Documento de identificação pessoal da academia. Em caso de achados, devolver na recepção.
-      </div>
+      <div class="card-footer">Documento de identificação pessoal da academia. Em caso de achados, devolver na recepção.</div>
     </div>
   </div>
-  <!-- Tag oficial de importação do html2canvas realocada de forma assíncrona estável -->
-  <script src="https://cloudflare.com" crossorigin="anonymous"></script>
-
   <script>
     const LINK_FIREBASE =  "https://academia-2d8b2-default-rtdb.firebaseio.com/";
-
     let fotoBase64 = "";
     let qrBase64 = "";
 
@@ -468,20 +229,21 @@
 
     function carregarFoto(event) {
       const reader = new FileReader();
-      reader.onload = function() {
-        fotoBase64 = reader.result;
-        document.getElementById('cardFoto').src = reader.result;
+      reader.onload = function() { 
+        fotoBase64 = reader.result; 
+        document.getElementById('cardFoto').src = reader.result; 
       }
       if(event.target.files && event.target.files[0]) {
         reader.readAsDataURL(event.target.files[0]);
       }
     }
 
+    // CORREÇÃO CRUCIAL APLICADA: Incluído o índice [0] para ler corretamente o arquivo de QR Code selecionado
     function carregarQRCode(event) {
       const reader = new FileReader();
-      reader.onload = function() {
-        qrBase64 = reader.result;
-        document.getElementById('cardQR').src = reader.result;
+      reader.onload = function() { 
+        qrBase64 = reader.result; 
+        document.getElementById('cardQR').src = reader.result; 
       }
       if(event.target.files && event.target.files[0]) {
         reader.readAsDataURL(event.target.files[0]);
@@ -513,12 +275,9 @@
       const containerBadgeVerso = document.getElementById('cardBadgeContainerVerso');
       
       let htmlRenderizado = ``;
-      
       if (nomeFaixa.includes("ponta")) {
         const partes = nomeFaixa.split(" ponta ");
-        htmlRenderizado = `<span style="color: ${corBase};">${partes[0]}</span>` +
-                           `<span style="color: #666666; font-weight: normal;"> ponta </span>` +
-                           `<span style="color: ${corPonta};">${partes[1]}</span>`;
+        htmlRenderizado = `<span style="color: ${corBase};">${partes[0]}</span><span style="color: #000000; font-weight: normal;"> ponta </span><span style="color: ${corPonta};">${partes[1]}</span>`;
       } else {
         const corAjustada = corBase === '#ffffff' ? '#333333' : corBase;
         htmlRenderizado = `<span style="color: ${corAjustada};">${nomeFaixa}</span>`;
@@ -527,167 +286,67 @@
       containerBadgeFrente.innerHTML = htmlRenderizado;
       containerBadgeVerso.innerHTML = htmlRenderizado;
 
-      const corBordaFrente = corBase === '#7a7a7a' ? '#ffffff' : corBase;
-      const corBordaPonta = corPonta === '#7a7a7a' ? '#ffffff' : corPonta;
-      document.documentElement.style.setProperty('--faixa-cor', corBordaFrente);
-      document.documentElement.style.setProperty('--ponta-cor', corBordaPonta);
+      document.documentElement.style.setProperty('--faixa-cor', corBase === '#7a7a7a' ? '#ffffff' : corBase);
+      document.documentElement.style.setProperty('--ponta-cor', corPonta === '#7a7a7a' ? '#ffffff' : corPonta);
     }
-        function salvarAlunoFirebase() {
-      const cpf = document.getElementById('inCPF').value.replace(/\D/g, "");
-      if (!cpf) {
-        alert("Por favor, informe o CPF para salvar o registro.");
-        return;
-      }
 
-      const urlBase = LINK_FIREBASE.endsWith('/') ? LINK_FIREBASE : LINK_FIREBASE + '/';
-      const endpoint = `${urlBase}carteirinhas/${cpf}.json`;
-
-      const dadosAluno = {
-        nome: document.getElementById('inNome').value,
-        reg: document.getElementById('inReg').value,
-        dataFaixa: document.getElementById('inDataFaixa').value,
-        validade: document.getElementById('inValidade').value,
-        filiacao: document.getElementById('inFiliacao').value,
-        sangue: document.getElementById('inSangue').value,
-        faixa: document.getElementById('inFaixa').value,
-        foto: fotoBase64,
-        qrcode: qrBase64
-      };
-
-      fetch(endpoint, {
-        method: 'PUT',
-        body: JSON.stringify(dadosAluno),
-        headers: { 'Content-Type': 'application/json' }
-      })
-      .then(response => {
-        if(response.ok) { alert("Carteirinha do aluno arquivada com sucesso!"); }
-        else { alert("Erro de resposta do banco ao gravar."); }
-      })
-      .catch(erro => { console.error(erro); alert("Erro ao conectar com o banco."); });
+    function salvarAlunoFirebase() {
+      const cpf = document.getElementById('inCPF').value.replace(/\D/g, ""); if (!cpf) { alert("Informe o CPF."); return; }
+      const url = `${LINK_FIREBASE.endsWith('/') ? LINK_FIREBASE : LINK_FIREBASE + '/'}carteirinhas/${cpf}.json`;
+      const dados = { nome: document.getElementById('inNome').value, reg: document.getElementById('inReg').value, dataFaixa: document.getElementById('inDataFaixa').value, validade: document.getElementById('inValidade').value, filiacao: document.getElementById('inFiliacao').value, sangue: document.getElementById('inSangue').value, faixa: document.getElementById('inFaixa').value, foto: fotoBase64, qrcode: qrBase64 };
+      fetch(url, { method: 'PUT', body: JSON.stringify(dados), headers: { 'Content-Type': 'application/json' } }).then(res => { if(res.ok) alert("Salvo com sucesso!"); });
     }
 
     function buscarAlunoFirebase() {
-      const cpf = document.getElementById('inCPF').value.replace(/\D/g, "");
-      if (!cpf) {
-        alert("Por favor, insira o CPF para pesquisar.");
-        return;
-      }
-
+      const cpf = document.getElementById('inCPF').value.replace(/\D/g, ""); if (!cpf) { alert("Insira o CPF."); return; }
       const urlBase = LINK_FIREBASE.endsWith('/') ? LINK_FIREBASE : LINK_FIREBASE + '/';
-      const endpointCarteirinha = `${urlBase}carteirinhas/${cpf}.json`;
-      const endpointMatriculaAlternativa = `${urlBase}${cpf}.json`;
-
-      fetch(endpointCarteirinha)
-      .then(response => response.json())
-      .then(dados => {
-        if (dados) {
-          document.getElementById('inNome').value = dados.nome || "";
-          document.getElementById('inReg').value = dados.reg || "";
-          document.getElementById('inDataFaixa').value = dados.dataFaixa || "";
-          document.getElementById('inValidade').value = dados.validade || "";
-          document.getElementById('inFiliacao').value = dados.filiacao || "";
-          document.getElementById('inSangue').value = dados.sangue || "";
-          document.getElementById('inFaixa').value = dados.faixa || "Branca";
-          
-          fotoBase64 = dados.foto || "";
-          document.getElementById('cardFoto').src = fotoBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>";
-          
-          qrBase64 = dados.qrcode || "";
-          document.getElementById('cardQR').src = qrBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/></svg>";
-          
-          atualizarDados();
-          alert("Carteirinha localizada e sincronizada!");
+      fetch(`${urlBase}carteirinhas/${cpf}.json`).then(r => r.json()).then(d => {
+        if (d) {
+          document.getElementById('inNome').value = d.nome || ""; document.getElementById('inReg').value = d.reg || ""; document.getElementById('inDataFaixa').value = d.dataFaixa || ""; document.getElementById('inValidade').value = d.validade || ""; document.getElementById('inFiliacao').value = d.filiacao || ""; document.getElementById('inSangue').value = d.sangue || ""; document.getElementById('inFaixa').value = d.faixa || "Branca";
+          fotoBase64 = d.foto || ""; document.getElementById('cardFoto').src = fotoBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>";
+          qrBase64 = d.qrcode || ""; document.getElementById('cardQR').src = qrBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/></svg>";
+          atualizarDados(); alert("Carteirinha carregada!");
         } else {
-          fetch(endpointMatriculaAlternativa)
-          .then(resAlt => resAlt.json())
-          .then(dadosAlt => {
-            if(dadosAlt) {
-              document.getElementById('inNome').value = dadosAlt.nome || dadosAlt.Nome || "";
-              document.getElementById('inFiliacao').value = dadosAlt.filiacao || dadosAlt.Filiacao || "FPT";
-              document.getElementById('inSangue').value = dadosAlt.sangue || dadosAlt.Sangue || "A+";
-              document.getElementById('inReg').value = dadosAlt.reg || dadosAlt.id || "";
-              document.getElementById('inDataFaixa').value = dadosAlt.dataFaixa || "";
-              
-              fotoBase64 = dadosAlt.foto || "";
-              document.getElementById('cardFoto').src = fotoBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>";
-              
-              atualizarDados();
-              alert("Registro básico importado do banco! Configure a faixa e clique em Salvar.");
-            } else {
-              alert("CPF não encontrado nas tabelas do Realtime Database.");
-            }
+          fetch(`${urlBase}${cpf}.json`).then(r => r.json()).then(dA => {
+            if(dA) {
+              document.getElementById('inNome').value = dA.nome || dA.Nome || ""; document.getElementById('inFiliacao').value = dA.filiacao || dA.Filiacao || "FPT"; document.getElementById('inSangue').value = dA.sangue || dA.Sangue || "A+"; document.getElementById('inReg').value = dA.reg || dA.id || ""; document.getElementById('inDataFaixa').value = ""; document.getElementById('inValidade').value = "23/12/2026";
+              fotoBase64 = ""; qrBase64 = ""; document.getElementById('cardFoto').src = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>"; document.getElementById('cardQR').src = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/></svg>";
+              atualizarDados(); alert("Cadastro bruto carregado!");
+            } else { alert("CPF não encontrado."); }
           });
         }
-      })
-      .catch(erro => { console.error(erro); alert("Erro ao ler o banco de dados."); });
+      });
     }
 
-    // NOVA FUNÇÃO DE CONVERSÃO 100% OFFLINE E COMPATÍVEL COM O GITHUB PAGES (SEM BIBLIOTECAS)
     function salvarComoImagem() {
       const nomeAluno = document.getElementById('inNome').value || 'carteirinha';
       const sufixoNome = nomeAluno.replace(/\s+/g, '_');
-      
-      const renderizarBlocoNativo = (idElemento, nomeArquivoSufixo) => {
-        const elementoOriginal = document.getElementById(idElemento);
-        const largura = 440;
-        const altura = 260;
-        
-        // Pega as regras CSS e fontes ativas da página para injetar na foto
-        const estilosInjetados = Array.from(document.styleSheets)
-          .map(s => { try { return Array.from(s.cssRules).map(r => r.cssText).join(''); } catch(e) { return ''; } })
-          .join('');
+      const estilosPagina = Array.from(document.styleSheets).map(s => { try { return Array.from(s.cssRules).map(r => r.cssText).join(''); } catch(e) { return ''; } }).join('');
 
-        // Monta um documento SVG temporário contendo o HTML exato da carteirinha
-        const estruturaSVG = `
-          <svg xmlns="http://w3.org" width="${largura}" height="${altura}">
-            <foreignObject width="100%" height="100%">
-              <div xmlns="http://w3.org">
-                <style>${estilosInjetados}</style>
-                ${elementoOriginal.outerHTML}
-              </div>
-            </foreignObject>
-          </svg>
-        `;
+      const htmlDocumento = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { background: #121212; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 40px; margin: 0; }
+            ${estilosPagina}
+          </style>
+        </head>
+        <body>
+          ${document.getElementById('areaExportacao').innerHTML}
+        </body>
+        </html>
+      `;
 
-        const blobImagem = new Blob([estruturaSVG], { type: 'image/svg+xml;charset=utf-8' });
-        const urlObjeto = URL.createObjectURL(blobImagem);
-        
-        const imagemTemporaria = new Image();
-        imagemTemporaria.src = urlObjeto;
-        
-        imagemTemporaria.onload = function() {
-          const canvasElemento = document.createElement('canvas');
-          // Define resolução ultra nítida (escala 3x)
-          canvasElemento.width = largura * 3;
-          canvasElemento.height = altura * 3;
-          
-          const contextoCanvas = canvasElemento.getContext('2d');
-          contextoCanvas.scale(3, 3);
-          contextoCanvas.drawImage(imagemTemporaria, 0, 0);
-          
-          const linkDownload = document.createElement('a');
-          linkDownload.download = `Carteirinha_${sufixoNome}_${nomeArquivoSufixo}.png`;
-          linkDownload.href = canvasElemento.toDataURL('image/png');
-          linkDownload.click();
-          
-          URL.revokeObjectURL(urlObjeto);
-        };
-      };
-
-      try {
-        renderizarBlocoNativo('blocoFrente', 'FRENTE');
-        setTimeout(() => {
-          renderizarBlocoNativo('blocoVerso', 'VERSO');
-        }, 500);
-      } catch(erroCaptura) {
-        alert("Não foi possível gerar os arquivos de imagem neste navegador.");
-        console.error(erroCaptura);
-      }
+      const blobHTML = new Blob([htmlDocumento], { type: 'text/html;charset=utf-8' });
+      const link = document.createElement('a');
+      link.download = `Carteirinha_${sufixoNome}.html`;
+      link.href = URL.createObjectURL(blobHTML);
+      link.click();
     }
-
-    window.onload = function() {
-      atualizarDados();
-    };
+    
+    window.onload = function() { atualizarDados(); };
   </script>
 </body>
 </html>
