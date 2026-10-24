@@ -28,9 +28,9 @@
         .titulo-academia{color:#ef4444;display:flex;align-items:center;gap:10px;margin:0}
         .titulo-academia h2{margin:0;color:#ef4444;font-size:20px} .icone-quimono-svg{width:32px;height:36px;fill:#ef4444}
         .btn-voltar-flutuante{background:#475569;color:white;border:none;padding:14px;border-radius:6px;font-weight:bold;cursor:pointer;width:100%;margin-top:20px;font-size:15px}
+        .data-treino {font-size: 13px; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; text-decoration: none !important; display: inline-block;}
     </style> 
 </head>
-
 <body> 
     <div class="container"> 
         <div id="cabecalho-completo">
@@ -70,8 +70,7 @@
             <div id="info-imc" class="imc-box"></div>
             <button type="button" id="btn-restaurar-menu" class="btn-voltar-flutuante hidden" onclick="restaurarMenuCompleto()">↩️ Voltar ao Menu Principal</button>
         </div> 
-
-<datalist id="banco-exercicios-sugestoes">
+        <datalist id="banco-exercicios-sugestoes">
             <option value="Rosca Direta Barra W"></option><option value="Rosca Direta Halteres"></option>
             <option value="Rosca Inclinada Halteres"></option><option value="Rosca Concentrada"></option>
             <option value="Rosca Scott Barra W"></option><option value="Rosca Martelo Halteres"></option>
@@ -95,7 +94,7 @@
             <option value="Prancha Isométrica"></option>
         </datalist>
 
-<div id="tela-admin" class="box hidden"> 
+        <div id="tela-admin" class="box hidden"> 
             <div style="display:flex;justify-content:space-between;margin-bottom:15px"> <h3>Painel do Administrador</h3> <button onclick="sairAdmin()" style="cursor:pointer;padding:4px 10px;">Voltar</button> </div> 
             <label>🔎 Buscar Aluno para Editar:</label>
             <input type="text" id="busca-admin-treino" oninput="filtrarAlunosAdmin()" placeholder="Digite as primeiras letras..." style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:4px;margin-bottom:10px;box-sizing:border-box">
@@ -117,10 +116,9 @@
             <button class="btn btn-danger" onclick="excluirAlunoAtual()">Excluir Aluno</button> 
         </div> 
     </div>
-
 <script> 
-        // ⚠️ RECOLOQUE O SEU LINK DO FIREBASE AQUI TERMINANDO COM "/.json"
-        const urlNuvem = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+const urlNuvem = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+
         
         let bdLocal = { alunos: {} }, logadoId = null, abaAtiva = 'A', admAbaAtiva = 'A', exerciciosEmEdicao = []; 
         function obterUrlFicha(id){ let u = urlNuvem.replace('.json', ''); if(u.endsWith('/')){u=u.slice(0,-1)} return u+"/"+id+".json"; }
@@ -151,10 +149,35 @@
             let a=bdLocal.alunos[logadoId];if(!a)return; let div=document.getElementById('lista-exercicios');div.innerHTML=''; 
             document.getElementById('nome-aluno-titulo').innerText="Treino: "+a.nome; document.getElementById('obj-aluno-titulo').innerText="Foco: "+(a.objetivo||'Geral'); 
             let t=a.exercicios||[], f=t.filter(e=>e.f===abaAtiva); 
-            if(f.length===0){div.innerHTML='<p style="color:gray;padding:15px;text-align:center">Nenhum exercício hoje nesta ficha.</p>'}else{ f.forEach(e=>{ let idx=t.findIndex(o=>o.n===e.n&&o.f===e.f), ck=e.concluido?'checked':'', cl=e.concluido?'concluido':''; div.innerHTML+=`<div class="exercicio-item ${cl}"><input type="checkbox" ${ck} onchange="altSt(${idx},this)"><div><strong>${e.n}</strong> - ${e.s}x${e.r} | <span style="color:#1e3a8a;font-weight:bold">${e.p} Kg</span></div></div>` }) }
-            let p=parseFloat(a.peso), alt=parseFloat(a.altura); if(p&&alt){let imc=(p/(alt * alt)).toFixed(1),cat="Normal";if(imc<18.5)cat="Abaixo";else if(imc>=25&&imc<30)cat="Sobrepeso";else if(imc>=30)cat="Obesidade";document.getElementById('info-imc').innerHTML=`📊 <b>Avaliação:</b> ${p}kg | ${alt}m <br><b>IMC:</b> ${imc} (${cat})`;exib('info-imc',1)}else{document.getElementById('info-imc').innerHTML='';exib('info-imc',0)} 
+            if(f.length===0){div.innerHTML='<p style="color:gray;padding:15px;text-align:center">Nenhum exercício hoje nesta ficha.</p>'}else{ 
+                f.forEach(e=>{ 
+                    let idx=t.findIndex(o=>o.n===e.n&&o.f===e.f), ck=e.concluido?'checked':'', cl=e.concluido?'concluido':''; 
+                    let txtData = e.concluido && e.dataConclusao ? `<span class="data-treino">📅 ${e.dataConclusao}</span>` : '';
+                    div.innerHTML+=`<div class="exercicio-item ${cl}"><input type="checkbox" ${ck} onchange="altSt(${idx},this)"><div><strong>${e.n}</strong> - ${e.s}x${e.r} | <span style="color:#1e3a8a;font-weight:bold">${e.p} Kg</span>${txtData}</div></div>` 
+                }) 
+            }
+            let p=parseFloat(a.weight||a.peso), alt=parseFloat(a.height||a.altura); if(p&&alt){let imc=(p/(alt * alt)).toFixed(1),cat="Normal";if(imc<18.5)cat="Abaixo";else if(imc>=25&&imc<30)cat="Sobrepeso";else if(imc>=30)cat="Obesidade";document.getElementById('info-imc').innerHTML=`📊 <b>Avaliação:</b> ${p}kg | ${alt}m <br><b>IMC:</b> ${imc} (${cat})`;exib('info-imc',1)}else{document.getElementById('info-imc').innerHTML='';exib('info-imc',0)} 
         }
-        function altSt(idx,cb){ let a=bdLocal.alunos[logadoId];if(!a||!a.exercicios)return; a.exercicios[idx].concluido=cb.checked;localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos));cb.parentElement.classList.toggle('concluido',cb.checked);if(!urlNuvem.includes("seu-projeto-default")){fetch(obterUrlFicha(logadoId),{method:'PUT',body:JSON.stringify(a)})} }
+        function altSt(idx,cb){ 
+            let a=bdLocal.alunos[logadoId];if(!a||!a.exercicios)return; 
+            a.exercicios[idx].concluido=cb.checked;
+            
+            if(cb.checked) {
+                const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+                const agora = new Date();
+                const dia = String(agora.getDate()).padStart(2, '0');
+                const mes = String(agora.getMonth() + 1).padStart(2, '0');
+                const sem = diasSemana[agora.getDay()];
+                a.exercicios[idx].dataConclusao = `${dia}/${mes} (${sem})`;
+            } else {
+                delete a.exercicios[idx].dataConclusao;
+            }
+
+            localStorage.setItem('backup_academia_v9',JSON.stringify(bdLocal.alunos));
+            mostrarFicha();
+            if(!urlNuvem.includes("seu-projeto-default")){fetch(obterUrlFicha(logadoId),{method:'PUT',body:JSON.stringify(a)})} 
+        }
+        
         function irAdmin(){if(prompt('Senha:')==='2004'){sincronizarEcarregar();exib('cabecalho-completo',1);exib('tela-login',0);exib('tela-aluno',0);exib('tela-admin',1);admAbaAtiva='A';carregarEdicao()}} 
         function sairAdmin(){exib('tela-admin',0);exib('tela-login',1);document.getElementById('busca-admin-treino').value=''} 
         function mudarAbaAdmin(l){salvarExAba();admAbaAtiva=l;document.querySelectorAll('#tela-admin .tab').forEach(t=>t.classList.remove('active'));document.getElementById('adm-t'+l).classList.add('active');renderizarExerciciosAdmin()}
