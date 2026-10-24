@@ -532,7 +532,7 @@
       document.documentElement.style.setProperty('--faixa-cor', corBordaFrente);
       document.documentElement.style.setProperty('--ponta-cor', corBordaPonta);
     }
-    function salvarAlunoFirebase() {
+        function salvarAlunoFirebase() {
       const cpf = document.getElementById('inCPF').value.replace(/\D/g, "");
       if (!cpf) {
         alert("Por favor, informe o CPF para salvar o registro.");
@@ -622,43 +622,67 @@
       .catch(erro => { console.error(erro); alert("Erro ao ler o banco de dados."); });
     }
 
-    // Função de exportação corrigida baseada na biblioteca oficial vinculada
+    // NOVA FUNÇÃO DE CONVERSÃO 100% OFFLINE E COMPATÍVEL COM O GITHUB PAGES (SEM BIBLIOTECAS)
     function salvarComoImagem() {
-      if (typeof html2canvas === 'undefined') {
-        alert("Aguarde a biblioteca terminar de carregar em ambiente seguro.");
-        return;
-      }
-
-      const frente = document.getElementById('blocoFrente');
-      const verso = document.getElementById('blocoVerso');
       const nomeAluno = document.getElementById('inNome').value || 'carteirinha';
       const sufixoNome = nomeAluno.replace(/\s+/g, '_');
+      
+      const renderizarBlocoNativo = (idElemento, nomeArquivoSufixo) => {
+        const elementoOriginal = document.getElementById(idElemento);
+        const largura = 440;
+        const altura = 260;
+        
+        // Pega as regras CSS e fontes ativas da página para injetar na foto
+        const estilosInjetados = Array.from(document.styleSheets)
+          .map(s => { try { return Array.from(s.cssRules).map(r => r.cssText).join(''); } catch(e) { return ''; } })
+          .join('');
 
-      const configRender = {
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        scale: 3
+        // Monta um documento SVG temporário contendo o HTML exato da carteirinha
+        const estruturaSVG = `
+          <svg xmlns="http://w3.org" width="${largura}" height="${altura}">
+            <foreignObject width="100%" height="100%">
+              <div xmlns="http://w3.org">
+                <style>${estilosInjetados}</style>
+                ${elementoOriginal.outerHTML}
+              </div>
+            </foreignObject>
+          </svg>
+        `;
+
+        const blobImagem = new Blob([estruturaSVG], { type: 'image/svg+xml;charset=utf-8' });
+        const urlObjeto = URL.createObjectURL(blobImagem);
+        
+        const imagemTemporaria = new Image();
+        imagemTemporaria.src = urlObjeto;
+        
+        imagemTemporaria.onload = function() {
+          const canvasElemento = document.createElement('canvas');
+          // Define resolução ultra nítida (escala 3x)
+          canvasElemento.width = largura * 3;
+          canvasElemento.height = altura * 3;
+          
+          const contextoCanvas = canvasElemento.getContext('2d');
+          contextoCanvas.scale(3, 3);
+          contextoCanvas.drawImage(imagemTemporaria, 0, 0);
+          
+          const linkDownload = document.createElement('a');
+          linkDownload.download = `Carteirinha_${sufixoNome}_${nomeArquivoSufixo}.png`;
+          linkDownload.href = canvasElemento.toDataURL('image/png');
+          linkDownload.click();
+          
+          URL.revokeObjectURL(urlObjeto);
+        };
       };
 
-      html2canvas(frente, configRender).then(canvasFrente => {
-        const linkFrente = document.createElement('a');
-        linkFrente.download = "Carteirinha_" + sufixoNome + "_FRENTE.png";
-        linkFrente.href = canvasFrente.toDataURL('image/png');
-        linkFrente.click();
-
+      try {
+        renderizarBlocoNativo('blocoFrente', 'FRENTE');
         setTimeout(() => {
-          html2canvas(verso, configRender).then(canvasVerso => {
-            const linkVerso = document.createElement('a');
-            linkVerso.download = "Carteirinha_" + sufixoNome + "_VERSO.png";
-            linkVerso.href = canvasVerso.toDataURL('image/png');
-            linkVerso.click();
-          });
+          renderizarBlocoNativo('blocoVerso', 'VERSO');
         }, 500);
-      }).catch(err => {
-        alert("Falha técnica ao exportar o crachá.");
-        console.error(err);
-      });
+      } catch(erroCaptura) {
+        alert("Não foi possível gerar os arquivos de imagem neste navegador.");
+        console.error(erroCaptura);
+      }
     }
 
     window.onload = function() {
