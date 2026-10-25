@@ -226,29 +226,61 @@
       }
       input.value = valor;
     }
+// ============================================================================
+// PARTE 1: COPIAR E SUBSTITUIR AS FUNÇÕES carregarFoto E carregarQRCode
+// ============================================================================
 
-    function carregarFoto(event) {
-      const reader = new FileReader();
-      reader.onload = function() { 
-        fotoBase64 = reader.result; 
-        document.getElementById('cardFoto').src = reader.result; 
+function carregarFoto(event) {
+  if (event.target.files && event.target.files[0]) {
+    const imgElement = new Image();
+    imgElement.src = URL.createObjectURL(event.target.files[0]);
+    
+    imgElement.onload = function() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Define um tamanho máximo otimizado para a foto do cartão
+      const maxDimensao = 400;
+      let largura = imgElement.width;
+      let altura = imgElement.height;
+      
+      if (largura > altura) {
+        if (largura > maxDimensao) { altura *= maxDimensao / largura; largura = maxDimensao; }
+      } else {
+        if (altura > maxDimensao) { largura *= maxDimensao / altura; altura = maxDimensao; }
       }
-      if(event.target.files && event.target.files[0]) {
-        reader.readAsDataURL(event.target.files[0]);
-      }
+      
+      canvas.width = largura;
+      canvas.height = altura;
+      ctx.drawImage(imgElement, 0, 0, largura, altura);
+      
+      // Comprime a foto como JPEG a 60% de qualidade para evitar o Erro 413
+      fotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+      document.getElementById('cardFoto').src = fotoBase64;
     }
+  }
+}
 
-    // CORREÇÃO CRUCIAL APLICADA: Incluído o índice [0] para ler corretamente o arquivo de QR Code selecionado
-    function carregarQRCode(event) {
-      const reader = new FileReader();
-      reader.onload = function() { 
-        qrBase64 = reader.result; 
-        document.getElementById('cardQR').src = reader.result; 
-      }
-      if(event.target.files && event.target.files[0]) {
-        reader.readAsDataURL(event.target.files[0]);
-      }
+function carregarQRCode(event) {
+  if (event.target.files && event.target.files[0]) {
+    const imgElement = new Image();
+    imgElement.src = URL.createObjectURL(event.target.files[0]);
+    
+    imgElement.onload = function() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Sendo QR Code, mantemos uma resolução quadrada bem compacta
+      canvas.width = 200;
+      canvas.height = 200;
+      ctx.drawImage(imgElement, 0, 0, 200, 200);
+      
+      // Comprime o QR Code de forma eficiente
+      qrBase64 = canvas.toDataURL('image/jpeg', 0.6);
+      document.getElementById('cardQR').src = qrBase64;
     }
+  }
+}
 
     function atualizarDados() {
       const nome = document.getElementById('inNome').value;
@@ -297,27 +329,46 @@
       fetch(url, { method: 'PUT', body: JSON.stringify(dados), headers: { 'Content-Type': 'application/json' } }).then(res => { if(res.ok) alert("Salvo com sucesso!"); });
     }
 
-    function buscarAlunoFirebase() {
-      const cpf = document.getElementById('inCPF').value.replace(/\D/g, ""); if (!cpf) { alert("Insira o CPF."); return; }
-      const urlBase = LINK_FIREBASE.endsWith('/') ? LINK_FIREBASE : LINK_FIREBASE + '/';
-      fetch(`${urlBase}carteirinhas/${cpf}.json`).then(r => r.json()).then(d => {
-        if (d) {
-          document.getElementById('inNome').value = d.nome || ""; document.getElementById('inReg').value = d.reg || ""; document.getElementById('inDataFaixa').value = d.dataFaixa || ""; document.getElementById('inValidade').value = d.validade || ""; document.getElementById('inFiliacao').value = d.filiacao || ""; document.getElementById('inSangue').value = d.sangue || ""; document.getElementById('inFaixa').value = d.faixa || "Branca";
-          fotoBase64 = d.foto || ""; document.getElementById('cardFoto').src = fotoBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>";
-          qrBase64 = d.qrcode || ""; document.getElementById('cardQR').src = qrBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/></svg>";
-          atualizarDados(); alert("Carteirinha carregada!");
-        } else {
-          fetch(`${urlBase}${cpf}.json`).then(r => r.json()).then(dA => {
-            if(dA) {
-              document.getElementById('inNome').value = dA.nome || dA.Nome || ""; document.getElementById('inFiliacao').value = dA.filiacao || dA.Filiacao || "FPT"; document.getElementById('inSangue').value = dA.sangue || dA.Sangue || "A+"; document.getElementById('inReg').value = dA.reg || dA.id || ""; document.getElementById('inDataFaixa').value = ""; document.getElementById('inValidade').value = "23/12/2026";
-              fotoBase64 = ""; qrBase64 = ""; document.getElementById('cardFoto').src = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>"; document.getElementById('cardQR').src = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/></svg>";
-              atualizarDados(); alert("Cadastro bruto carregado!");
-            } else { alert("CPF não encontrado."); }
-          });
-        }
-      });
-    }
+// ============================================================================
+// PARTE 2: COPIAR E SUBSTITUIR A FUNÇÃO buscarAlunoFirebase
+// ============================================================================
 
+function buscarAlunoFirebase() {
+  const cpf = document.getElementById('inCPF').value.replace(/\D/g, ""); 
+  if (!cpf) { alert("Insira o CPF."); return; }
+  
+  const urlBase = LINK_FIREBASE.endsWith('/') ? LINK_FIREBASE : LINK_FIREBASE + '/';
+  
+  // Busca direta e exclusiva no nó de carteirinhas isolado
+  fetch(`${urlBase}carteirinhas/${cpf}.json`)
+    .then(r => r.json())
+    .then(d => {
+      if (d) {
+        document.getElementById('inNome').value = d.nome || ""; 
+        document.getElementById('inReg').value = d.reg || ""; 
+        document.getElementById('inDataFaixa').value = d.dataFaixa || ""; 
+        document.getElementById('inValidade').value = d.validade || ""; 
+        document.getElementById('inFiliacao').value = d.filiacao || ""; 
+        document.getElementById('inSangue').value = d.sangue || ""; 
+        document.getElementById('inFaixa').value = d.faixa || "Branca";
+        
+        fotoBase64 = d.foto || ""; 
+        document.getElementById('cardFoto').src = fotoBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='125'><rect width='100%' height='100%' fill='%23252525'/></svg>";
+        
+        qrBase64 = d.qrcode || ""; 
+        document.getElementById('cardQR').src = qrBase64 || "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='95' height='95'><rect width='100%' height='100%' fill='%23ffffff'/></svg>";
+        
+        atualizarDados(); 
+        alert("Carteirinha localizada e carregada com sucesso!");
+      } else {
+        alert("Nenhuma carteirinha encontrada para este CPF no sistema.");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Erro ao conectar com o Firebase.");
+    });
+}
     function salvarComoImagem() {
       const nomeAluno = document.getElementById('inNome').value || 'carteirinha';
       const sufixoNome = nomeAluno.replace(/\s+/g, '_');
