@@ -109,10 +109,16 @@
 
     function inicializarScannerQR() {
         try {
-            // Restaurado o componente original do seu primeiro código que abre a câmera
+            // Configuração atualizada para forçar a câmera de trás (facingMode: "environment")
             let html5QrcodeScanner = new Html5QrcodeScanner(
                 "leitor-qr", 
-                { fps: 10, qrbox: { width: 200, height: 200 } },
+                { 
+                    fps: 10, 
+                    qrbox: { width: 200, height: 200 },
+                    videoConstraints: {
+                        facingMode: "environment" // 🔥 ISSO DAQUI FAZ VIRAR A CÂMERA PARA TRÁS!
+                    }
+                },
                 /* verbose= */ false
             );
             
@@ -147,7 +153,6 @@
             }, () => {});
         } catch(e) { console.error("Erro ao iniciar o scanner:", e); }
     }
-
     function processarBuscaComplexa(valorPrincipal, diaNasc, mesNasc) {
         const statusTexto = document.getElementById('msg-status');
         statusTexto.innerHTML = "";
