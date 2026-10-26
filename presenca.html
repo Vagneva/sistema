@@ -107,7 +107,7 @@
             });
     }
 
-        function inicializarScannerQR() {
+    function inicializarScannerQR() {
         try {
             let html5QrcodeScanner = new Html5QrcodeScanner(
                 "leitor-qr", 
@@ -151,27 +151,67 @@
                     });
             }, () => {});
 
-            // =====================================================================
-            // 🔥 CÓDIGO DE LIMPEZA: ESCONDE SELETORES E FRASES EM INGLÊS DA TELA
-            // =====================================================================
+            // Remove os botões cinzas e seletores em inglês para limpar o visual
             setTimeout(() => {
-                // Remove o seletor de câmera e textos extras abaixo do leitor
                 let seletorCamera = document.getElementById('html5-qrcode-select-camera');
                 if (seletorCamera && seletorCamera.parentElement) {
                     seletorCamera.parentElement.style.display = 'none';
                 }
-                // Oculta o botão nativo de "Stop Scanning" para não sujar a interface
                 let botaoStop = document.getElementById('html5-qrcode-button-camera-stop');
                 if (botaoStop) {
                     botaoStop.style.display = 'none';
                 }
             }, 300);
-            // =====================================================================
 
         } catch(e) { console.error("Erro ao iniciar o scanner:", e); }
     }
 
-    function registrarPresencaFirebase(aluno, cpfOriginal) {
+    function processarBuscaComplexa(valorPrincipal, diaNasc, mesNasc) {
+        const statusTexto = document.getElementById('msg-status');
+        statusTexto.innerHTML = "";
+        
+        let termoBusca = valorPrincipal.trim().toLowerCase();
+        let diaBusca = diaNasc.trim().padStart(2, '0');
+        let mesBusca = mesNasc.trim().padStart(2, '0');
+        
+        let alunoEncontrado = null;
+        let cpfChave = null;
+        const termoLimpo = termoBusca.replace(/[^a-zA-Z0-9]/g, '');
+
+        for (let chave in alunosBD) {
+            let aluno = alunosBD[chave];
+            if (!aluno || !aluno.nome) continue;
+
+            let nomeCompleto = aluno.nome.toLowerCase();
+            let primeiroNome = nomeCompleto.split(' ')[0] || "";
+            let cpfLimpoBD = (aluno.cpf || chave).replace(/[^a-zA-Z0-9]/g, '');
+
+            if (diaBusca === "00" && mesBusca === "00") {
+                if (termoLimpo === cpfLimpoBD || chave.toLowerCase() === termoBusca || nomeCompleto === termoBusca) {
+                    alunoEncontrado = aluno; cpfChave = chave; break;
+                }
+            } else {
+                if (termoBusca === primeiroNome || nomeCompleto.startsWith(termoBusca)) {
+                    let dataNascBD = aluno.nascimento || ""; 
+                    if (dataNascBD.includes('-')) {
+                        let partesData = dataNascBD.split('-');
+                        let diaBD = partesData[2];
+                        let mesBD = partesData[1];
+                        if (diaBusca === diaBD && mesBusca === mesBD) {
+                            alunoEncontrado = aluno; cpfChave = chave; break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!alunoEncontrado) {
+            statusTexto.innerHTML = "<span class='erro'>Aluno não localizado com os dados informados.</span>";
+            return;
+        }
+        registrarPresencaFirebase(alunoEncontrado, cpfChave);
+    }
+            function registrarPresencaFirebase(aluno, cpfOriginal) {
         const statusTexto = document.getElementById('msg-status');
         const tempo = obterDataAtual();
 
@@ -182,7 +222,6 @@
 
         ultimasPresencas[cpfOriginal] = tempo.timestamp;
 
-        // Efeito visual imediato em tela cheia na recepção
         let overlay = document.getElementById('presenca-sucesso-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -207,21 +246,17 @@
             document.body.appendChild(overlay);
         }
 
-        // =====================================================================
-        // 🥋 DESIGN DE ENTRADA: SILHUETA DINÂMICA DE CHUTE ALTO DO TAEKWONDO
-        // =====================================================================
         overlay.innerHTML = `
             <h1 style="font-size: 45px; color: #10b981; font-weight: 900; margin: 0 0 25px 0; text-transform: uppercase; letter-spacing: 2px; line-height: 1.2;">
                 💪 BOM TREINO,<br><span style="color: #fff;">${aluno.nome}</span>!
             </h1>
-            <!-- Desenho em vetor com traços fortes e dinâmicos de um chute de Taekwondo -->
             <div style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; border: 4px solid #10b981; border-radius: 50%; padding: 15px; background: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="#10b981" style="width: 130px; height: 130px;">
                     <path d="M21 2s-1.5 3-4.5 4.5c-1 .5-2 1-3 1.5l-3.5 1.5 2 4.5c.5 1 1 2 .5 3s-1.5 1.5-2.5 1l-3.5-2-2.5 2c-.5.5-1.5.5-2 0s-.5-1.5 0-2l2.5-2v-4.5c0-1.5.5-3 1.5-4C10.5 5.5 12 5 13.5 5c1.5 0 3-.5 4-1.5L21 2z"/>
                     <circle cx="11" cy="4" r="1.5"/>
                 </svg>
             </div>
-            <p style="color: #94a3b8; font-size: 14px; font-weight: bold; margin-top: 20px; letter-spacing: 3px; text-transform: uppercase;">Mundo Martial Arts</p>
+            <p style="color: #94a3b8; font-size: 14px; font-weight: bold; margin-top: 20px; letter-spacing: 3px; text-transform: uppercase;">Feras Taekwondo</p>
         `;
         
         overlay.style.display = 'flex';
