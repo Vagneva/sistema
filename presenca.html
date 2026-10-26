@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Presença - Feras Taekwondo</title>
-     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://unpkg.com" type="text/javascript"></script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; padding: 15px; margin: 0; }
         h1 { color: #3b82f6; text-align: center; margin: 0 0 10px 0; }
@@ -36,38 +36,38 @@
 </head>
 <body>
     <h1>Feras Taekwondo</h1>
-<p class="subtitulo">Aproxime o QR Code ou selecione a opção de pesquisa desejada</p>
-<div id="status-carregamento" style="color: #64748b;">🔄 Sincronizando banco de dados...</div>
-<div class="painel-principal">
-    <div class="coluna-esquerda">
-        <div class="qr-box"><div id="leitor-qr"></div></div>
-        <div class="busca-box">
-            <div class="grupo-campo">
-                <label for="campo-nome">Para Crianças (Nome + Dia/Mês Nasc):</label>
-                <input type="text" id="campo-nome" placeholder="Primeiro nome (ex: Romeu)" autocomplete="off">
-                <div class="linha-nasc" style="margin-top: 8px;">
-                    <input type="text" id="campo-dia" placeholder="Dia (ex: 03)" maxlength="2" style="width: 50%;">
-                    <input type="text" id="campo-mes" placeholder="Mês (ex: 09)" maxlength="2" style="width: 50%;">
+    <p class="subtitulo">Aproxime o QR Code ou selecione a opção de pesquisa desejada</p>
+    <div id="status-carregamento" style="color: #64748b;">🔄 Sincronizando banco de dados...</div>
+    <div class="painel-principal">
+        <div class="coluna-esquerda">
+            <div class="qr-box"><div id="leitor-qr"></div></div>
+            <div class="busca-box">
+                <div class="grupo-campo">
+                    <label for="campo-nome">Para Crianças (Nome + Dia/Mês Nasc):</label>
+                    <input type="text" id="campo-nome" placeholder="Primeiro nome (ex: Romeu)" autocomplete="off">
+                    <div class="linha-nasc" style="margin-top: 8px;">
+                        <input type="text" id="campo-dia" placeholder="Dia (ex: 03)" maxlength="2" style="width: 50%;">
+                        <input type="text" id="campo-mes" placeholder="Mês (ex: 09)" maxlength="2" style="width: 50%;">
+                    </div>
                 </div>
+                <div class="grupo-campo" style="border-top: 1px solid #233142; padding-top: 12px; margin-top: 12px;">
+                    <label for="campo-cpf">Para Adultos (Somente CPF):</label>
+                    <input type="text" id="campo-cpf" placeholder="Digite apenas o CPF" autocomplete="off">
+                </div>
+                <div class="grupo-campo" style="border-top: 1px solid #233142; padding-top: 12px; margin-top: 12px; margin-bottom: 15px;">
+                    <label for="campo-senha-dia">🔑 Código do Treino (Disponível no Quadro):</label>
+                    <input type="text" id="campo-senha-dia" placeholder="Digite a senha do dia" autocomplete="off">
+                </div>
+                <button id="btn-confirmar">Confirmar Entrada ✓</button>
             </div>
-            <div class="grupo-campo" style="border-top: 1px solid #233142; padding-top: 12px; margin-top: 12px;">
-                <label for="campo-cpf">Para Adultos (Somente CPF):</label>
-                <input type="text" id="campo-cpf" placeholder="Digite apenas o CPF" autocomplete="off">
-            </div>
-            <div class="grupo-campo" style="border-top: 1px solid #233142; padding-top: 12px; margin-top: 12px; margin-bottom: 15px;">
-    <label for="campo-senha-dia">🔑 Código do Treino (Disponível no Quadro):</label>
-    <input type="text" id="campo-senha-dia" placeholder="Digite a senha do dia" autocomplete="off">
-</div>
-            <button id="btn-confirmar">Confirmar Entrada ✓</button>
+            <div id="msg-status" class="status-alerta"></div>
         </div>
-        <div id="msg-status" class="status-alerta"></div>
+        <div class="coluna-direita">
+            <div class="titulo-lista"><span>📋 Alunos Presentes Hoje</span><span id="contador-presencas" class="contador-badge">0 Alunos</span></div>
+            <div class="log-lista" id="historico-presenca"></div>
+        </div>
     </div>
-    <div class="coluna-right">
-        <div class="titulo-lista"><span>📋 Alunos Presentes Hoje</span><span id="contador-presencas" class="contador-badge">0 Alunos</span></div>
-        <div class="log-lista" id="historico-presenca"></div>
-    </div>
-</div>
-<script>
+    <script>
     const urlNuvemBase ="https://academia-2d8b2-default-rtdb.firebaseio.com/";
     let alunosBD = {}, ultimasPresencas = {};
     const INTERVALO_MINUTOS = 15;
@@ -107,38 +107,37 @@
         try {
             let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
             html5QrcodeScanner.start(
-                          { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 200, height: 200 } },
-            (textQR) => {
-                let senhaDigitada = document.getElementById('campo-senha-dia').value.trim();
-                let msgStatus = document.getElementById('msg-status');
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 200, height: 200 } },
+                (textQR) => {
+                    let senhaDigitada = document.getElementById('campo-senha-dia').value.trim();
+                    let msgStatus = document.getElementById('msg-status');
 
-                if (!senhaDigitada) {
-                    msgStatus.className = "status-alerta erro";
-                    msgStatus.innerText = "⚠️ Digite o código do treino na tela antes de escanear o QR Code!";
-                    return;
-                }
-
-                fetch(`${urlNuvemBase}/codigo_diario.json`)
-                    .then(res => res.json())
-                    .then(codigoCorretoFirebase => {
-                        if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
-                            msgStatus.className = "status-alerta erro";
-                            msgStatus.innerText = "❌ Código incorreto! Presença pelo QR Code travada.";
-                            return;
-                        }
-                        
-                        msgStatus.className = "status-alerta sucesso";
-                        msgStatus.innerText = "🔓 Código validado! Processando QR Code...";
-                        processarBuscaComplexa(textQR, "00", "00");
-                    })
-                    .catch(err => {
-                        console.error(err);
+                    if (!senhaDigitada) {
                         msgStatus.className = "status-alerta erro";
-                        msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
-                    });
-            },
-            () => {}
+                        msgStatus.innerText = "⚠️ Digite o código do treino na tela antes de escanear o QR Code!";
+                        return;
+                    }
+
+                    fetch(`${urlNuvemBase}/codigo_diario.json`)
+                        .then(res => res.json())
+                        .then(codigoCorretoFirebase => {
+                            if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
+                                msgStatus.className = "status-alerta erro";
+                                msgStatus.innerText = "❌ Código incorreto! Presença pelo QR Code travada.";
+                                return;
+                            }
+                            msgStatus.className = "status-alerta sucesso";
+                            msgStatus.innerText = "🔓 Código validado! Processando QR Code...";
+                            processarBuscaComplexa(textQR, "00", "00");
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            msgStatus.className = "status-alerta erro";
+                            msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
+                        });
+                },
+                () => {}
             ).catch(err => console.warn("Câmera ociosa:", err));
         } catch(e) { console.error(e); }
     }
@@ -163,15 +162,13 @@
             let primeiroNome = nomeCompleto.split(' ')[0] || "";
             let cpfLimpoBD = (aluno.cpf || chave).replace(/[^a-zA-Z0-9]/g, '');
 
-            // 1. Verificação por QR Code ou CPF Direto (Adultos)
             if (diaBusca === "00" && mesBusca === "00") {
                 if (termoLimpo === cpfLimpoBD || chave.toLowerCase() === termoBusca || nomeCompleto === termoBusca) {
                     alunoEncontrado = aluno; cpfChave = chave; break;
                 }
             } else {
-                // 2. Verificação por Nome + Dia e Mês de Nascimento (Crianças)
                 if (termoBusca === primeiroNome || nomeCompleto.startsWith(termoBusca)) {
-                    let dataNascBD = aluno.nascimento || ""; // Formato esperado: AAAA-MM-DD
+                    let dataNascBD = aluno.nascimento || ""; 
                     if (dataNascBD.includes('-')) {
                         let partesData = dataNascBD.split('-');
                         let diaBD = partesData[2];
@@ -190,8 +187,7 @@
         }
         registrarPresencaFirebase(alunoEncontrado, cpfChave);
     }
-
-        function registrarPresencaFirebase(aluno, cpfOriginal) {
+            function registrarPresencaFirebase(aluno, cpfOriginal) {
         const statusTexto = document.getElementById('msg-status');
         const tempo = obterDataAtual();
 
@@ -200,14 +196,11 @@
             limparFormularios(); return;
         }
 
-        **cite: 1**
         ultimasPresencas[cpfOriginal] = tempo.timestamp;
 
         // =====================================================================
         // 🔥 RESPOSTA IMEDIATA EM TELA CHEIA (OVERLAY) COM O NENÉM DE AMARELO
         // =====================================================================
-        
-        // 1. Cria ou recupera o painel de tela cheia (Overlay)
         let overlay = document.getElementById('presenca-sucesso-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -232,24 +225,20 @@
             document.body.appendChild(overlay);
         }
 
-        // 2. Monta a interface grande com o Nome do Aluno e o GIF do Neném de Amarelo dando mortal
         overlay.innerHTML = `
             <h1 style="font-size: 45px; color: #10b981; font-weight: 900; margin: 0 0 25px 0; text-transform: uppercase; letter-spacing: 2px; line-height: 1.2;">
                 💪 BOM TREINO,<br><span style="color: #fff;">${aluno.nome}</span>!
             </h1>
-            <!-- GIF do Neném de Amarelo dando mortal para trás (Kung Fu Baby Backflip) -->
             <img src="https://tenor.com" 
                  alt="Neném de Amarelo dando mortal" 
                  style="width: 320px; max-width: 85%; border-radius: 12px; border: 4px solid #10b981; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
                  onerror="this.src='https://giphy.com'">
         `;
         
-        // Dispara o painel em tela cheia na recepção
         overlay.style.display = 'flex';
 
-        // 3. Ativa o sintetizador de voz instantaneamente
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Zera filas antigas travadas
+            window.speechSynthesis.cancel();
             const textovoz = `Bom treino, ${aluno.nome}`;
             const mensagem = new SpeechSynthesisUtterance(textovoz);
             mensagem.lang = 'pt-BR';
@@ -257,7 +246,6 @@
             window.speechSynthesis.speak(mensagem);
         }           
         
-        // 4. Emite o sinal sonoro imediatamente
         try {
             let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             let osc = audioCtx.createOscillator(); 
@@ -269,14 +257,11 @@
         
         limparFormularios();
 
-        // 5. Reseta a tela automaticamente após 4 segundos para o próximo aluno bater a presença
         setTimeout(() => {
             overlay.style.display = 'none';
         }, 4000);
-        
         // =====================================================================
 
-        // O processo de gravação na nuvem roda em paralelo silenciosamente
         let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
 
         fetch(urlDestino, {
@@ -289,9 +274,7 @@
             console.error("Erro assíncrono ao registrar na nuvem:", err); 
         });
     }
-
-
-    function carregarPresencasDeHoje() {
+            function carregarPresencasDeHoje() {
         const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
         fetch(`${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}.json`).then(res => res.json()).then(dados => {
             listaPainel.innerHTML = "";
@@ -315,73 +298,65 @@
 
     window.onload = inicializarSistema;
 
-   // ATUALIZAÇÃO DO BOTÃO DE CONFIRMAÇÃO COM VALIDAÇÃO DE SENHA DO FIREBASE
-document.getElementById("btn-confirmar").addEventListener("click", async () => {
-    const campoSenha = document.getElementById("campo-senha-dia");
-    const msgStatus = document.getElementById("msg-status");
-    
-    // Se você ainda não criou o campo HTML da senha, o código busca o valor com segurança
-    const senhaDigitada = campoSenha ? campoSenha.value.trim() : prompt("🔑 Digite o Código do Treino disponível no Dojô:");
+    document.getElementById("btn-confirmar").addEventListener("click", async () => {
+        const campoSenha = document.getElementById("campo-senha-dia");
+        const msgStatus = document.getElementById("msg-status");
+        const senhaDigitada = campoSenha ? campoSenha.value.trim() : prompt("🔑 Digite o Código do Treino disponível no Dojô:");
 
-    if (!senhaDigitada) {
-        msgStatus.className = "status-alerta erro";
-        msgStatus.innerText = "⚠️ Você precisa digitar o código do treino para confirmar!";
-        return;
-    }
-
-    try {
-        msgStatus.className = "status-alerta aviso";
-        msgStatus.innerText = "🔄 Validando código de segurança...";
-
-        // 1. Busca o código correto que você acabou de salvar no seu Firebase
-        const resposta = await fetch(`${urlNuvemBase}/codigo_diario.json`);
-        const codigoCorretoFirebase = await resposta.json();
-
-        // 2. Faz a comparação de segurança (converte ambos para texto para evitar erros)
-        if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
+        if (!senhaDigitada) {
             msgStatus.className = "status-alerta erro";
-            msgStatus.innerText = "❌ Código do treino incorreto! Presença não registrada.";
-            return; // Bloqueia tudo e não deixa salvar no Firebase
+            msgStatus.innerText = "⚠️ Você precisa digitar o código do treino para confirmar!";
+            return;
         }
 
-        // 3. Se a senha estiver certa, o sistema avança para registrar a presença
-        msgStatus.className = "status-alerta sucesso";
-        msgStatus.innerText = "🔓 Código correto! Registrando entrada...";
+        try {
+            msgStatus.className = "status-alerta aviso";
+            msgStatus.innerText = "🔄 Validando código de segurança...";
 
-        // Executa a sua função atual que faz a busca e salva os dados das crianças/adultos
-        const nome = document.getElementById("campo-nome").value.trim();
-        const dia = document.getElementById("campo-dia").value.trim();
-        const mes = document.getElementById("campo-mes").value.trim();
-        const cpf = document.getElementById("campo-cpf").value.trim();
+            const resposta = await fetch(`${urlNuvemBase}/codigo_diario.json`);
+            const codigoCorretoFirebase = await resposta.json();
 
-        if (cpf) {
-            processarBuscaComplexa(cpf, "", "");
-        } else if (nome && dia && mes) {
-            processarBuscaComplexa(nome, dia, mes);
-        } else {
+            if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
+                msgStatus.className = "status-alerta erro";
+                msgStatus.innerText = "❌ Código do treino incorreto! Presença não registrada.";
+                return;
+            }
+
+            msgStatus.className = "status-alerta sucesso";
+            msgStatus.innerText = "🔓 Código correto! Registrando entrada...";
+
+            const nome = document.getElementById("campo-nome").value.trim();
+            const dia = document.getElementById("campo-dia").value.trim();
+            const mes = document.getElementById("campo-mes").value.trim();
+            const cpf = document.getElementById("campo-cpf").value.trim();
+
+            if (cpf) {
+                processarBuscaComplexa(cpf, "00", "00");
+            } else if (nome && dia && mes) {
+                processarBuscaComplexa(nome, dia, mes);
+            } else {
+                msgStatus.className = "status-alerta erro";
+                msgStatus.innerText = "⚠️ Preencha o CPF ou os dados da criança!";
+            }
+
+        } catch (error) {
+            console.error("Erro na validação:", error);
             msgStatus.className = "status-alerta erro";
-            msgStatus.innerText = "⚠️ Preencha o CPF ou os dados da criança!";
+            msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
         }
+    });
 
-    } catch (error) {
-        console.error("Erro na validação:", error);
-        msgStatus.className = "status-alerta erro";
-        msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
-    }
-});
-        // Faz a pesquisa funcionar ao apertar a tecla Enter
-        document.querySelectorAll('.busca-box input').forEach(input => {
-            input.addEventListener('keypress', function(evento) {
-                if (evento.key === 'Enter') {
-                    evento.preventDefault(); 
-                    // Procura o botão de confirmar da mesma caixa onde você está digitando
-                    const botaoConfirmar = input.closest('.busca-box').querySelector('button');
-                    if (botaoConfirmar) {
-                        botaoConfirmar.click(); // Simula o clique do mouse!
-                    }
+    document.querySelectorAll('.busca-box input').forEach(input => {
+        input.addEventListener('keypress', function(evento) {
+            if (evento.key === 'Enter') {
+                evento.preventDefault(); 
+                const botaoConfirmar = input.closest('.busca-box').querySelector('button');
+                if (botaoConfirmar) {
+                    botaoConfirmar.click();
                 }
-            });
+            }
         });
-    </script>
+    });
+</script>
 </body>
 </html>
