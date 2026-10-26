@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Presença - Feras Taekwondo</title>
-    <script src="https://unpkg.com" type="text/javascript"></script>
+<script src="https://cloudflare.com" type="text/javascript"></script>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; padding: 15px; margin: 0; }
         h1 { color: #3b82f6; text-align: center; margin: 0 0 10px 0; }
@@ -201,6 +201,7 @@
         // =====================================================================
         // 🔥 RESPOSTA IMEDIATA EM TELA CHEIA (OVERLAY) COM O NENÉM DE AMARELO
         // =====================================================================
+        // 1. Cria ou recupera o painel de tela cheia (Overlay)
         let overlay = document.getElementById('presenca-sucesso-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -225,18 +226,18 @@
             document.body.appendChild(overlay);
         }
 
+        // 2. Monta a interface grande com o Nome do Aluno e o GIF do Neném
         overlay.innerHTML = `
             <h1 style="font-size: 45px; color: #10b981; font-weight: 900; margin: 0 0 25px 0; text-transform: uppercase; letter-spacing: 2px; line-height: 1.2;">
                 💪 BOM TREINO,<br><span style="color: #fff;">${aluno.nome}</span>!
             </h1>
-            <img src="https://tenor.com" 
+            <img src="https://gifer.com" 
                  alt="Neném de Amarelo dando mortal" 
-                 style="width: 320px; max-width: 85%; border-radius: 12px; border: 4px solid #10b981; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
+                 style="width: 280px; max-width: 85%; border-radius: 12px; border: 4px solid #10b981; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
                  onerror="this.src='https://giphy.com'">
         `;
         
         overlay.style.display = 'flex';
-
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const textovoz = `Bom treino, ${aluno.nome}`;
