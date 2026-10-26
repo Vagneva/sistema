@@ -68,7 +68,11 @@
         </div>
     </div>
     <script>
-    const urlNuvemBase ="https://academia-2d8b2-default-rtdb.firebaseio.com/";
+// ============================================================================
+// COPIAR E COLAR ATALIZADO: INÍCIO DO SCRIPT ATÉ O FIM DA BUSCA COMPLEXA
+// ============================================================================
+            const urlNuvemBase ="https://academia-2d8b2-default-rtdb.firebaseio.com/";
+
     let alunosBD = {}, ultimasPresencas = {};
     const INTERVALO_MINUTOS = 15;
     const nomesMeses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -105,41 +109,43 @@
 
     function inicializarScannerQR() {
         try {
-            let html5QrcodeScanner = new Html5Qrcode("leitor-qr");
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
+            // Restaurado o componente original do seu primeiro código que abre a câmera
+            let html5QrcodeScanner = new Html5QrcodeScanner(
+                "leitor-qr", 
                 { fps: 10, qrbox: { width: 200, height: 200 } },
-                (textQR) => {
-                    let senhaDigitada = document.getElementById('campo-senha-dia').value.trim();
-                    let msgStatus = document.getElementById('msg-status');
+                /* verbose= */ false
+            );
+            
+            html5QrcodeScanner.render((textQR) => {
+                let senhaDigitada = document.getElementById('campo-senha-dia').value.trim();
+                let msgStatus = document.getElementById('msg-status');
 
-                    if (!senhaDigitada) {
-                        msgStatus.className = "status-alerta erro";
-                        msgStatus.innerText = "⚠️ Digite o código do treino na tela antes de escanear o QR Code!";
-                        return;
-                    }
+                if (!senhaDigitada) {
+                    msgStatus.className = "status-alerta erro";
+                    msgStatus.innerText = "⚠️ Digite o código do treino na tela antes de escanear o QR Code!";
+                    return;
+                }
 
-                    fetch(`${urlNuvemBase}/codigo_diario.json`)
-                        .then(res => res.json())
-                        .then(codigoCorretoFirebase => {
-                            if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
-                                msgStatus.className = "status-alerta erro";
-                                msgStatus.innerText = "❌ Código incorreto! Presença pelo QR Code travada.";
-                                return;
-                            }
-                            msgStatus.className = "status-alerta sucesso";
-                            msgStatus.innerText = "🔓 Código validado! Processando QR Code...";
-                            processarBuscaComplexa(textQR, "00", "00");
-                        })
-                        .catch(err => {
-                            console.error(err);
+                fetch(`${urlNuvemBase}/codigo_diario.json`)
+                    .then(res => res.json())
+                    .then(codigoCorretoFirebase => {
+                        if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
                             msgStatus.className = "status-alerta erro";
-                            msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
-                        });
-                },
-                () => {}
-            ).catch(err => console.warn("Câmera ociosa:", err));
-        } catch(e) { console.error(e); }
+                            msgStatus.innerText = "❌ Código incorreto! Presença pelo QR Code travada.";
+                            return;
+                        }
+                        
+                        msgStatus.className = "status-alerta sucesso";
+                        msgStatus.innerText = "🔓 Código validado! Processando QR Code...";
+                        processarBuscaComplexa(textQR, "00", "00");
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        msgStatus.className = "status-alerta erro";
+                        msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
+                    });
+            }, () => {});
+        } catch(e) { console.error("Erro ao iniciar o scanner:", e); }
     }
 
     function processarBuscaComplexa(valorPrincipal, diaNasc, mesNasc) {
@@ -187,7 +193,10 @@
         }
         registrarPresencaFirebase(alunoEncontrado, cpfChave);
     }
-            function registrarPresencaFirebase(aluno, cpfOriginal) {
+        // ============================================================================
+// COPIAR E COLAR ATUALIZADO: FUNÇÃO REGISTRAR ATÉ OS EVENTOS DOS BOTÕES
+// ============================================================================
+    function registrarPresencaFirebase(aluno, cpfOriginal) {
         const statusTexto = document.getElementById('msg-status');
         const tempo = obterDataAtual();
 
@@ -198,10 +207,7 @@
 
         ultimasPresencas[cpfOriginal] = tempo.timestamp;
 
-        // =====================================================================
-        // 🔥 RESPOSTA IMEDIATA EM TELA CHEIA (OVERLAY) COM O NENÉM DE AMARELO
-        // =====================================================================
-        // 1. Cria ou recupera o painel de tela cheia (Overlay)
+        // Efeito visual imediato em tela cheia na recepção
         let overlay = document.getElementById('presenca-sucesso-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -226,7 +232,7 @@
             document.body.appendChild(overlay);
         }
 
-        // 2. Monta a interface grande com o Nome do Aluno e o GIF do Neném
+        // HTML limpo da imagem, com link corrigido e sem aspas duplas/simples quebradas
         overlay.innerHTML = `
             <h1 style="font-size: 45px; color: #10b981; font-weight: 900; margin: 0 0 25px 0; text-transform: uppercase; letter-spacing: 2px; line-height: 1.2;">
                 💪 BOM TREINO,<br><span style="color: #fff;">${aluno.nome}</span>!
@@ -238,6 +244,7 @@
         `;
         
         overlay.style.display = 'flex';
+
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const textovoz = `Bom treino, ${aluno.nome}`;
@@ -261,8 +268,8 @@
         setTimeout(() => {
             overlay.style.display = 'none';
         }, 4000);
-        // =====================================================================
 
+        // Registro na nuvem roda de fundo sem prender a tela
         let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
 
         fetch(urlDestino, {
@@ -275,7 +282,8 @@
             console.error("Erro assíncrono ao registrar na nuvem:", err); 
         });
     }
-            function carregarPresencasDeHoje() {
+
+    function carregarPresencasDeHoje() {
         const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
         fetch(`${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}.json`).then(res => res.json()).then(dados => {
             listaPainel.innerHTML = "";
