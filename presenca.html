@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -191,7 +191,7 @@
         registrarPresencaFirebase(alunoEncontrado, cpfChave);
     }
 
-    function registrarPresencaFirebase(aluno, cpfOriginal) {
+        function registrarPresencaFirebase(aluno, cpfOriginal) {
         const statusTexto = document.getElementById('msg-status');
         const tempo = obterDataAtual();
 
@@ -200,7 +200,83 @@
             limparFormularios(); return;
         }
 
+        **cite: 1**
         ultimasPresencas[cpfOriginal] = tempo.timestamp;
+
+        // =====================================================================
+        // 🔥 RESPOSTA IMEDIATA EM TELA CHEIA (OVERLAY) COM O NENÉM DE AMARELO
+        // =====================================================================
+        
+        // 1. Cria ou recupera o painel de tela cheia (Overlay)
+        let overlay = document.getElementById('presenca-sucesso-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'presenca-sucesso-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: #0f172a;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 999999;
+                color: #fff;
+                text-align: center;
+                padding: 20px;
+                box-sizing: border-box;
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        // 2. Monta a interface grande com o Nome do Aluno e o GIF do Neném de Amarelo dando mortal
+        overlay.innerHTML = `
+            <h1 style="font-size: 45px; color: #10b981; font-weight: 900; margin: 0 0 25px 0; text-transform: uppercase; letter-spacing: 2px; line-height: 1.2;">
+                💪 BOM TREINO,<br><span style="color: #fff;">${aluno.nome}</span>!
+            </h1>
+            <!-- GIF do Neném de Amarelo dando mortal para trás (Kung Fu Baby Backflip) -->
+            <img src="https://tenor.com" 
+                 alt="Neném de Amarelo dando mortal" 
+                 style="width: 320px; max-width: 85%; border-radius: 12px; border: 4px solid #10b981; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
+                 onerror="this.src='https://giphy.com'">
+        `;
+        
+        // Dispara o painel em tela cheia na recepção
+        overlay.style.display = 'flex';
+
+        // 3. Ativa o sintetizador de voz instantaneamente
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Zera filas antigas travadas
+            const textovoz = `Bom treino, ${aluno.nome}`;
+            const mensagem = new SpeechSynthesisUtterance(textovoz);
+            mensagem.lang = 'pt-BR';
+            mensagem.rate = 1.1;
+            window.speechSynthesis.speak(mensagem);
+        }           
+        
+        // 4. Emite o sinal sonoro imediatamente
+        try {
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = audioCtx.createOscillator(); 
+            osc.connect(audioCtx.destination); 
+            osc.frequency.value = 587.33; 
+            osc.start(); 
+            osc.stop(audioCtx.currentTime + 0.15);
+        } catch(e) { console.warn(e); }
+        
+        limparFormularios();
+
+        // 5. Reseta a tela automaticamente após 4 segundos para o próximo aluno bater a presença
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 4000);
+        
+        // =====================================================================
+
+        // O processo de gravação na nuvem roda em paralelo silenciosamente
         let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
 
         fetch(urlDestino, {
@@ -208,21 +284,12 @@
             body: JSON.stringify({ nome: aluno.nome, horario: tempo.hora, data_completa: `${tempo.dia}/${tempo.mesNome}/${tempo.ano}` })
         })
         .then(() => {
-            statusTexto.innerHTML = `<span class='sucesso'>✓ Presença de ${aluno.nome} salva!</span>`;
-            // Código para fazer o sistema falar o nome do aluno
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Evita que vozes fiquem travadas na fila
-            const textovoz = `Bom treino, ${aluno.nome}`;
-            const mensagem = new SpeechSynthesisUtterance(textovoz);
-            mensagem.lang = 'pt-BR';
-            mensagem.rate = 1.1;
-            window.speechSynthesis.speak(mensagem);
-        }           
-            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 587.33; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-            limparFormularios(); carregarPresencasDeHoje();
-        }).catch(() => { statusTexto.innerHTML = "<span class='erro'>Erro na nuvem.</span>"; });
+            carregarPresencasDeHoje();
+        }).catch((err) => { 
+            console.error("Erro assíncrono ao registrar na nuvem:", err); 
+        });
     }
+
 
     function carregarPresencasDeHoje() {
         const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
