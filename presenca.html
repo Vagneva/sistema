@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Presença - Feras Taekwondo</title>
+    <!-- Mantive a sua biblioteca de câmera original que estava funcionando -->
     <script src="https://unpkg.com" type="text/javascript"></script>   
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; padding: 15px; margin: 0; }
@@ -38,7 +39,7 @@
     <h1>Feras Taekwondo</h1>
     <p class="subtitulo">Aproxime o QR Code ou selecione a opção de pesquisa desejada</p>
     <div id="status-carregamento" style="color: #64748b;">🔄 Sincronizando banco de dados...</div>
-    <div class="painel-principal">
+        <div class="painel-principal">
         <div class="coluna-esquerda">
             <div class="qr-box"><div id="leitor-qr"></div></div>
             <div class="busca-box">
@@ -46,8 +47,8 @@
                     <label for="campo-nome">Para Crianças (Nome + Dia/Mês Nasc):</label>
                     <input type="text" id="campo-nome" placeholder="Primeiro nome (ex: Romeu)" autocomplete="off">
                     <div class="linha-nasc" style="margin-top: 8px;">
-                        <input type="text" id="campo-dia" placeholder="Dia (ex: 03)" maxlength="2" style="width: 50%;">
-                        <input type="text" id="campo-mes" placeholder="Mês (ex: 09)" maxlength="2" style="width: 50%;">
+                        <input type="text" id="campo-dia" placeholder="Dia (ex: 13)" maxlength="2" style="width: 50%;">
+                        <input type="text" id="campo-mes" placeholder="Mês (ex: 10)" maxlength="2" style="width: 50%;">
                     </div>
                 </div>
                 <div class="grupo-campo" style="border-top: 1px solid #233142; padding-top: 12px; margin-top: 12px;">
@@ -68,266 +69,263 @@
         </div>
     </div>
         <script>
-        const urlNuvemBase = "https://academia-2d8b2-default-rtdb.firebaseio.com/";
+    const urlNuvemBase ="https://academia-2d8b2-default-rtdb.firebaseio.com/";
 
-        let alunosBD = {}, ultimasPresencas = {};
-        const INTERVALO_MINUTOS = 15;
-        const nomesMeses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+    let alunosBD = {}, ultimasPresencas = {};
+    const INTERVALO_MINUTOS = 15;
+    const nomesMeses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
-        function obterDataAtual() {
-            let agora = new Date();
-            return {
-                dia: String(agora.getDate()).padStart(2, '0'),
-                mesNome: nomesMeses[agora.getMonth()],
-                ano: agora.getFullYear(),
-                hora: agora.toLocaleTimeString('pt-BR'),
-                timestamp: agora.getTime()
-            };
-        }
+    function obterDataAtual() {
+        let agora = new Date();
+        return {
+            dia: String(agora.getDate()).padStart(2, '0'),
+            mesNome: nomesMeses[agora.getMonth()],
+            ano: agora.getFullYear(),
+            hora: grandma = agora.toLocaleTimeString('pt-BR'),
+            timestamp: agora.getTime()
+        };
+    }
 
-        function inicializarSistema() {
-            fetch(`${urlNuvemBase}/matriculas.json`)
-                .then(res => res.json())
-                .then(dados => {
-                    if(dados) {
-                        alunosBD = dados;
-                        document.getElementById('status-carregamento').innerHTML = "<span class='sucesso'>✓ Banco de dados Sincronizado</span>";
-                        carregarPresencasDeHoje();
-                        inicializarScannerQR();
-                    } else {
-                        document.getElementById('status-carregamento').innerHTML = "<span class='aviso'>⚠ Banco vazio.</span>";
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('status-carregamento').innerHTML = "<span class='erro'>⚠ Erro de Conexão</span>";
-                    console.error(err);
-                });
-        }
-
-        function inicializarScannerQR() {
-            try {
-                let html5QrcodeScanner = new Html5QrcodeScanner(
-                    "leitor-qr", 
-                    { 
-                        fps: 10, 
-                        qrbox: { width: 200, height: 200 },
-                        videoConstraints: { facingMode: "environment" }
-                    },
-                    false
-                );
-                
-                html5QrcodeScanner.render((textQR) => {
-                    let senhaDigitada = document.getElementById('campo-senha-dia').value.trim();
-                    let msgStatus = document.getElementById('msg-status');
-
-                    if (!senhaDigitada) {
-                        msgStatus.className = "status-alerta erro";
-                        msgStatus.innerText = "⚠️ Digite o código do treino na tela antes de escanear o QR Code!";
-                        return;
-                    }
-
-                    fetch(`${urlNuvemBase}/codigo_diario.json`)
-                        .then(res => res.json())
-                        .then(codigoCorretoFirebase => {
-                            if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
-                                msgStatus.className = "status-alerta erro";
-                                msgStatus.innerText = "❌ Código incorreto! Presença pelo QR Code travada.";
-                                return;
-                            }
-                            msgStatus.className = "status-alerta sucesso";
-                            msgStatus.innerText = "🔓 Código validado! Processando QR Code...";
-                            processarBuscaComplexa(textQR, "00", "00");
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            msgStatus.className = "status-alerta erro";
-                            msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
-                        });
-                }, () => {});
-
-                setTimeout(() => {
-                    let seletorCamera = document.getElementById('html5-qrcode-select-camera');
-                    if (seletorCamera && seletorCamera.parentElement) seletorCamera.parentElement.style.display = 'none';
-                    let botaoStop = document.getElementById('html5-qrcode-button-camera-stop');
-                    if (botaoStop) botaoStop.style.display = 'none';
-                }, 300);
-
-            } catch(e) { console.error("Erro ao iniciar o scanner:", e); }
-        }
-
-        // FUNÇÃO CORRIGIDA: Suporta divisão de datas com barras '/' ou traços '-' vindas do Firebase
-        function processarBuscaComplexa(valorPrincipal, diaNasc, mesNasc) {
-            const statusTexto = document.getElementById('msg-status');
-            statusTexto.innerHTML = "";
-            
-            let termoBusca = valorPrincipal.trim().toLowerCase();
-            let diaBusca = diaNasc.trim().padStart(2, '0');
-            let mesBusca = mesNasc.trim().padStart(2, '0');
-            
-            let alunoEncontrado = null;
-            let cpfChave = null;
-            const termoLimpo = termoBusca.replace(/[^a-zA-Z0-9]/g, '');
-
-            for (let chave in alunosBD) {
-                let aluno = alunosBD[chave];
-                if (!aluno || !aluno.nome) continue;
-
-                let nomeCompleto = aluno.nome.toLowerCase();
-                let primeiroNome = nomeCompleto.split(' ')[0] || "";
-                let cpfLimpoBD = (aluno.cpf || chave).replace(/[^a-zA-Z0-9]/g, '');
-
-                if (diaBusca === "00" && mesBusca === "00") {
-                    if (termoLimpo === cpfLimpoBD || chave.toLowerCase() === termoBusca || nomeCompleto === termoBusca) {
-                        alunoEncontrado = aluno; cpfChave = chave; break;
-                    }
+    function inicializarSistema() {
+        fetch(`${urlNuvemBase}/matriculas.json`)
+            .then(res => res.json())
+            .then(dados => {
+                if(dados) {
+                    alunosBD = dados;
+                    document.getElementById('status-carregamento').innerHTML = "<span class='sucesso'>✓ Banco de dados Sincronizado</span>";
+                    carregarPresencasDeHoje();
+                    inicializarScannerQR();
                 } else {
-                    if (termoBusca === primeiroNome || nomeCompleto.startsWith(termoBusca)) {
-                        let dataNascBD = aluno.nascimento || ""; 
-                        let diaBD = "", mesBD = "";
+                    document.getElementById('status-carregamento').innerHTML = "<span class='aviso'>⚠ Banco vazio.</span>";
+                }
+            })
+            .catch(err => {
+                document.getElementById('status-carregamento').innerHTML = "<span class='erro'>⚠ Erro de Conexão</span>";
+                console.error(err);
+            });
+    }
 
-                        // Tratamento Inteligente de Data: Resolve o erro de formatação do Realtime Database
-                        if (dataNascBD.includes('/')) {
-                            let partesData = dataNascBD.split('/');
-                            diaBD = partesData[0];
-                            mesBD = partesData[1];
-                        } else if (dataNascBD.includes('-')) {
-                            let partesData = dataNascBD.split('-');
-                            diaBD = partesData[2];
-                            mesBD = partesData[1];
+    function inicializarScannerQR() {
+        try {
+            let html5QrcodeScanner = new Html5QrcodeScanner(
+                "leitor-qr", 
+                { 
+                    fps: 10, 
+                    qrbox: { width: 200, height: 200 },
+                    videoConstraints: { facingMode: "environment" }
+                },
+                /* verbose= */ false
+            );
+            
+            html5QrcodeScanner.render((textQR) => {
+                let senhaDigitada = document.getElementById('campo-senha-dia').value.trim();
+                let msgStatus = document.getElementById('msg-status');
+
+                if (!senhaDigitada) {
+                    msgStatus.className = "status-alerta erro";
+                    msgStatus.innerText = "⚠️ Digite o código do treino na tela antes de escanear o QR Code!";
+                    return;
+                }
+
+                fetch(`${urlNuvemBase}/codigo_diario.json`)
+                    .then(res => res.json())
+                    .then(codigoCorretoFirebase => {
+                        if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
+                            msgStatus.className = "status-alerta erro";
+                            msgStatus.innerText = "❌ Código incorreto! Presença pelo QR Code travada.";
+                            return;
                         }
+                        msgStatus.className = "status-alerta sucesso";
+                        msgStatus.innerText = "🔓 Código validado! Processando QR Code...";
+                        processarBuscaComplexa(textQR, "00", "00");
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        msgStatus.className = "status-alerta erro";
+                        msgStatus.innerText = "❌ Erro ao conectar com o servidor de segurança.";
+                    });
+            }, () => {});
 
+            setTimeout(() => {
+                let seletorCamera = document.getElementById('html5-qrcode-select-camera');
+                if (seletorCamera && seletorCamera.parentElement) seletorCamera.parentElement.style.display = 'none';
+                let botaoStop = document.getElementById('html5-qrcode-button-camera-stop');
+                if (botaoStop) botaoStop.style.display = 'none';
+            }, 300);
+
+        } catch(e) { console.error("Erro ao iniciar o scanner:", e); }
+    }
+                // CORREÇÃO DA BUSCA: Lê o padrão "ANO-MÊS-DIA" direto do nó de matrículas do seu Firebase
+    function processarBuscaComplexa(valorPrincipal, diaNasc, mesNasc) {
+        const statusTexto = document.getElementById('msg-status');
+        statusTexto.innerHTML = "";
+        
+        let termoBusca = valorPrincipal.trim().toLowerCase();
+        let diaBusca = diaNasc.trim().padStart(2, '0');
+        let mesBusca = mesNasc.trim().padStart(2, '0');
+        
+        let alunoEncontrado = null;
+        let cpfChave = null;
+        const termoLimpo = termoBusca.replace(/[^a-zA-Z0-9]/g, '');
+
+        for (let chave in alunosBD) {
+            let aluno = alunosBD[chave];
+            if (!aluno || !aluno.nome) continue;
+
+            let nomeCompleto = aluno.nome.toLowerCase();
+            let primeiroNome = nomeCompleto.split(' ')[0] || "";
+            let cpfLimpoBD = (aluno.cpf || chave).replace(/[^a-zA-Z0-9]/g, '');
+
+            // Busca 1: Pelo CPF ou QR Code (Se dia e mês vierem zerados)
+            if (diaBusca === "00" && mesBusca === "00") {
+                if (termoLimpo === cpfLimpoBD || chave.toLowerCase() === termoBusca || nomeCompleto === termoBusca) {
+                    alunoEncontrado = aluno; cpfChave = chave; break;
+                }
+            } else {
+                // Busca 2: Pelo Primeiro Nome + Casamento perfeito de data americana do Firebase (AAAA-MM-DD)
+                if (termoBusca === primeiroNome || nomeCompleto.startsWith(termoBusca)) {
+                    let dataNascBD = aluno.nasc || ""; // Campo exato "nasc" extraído da sua imagem
+                    
+                    if (dataNascBD.includes('-')) {
+                        let partesData = dataNascBD.split('-'); // Quebra "2017-10-13" em pedaços
+                        let anoBD = partesData[0];
+                        let mesBD = partesData[1];
+                        let diaBD = partesData[2];
+
+                        // Verifica se o dia e o mês digitados batem com os pedaços da data do Firebase
                         if (diaBusca === diaBD && mesBusca === mesBD) {
                             alunoEncontrado = aluno; cpfChave = chave; break;
                         }
                     }
                 }
             }
-
-            if (!alunoEncontrado) {
-                statusTexto.innerHTML = "<span class='erro'>Aluno não localizado com os dados informados.</span>";
-                return;
-            }
-            registrarPresencaFirebase(alunoEncontrado, cpfChave);
-        }
-                    function registrarPresencaFirebase(aluno, cpfOriginal) {
-            const statusTexto = document.getElementById('msg-status');
-            const tempo = obterDataAtual();
-
-            if (ultimasPresencas[cpfOriginal] && (tempo.timestamp - ultimasPresencas[cpfOriginal]) < (INTERVALO_MINUTOS * 60 * 1000)) {
-                statusTexto.innerHTML = `<span class='aviso'>Olá ${aluno.nome}, chamada já confirmada!</span>`;
-                limparFormularios(); return;
-            }
-
-            ultimasPresencas[cpfOriginal] = tempo.timestamp;
-
-            let overlay = document.getElementById('presenca-sucesso-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'presenca-sucesso-overlay';
-                overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; color: #fff; text-align: center; padding: 20px; box-sizing: border-box;`;
-                document.body.appendChild(overlay);
-            }
-
-            overlay.innerHTML = `
-                <h1 style="font-size: 45px; color: #10b981; font-weight: 900; margin: 0 0 25px 0; text-transform: uppercase; letter-spacing: 2px; line-height: 1.2;">💪 BOM TREINO,<br><span style="color: #fff;">${aluno.nome}</span>!</h1>
-                <div style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; border: 4px solid #10b981; border-radius: 50%; padding: 15px; background: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                    <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="#10b981" style="width: 130px; height: 130px;">
-                        <path d="M21 2s-1.5 3-4.5 4.5c-1 .5-2 1-3 1.5l-3.5 1.5 2 4.5c.5 1 1 2 .5 3s-1.5 1.5-2.5 1l-3.5-2-2.5 2c-.5.5-1.5.5-2 0s-.5-1.5 0-2l2.5-2v-4.5c0-1.5.5-3 1.5-4C10.5 5.5 12 5 13.5 5c1.5 0 3-.5 4-1.5L21 2z"/>
-                    </svg>
-                </div>
-                <p style="color: #94a3b8; font-size: 14px; font-weight: bold; margin-top: 20px; letter-spacing: 3px; text-transform: uppercase;">Feras Taekwondo</p>
-            `;
-            
-            overlay.style.display = 'flex';
-
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const mensagem = new SpeechSynthesisUtterance(`Bom treino, ${aluno.nome}`);
-                mensagem.lang = 'pt-BR'; mensagem.rate = 1.1;
-                window.speechSynthesis.speak(mensagem);
-            }           
-            
-            try {
-                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); 
-                osc.frequency.value = 587.33; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-            } catch(e) { console.warn(e); }
-            
-            limparFormularios();
-            setTimeout(() => { overlay.style.display = 'none'; }, 4000);
-
-            let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
-            fetch(urlDestino, {
-                method: 'PUT',
-                body: JSON.stringify({ nome: aluno.nome, horario: tempo.hora, data_completa: `${tempo.dia}/${tempo.mesNome}/${tempo.ano}` })
-            }).then(() => { carregarPresencasDeHoje(); });
         }
 
-        function carregarPresencasDeHoje() {
-            const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
-            fetch(`${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}.json`).then(res => res.json()).then(dados => {
-                listaPainel.innerHTML = "";
-                if (!dados) { listaPainel.innerHTML = "<div style='color:#64748b; text-align:center; padding-top:30px;'>Sem registros hoje.</div>"; document.getElementById('contador-presencas').innerText = "0 Alunos"; return; }
-                let total = 0; let itensHTML = "";
-                Object.keys(dados).forEach(chave => {
-                    if(dados[chave] && dados[chave].nome) {
-                        total++; itensHTML = `<div class="log-item"><span class="sucesso">✓ ${dados[chave].nome}</span><span class="info-data">${dados[chave].horario}</span></div>` + itensHTML;
-                    }
-                });
-                listaPainel.innerHTML = itensHTML; document.getElementById('contador-presencas').innerText = `${total} Aluno(s)`;
-            });
+        if (!alunoEncontrado) {
+            statusTexto.innerHTML = "<span class='erro'>Aluno não localizado com os dados informados.</span>";
+            return;
+        }
+        registrarPresencaFirebase(alunoEncontrado, cpfChave);
+    }
+
+    function registrarPresencaFirebase(aluno, cpfOriginal) {
+        const statusTexto = document.getElementById('msg-status');
+        const tempo = obterDataAtual();
+
+        if (ultimasPresencas[cpfOriginal] && (tempo.timestamp - ultimasPresencas[cpfOriginal]) < (INTERVALO_MINUTOS * 60 * 1000)) {
+            statusTexto.innerHTML = `<span class='aviso'>Olá ${aluno.nome}, chamada já confirmada!</span>`;
+            limparFormularios(); return;
         }
 
-        function limparFormularios() {
-            document.getElementById('campo-nome').value = "";
-            document.getElementById('campo-dia').value = "";
-            document.getElementById('campo-mes').value = "";
-            document.getElementById('campo-cpf').value = "";
+        ultimasPresencas[cpfOriginal] = tempo.timestamp;
+
+        let overlay = document.getElementById('presenca-sucesso-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'presenca-sucesso-overlay';
+            overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; color: #fff; text-align: center; padding: 20px; box-sizing: border-box;`;
+            document.body.appendChild(overlay);
         }
 
-        window.onload = inicializarSistema;
+        overlay.innerHTML = `
+            <h1 style="font-size: 45px; color: #10b981; font-weight: 900; margin: 0 0 25px 0; text-transform: uppercase; letter-spacing: 2px; line-height: 1.2;">💪 BOM TREINO,<br><span style="color: #fff;">${aluno.nome}</span>!</h1>
+            <div style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; border: 4px solid #10b981; border-radius: 50%; padding: 15px; background: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="#10b981" style="width: 130px; height: 130px;">
+                    <path d="M21 2s-1.5 3-4.5 4.5c-1 .5-2 1-3 1.5l-3.5 1.5 2 4.5c.5 1 1 2 .5 3s-1.5 1.5-2.5 1l-3.5-2-2.5 2c-.5.5-1.5.5-2 0s-.5-1.5 0-2l2.5-2v-4.5c0-1.5.5-3 1.5-4C10.5 5.5 12 5 13.5 5c1.5 0 3-.5 4-1.5L21 2z"/>
+                </svg>
+            </div>
+            <p style="color: #94a3b8; font-size: 14px; font-weight: bold; margin-top: 20px; letter-spacing: 3px; text-transform: uppercase;">Feras Taekwondo</p>
+        `;
+        
+        overlay.style.display = 'flex';
 
-        document.getElementById("btn-confirmar").addEventListener("click", async () => {
-            const campoSenha = document.getElementById("campo-senha-dia");
-            const msgStatus = document.getElementById("msg-status");
-            const senhaDigitada = campoSenha ? campoSenha.value.trim() : "";
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const mensagem = new SpeechSynthesisUtterance(`Bom treino, ${aluno.nome.split(' ')[0]}`);
+            mensagem.lang = 'pt-BR'; mensagem.rate = 1.1;
+            window.speechSynthesis.speak(mensagem);
+        }           
+        
+        try {
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = audioCtx.createOscillator(); osc.connect(audioCtx.destination); osc.frequency.value = 587.33; osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        } catch(e) { console.warn(e); }
+        
+        limparFormularios();
+        setTimeout(() => { overlay.style.display = 'none'; }, 4000);
 
-            if (!senhaDigitada) {
-                msgStatus.className = "status-alerta erro"; msgStatus.innerText = "⚠️ Você precisa digitar o código do treino para confirmar!"; return;
-            }
+        let urlDestino = `${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}/${cpfOriginal.replace(/[.#\$/\[\]]/g, "-")}.json`;
+        fetch(urlDestino, {
+            method: 'PUT',
+            body: JSON.stringify({ nome: aluno.nome, horario: tempo.hora, data_completa: `${tempo.dia}/${tempo.mesNome}/${tempo.ano}` })
+        }).then(() => { carregarPresencasDeHoje(); });
+    }
 
-            try {
-                msgStatus.className = "status-alerta aviso"; msgStatus.innerText = "🔄 Validando código de segurança...";
-                const resposta = await fetch(`${urlNuvemBase}/codigo_diario.json`);
-                const codigoCorretoFirebase = await resposta.json();
-
-                if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
-                    msgStatus.className = "status-alerta erro"; msgStatus.innerText = "❌ Código do treino incorreto! Presença não registrada."; return;
-                }
-
-                msgStatus.className = "status-alerta sucesso"; msgStatus.innerText = "🔓 Código correto! Registrando entrada...";
-                const nome = document.getElementById("campo-nome").value.trim();
-                const dia = document.getElementById("campo-dia").value.trim();
-                const mes = document.getElementById("campo-mes").value.trim();
-                const cpf = document.getElementById("campo-cpf").value.trim();
-
-                if (cpf) { processarBuscaComplexa(cpf, "00", "00"); }
-                else if (nome && dia && mes) { processarBuscaComplexa(nome, dia, mes); }
-                else { msgStatus.className = "status-alerta erro"; msgStatus.innerText = "⚠️ Preencha o CPF ou os dados da criança!"; }
-            } catch (error) {
-                msgStatus.className = "status-alerta erro"; msgStatus.innerText = "❌ Erro ao conectar com o servidor.";
-            }
-        });
-
-        document.querySelectorAll('.busca-box input').forEach(input => {
-            input.addEventListener('keypress', function(evento) {
-                if (evento.key === 'Enter') {
-                    evento.preventDefault(); 
-                    const botaoConfirmar = input.closest('.busca-box').querySelector('button');
-                    if (botaoConfirmar) botaoConfirmar.click();
+    function carregarPresencasDeHoje() {
+        const tempo = obterDataAtual(); const listaPainel = document.getElementById('historico-presenca');
+        fetch(`${urlNuvemBase}/presencas/${tempo.ano}/${tempo.mesNome}/${tempo.dia}.json`).then(res => res.json()).then(dados => {
+            listaPainel.innerHTML = "";
+            if (!dados) { listaPainel.innerHTML = "<div style='color:#64748b; text-align:center; padding-top:30px;'>Sem registros hoje.</div>"; document.getElementById('contador-presencas').innerText = "0 Alunos"; return; }
+            let total = 0; let itensHTML = "";
+            Object.keys(dados).forEach(chave => {
+                if(dados[chave] && dados[chave].nome) {
+                    total++; itensHTML = `<div class="log-item"><span class="sucesso">✓ ${dados[chave].nome}</span><span class="info-data">${dados[chave].horario}</span></div>` + itensHTML;
                 }
             });
+            listaPainel.innerHTML = itensHTML; document.getElementById('contador-presencas').innerText = `${total} Aluno(s)`;
         });
-    </script>
+    }
+
+    function limparFormularios() {
+        document.getElementById('campo-nome').value = "";
+        document.getElementById('campo-dia').value = "";
+        document.getElementById('campo-mes').value = "";
+        document.getElementById('campo-cpf').value = "";
+    }
+
+    window.onload = inicializarSistema;
+
+    document.getElementById("btn-confirmar").addEventListener("click", async () => {
+        const campoSenha = document.getElementById("campo-senha-dia");
+        const msgStatus = document.getElementById("msg-status");
+        const senhaDigitada = campoSenha ? campoSenha.value.trim() : "";
+
+        if (!senhaDigitada) {
+            msgStatus.className = "status-alerta erro"; msgStatus.innerText = "⚠️ Digite o código do treino antes de confirmar!"; return;
+        }
+
+        try {
+            msgStatus.className = "status-alerta aviso"; msgStatus.innerText = "🔄 Validando código...";
+            const resposta = await fetch(`${urlNuvemBase}/codigo_diario.json`);
+            const codigoCorretoFirebase = await resposta.json();
+
+            if (String(senhaDigitada) !== String(codigoCorretoFirebase)) {
+                msgStatus.className = "status-alerta erro"; msgStatus.innerText = "❌ Código incorreto! Presença travada."; return;
+            }
+
+            msgStatus.className = "status-alerta sucesso"; msgStatus.innerText = "🔓 Código validado!";
+            const nome = document.getElementById("campo-nome").value.trim();
+            const dia = document.getElementById("campo-dia").value.trim();
+            const mes = document.getElementById("campo-mes").value.trim();
+            const cpf = document.getElementById("campo-cpf").value.trim();
+
+            if (cpf) { processarBuscaComplexa(cpf, "00", "00"); }
+            else if (nome && dia && mes) { processarBuscaComplexa(nome, dia, mes); }
+            else { msgStatus.className = "status-alerta erro"; msgStatus.innerText = "⚠️ Preencha o CPF ou os dados da criança!"; }
+        } catch (error) {
+            msgStatus.className = "status-alerta erro"; msgStatus.innerText = "❌ Erro de conexão com o banco.";
+        }
+    });
+
+    document.querySelectorAll('.busca-box input').forEach(input => {
+        input.addEventListener('keypress', function(evento) {
+            if (evento.key === 'Enter') {
+                evento.preventDefault();
+                const botaoConfirmar = input.closest('.busca-box').querySelector('button');
+                if (botaoConfirmar) botaoConfirmar.click();
+            }
+        });
+    });
+</script>
 </body>
 </html>
