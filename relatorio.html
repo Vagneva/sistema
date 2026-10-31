@@ -173,7 +173,7 @@
         }
     }
 
-    function removerPresencaNuvem(ano, mes, dia, idAluno, nomeAluno) {
+        function removerPresencaNuvem(ano, mes, dia, idAluno, nomeAluno) {
         if (confirm(`⚠️ Tem certeza de que deseja apagar a presença de "${nomeAluno}" no dia ${dia} de ${mes}?`)) {
             fetch(`${urlNuvemBase}/presencas/${ano}/${mes}/${dia}/${idAluno}.json`, {
                 method: 'DELETE'
@@ -181,6 +181,12 @@
             .then(res => {
                 if (res.ok) {
                     alert("🗑️ Presença removida com sucesso!");
+                    
+                    // Limpa visualmente o ranking antes de puxar de novo para evitar dados fantasmas
+                    document.getElementById('painel-ranking').style.display = "none";
+                    document.getElementById('grid-ranking').innerHTML = "";
+                    
+                    // Recarrega todo o relatório (tabela e ranking atualizado)
                     puxarRelatorioNuvem();
                 } else {
                     alert("❌ Não foi possível excluir.");
@@ -192,6 +198,7 @@
             });
         }
     }
+
 </script>
 </body>
 </html>
