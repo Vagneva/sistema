@@ -1,0 +1,237 @@
+﻿
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Vidraçaria Pro</title>
+    <style>
+        :root { --primary: #2563eb; --success: #16a34a; --dark: #1e293b; --light: #f8fafc; --border: #cbd5e1; --danger: #dc2626; --whats: #25d366; }
+        body { font-family: sans-serif; background: #f1f5f9; color: var(--dark); padding: 15px; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        #telaBloqueio { position: fixed; top:0; left:0; width:100%; height:100%; background:#1e293b; display:flex; justify-content:center; align-items:center; z-index:9999; }
+        .caixa-senha { background:#fff; padding:30px; border-radius:12px; text-align:center; width:90%; max-width:400px; }
+        h1 { text-align: center; color: var(--primary); }
+        h3 { color: #0369a1; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; }
+        select, input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-principal { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-secundario { background: #475569; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; }
+        .grid-botoes-salvar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-salvar { background: var(--success); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-pdf { background: #0284c7; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-whats { background: var(--whats); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-excluir { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+        .resultado { margin-top: 20px; padding: 15px; background: var(--light); border-left: 6px solid var(--primary); display: none; }
+        .bloco-item-carrinho { background: #fff; padding: 15px; border: 1px solid var(--border); margin-bottom: 15px; border-radius: 6px; }
+        .bloco-medidas { background: #e0f2fe; padding: 10px; margin: 8px 0; border-radius: 4px; }
+        .bloco-obs { background: #fef08a; padding: 10px; margin: 8px 0; color: #854d0e; border-radius: 4px; }
+        .secao-busca { background: #f8fafc; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; }
+        .pecas-lista { list-style: none; padding-left: 0; }
+        .pecas-lista li { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; cursor: pointer; padding: 4px; }
+        .pecas-lista li:hover { background: #e2e8f0; }
+        .pecas-lista input[type="checkbox"] { width: auto; }
+        .item-separado { text-decoration: line-through; color: #94a3b8; }
+        .topo-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
+        @media print {
+            h1, .secao-busca, h3, .form-group, .grid-2col, .btn-principal, .grid-botoes-salvar, .pecas-lista input[type="checkbox"], #telaBloqueio, .btn-excluir { display: none !important; }
+            .resultado { display: block !important; border: none; }
+            .bloco-item-carrinho { border: 1px solid #000; page-break-inside: avoid; }
+            .bloco-medidas, .bloco-obs { background: #fff !important; border: 1px solid #000; color: #000; }
+            .item-separado { text-decoration: none !important; color: #000 !important; }
+        }
+    </style>
+</head>
+<body>
+<div id="telaBloqueio">
+    <div class="caixa-senha">
+        <h2>Acesso Restrito</h2>
+        <input type="password" id="campoSenha" placeholder="Senha da oficina" style="margin-bottom:15px; text-align:center;">
+        <button class="btn-principal" onclick="verificarSenha()">Entrar</button>
+    </div>
+</div>
+<div class="container">
+    <h1>Orçamentista Pro + Lista Multi-Itens</h1>
+    <div class="secao-busca">
+        <h3>🔍 Buscar Orçamento</h3>
+        <div class="grid-2col">
+            <input type="text" id="buscaCpf" placeholder="CPF cadastrado">
+            <button class="btn-secundario" onclick="buscarOrcamentoFirebase()">Buscar</button>
+        </div>
+    </div>
+    <h3>👤 Dados do Cliente</h3>
+    <div class="grid-2col">
+        <div class="form-group"><label>Nome:</label><input type="text" id="nomeCliente"></div>
+        <div class="form-group"><label>CPF:</label><input type="text" id="cpfCliente"></div>
+    </div>
+    <div class="grid-2col">
+        <div class="form-group"><label>Telefone:</label><input type="text" id="telCliente"></div>
+        <div class="form-group"><label>Data:</label><input type="date" id="dataOrcamento"></div>
+    </div>
+    <div class="form-group"><label>Endereço:</label><input type="text" id="endCliente"></div>
+    <h3>📐 Configurar Peça</h3>
+    <div class="form-group">
+        <label>Modelo:</label>
+        <select id="tipoVidro">
+            <option value="p_cima_2f">Porta Roldana em Cima (2F)</option>
+            <option value="p_cima_4f">Porta Roldana em Cima (4F)</option>
+            <option value="v_cima_2f">Vitrô Roldana em Cima (2F)</option>
+            <option value="v_cima_4f">Vitrô Roldana em Cima (4F)</option>
+            <option value="p_baixo_3f">Porta Roldana Embaixo (3F)</option>
+            <option value="p_baixo_4f">Porta Roldana Embaixo (4F)</option>
+            <option value="v_baixo_2f">Vitrô Roldana Embaixo (2F)</option>
+            <option value="v_baixo_4f">Vitrô Roldana Embaixo (4F)</option>
+            <option value="p_pivotante">Porta Pivotante (1 Folha)</option>
+            <option value="v_pivotante">Vitrô Pivotante (Kit 6)</option>
+            <option value="vidro_fixo">Vidro Fixo de Embutir</option>
+        </select>
+    </div>
+    <div class="grid-2col">
+        <div class="form-group"><label>Largura do Vão (m):</label><input type="number" id="largura" step="0.01" value="2.00"></div>
+        <div class="form-group"><label>Altura do Vão (m):</label><input type="number" id="altura" step="0.01" value="2.10"></div>
+    </div>
+    <div class="form-group"><label>Observações:</label><textarea id="observacoes"></textarea></div>
+    <button class="btn-principal" onclick="adicionarItemAoCarrinho()">1. Adicionar ao Orçamento</button>
+    <div id="resultado" class="resultado">
+        <h2>Resumo do Orçamento Completo</h2>
+        <p><strong>Cliente:</strong> <span id="resCliente"></span> | <strong>CPF:</strong> <span id="resCpf"></span> | <strong>Tel:</strong> <span id="resTel"></span></p>
+        <p><strong>Data:</strong> <span id="resData"></span> | <strong>Endereço:</strong> <span id="resEnd"></span></p>
+        <p class="preco-destaque">VALOR TOTAL: R$ <span id="resPrecoGeral">0.00</span></p>
+        <div id="containerItensCarrinho"></div>
+        <div class="grid-botoes-salvar">
+            <button class="btn-salvar" onclick="salvarOrcamentoFirebase()">2. Salvar Firebase</button>
+            <button class="btn-pdf" onclick="dispararImpressao()">3. Imprimir / PDF</button>
+            <button class="btn-whats" onclick="enviarWhatsApp()">4. Copiar Texto Zap</button>
+        </div>
+    </div>
+</div>
+<script>
+    const SENHA_CORRETA = "1234";
+    function verificarSenha() {
+        if (document.getElementById('campoSenha').value === SENHA_CORRETA) document.getElementById('telaBloqueio').style.display = 'none';
+        else { alert("Senha incorreta!"); document.getElementById('campoSenha').value = ""; }
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('dataOrcamento').value = new Date().toISOString().split('T');
+    });
+    const LINK_FIREBASE = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
+    let carrinhoDeItens = [];
+    const tabelasInstalacao = {
+        p_cima_2f: { precoM2: 320, custoKitFixo: 280, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Porta Roldana em Cima (2F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Trilho Superior Chapéu e Capa - ${lv}m`, "2x Roldanas, Perfil Clique, 1x Freio", `Perfil U Meia-meia e U 67 - Cortar: ${af}m`, "1x Fechadura Vidro-Alvenaria + Guia"] },
+        p_cima_4f: { precoM2: 340, custoKitFixo: 450, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Porta Roldana em Cima (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos Laterais (${lf}x${af}m)`, `2x Vidros Móveis Centrais (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Trilho Superior Chapéu e Capa - ${lv}m`, "4x Roldanas, Perfil Clique, 4x Freios", `2x Perfis Veda Pó, 1x Perfil Cadeirinha - Cortar: ${af}m`, `2x Perfis U Meia-meia - Cortar: ${af}m`, "Fechadura Vidro-Vidro + Contra"] },
+        v_cima_2f: { precoM2: 260, custoKitFixo: 180, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana em Cima (2F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Kit Alumínio Vitrô Chapéu e Trilho Inf - ${lv}m`, "2x Roldanas vitrô", `Perfil U Meia-meia e U 67 - Cortar: ${af}m`, "1x Fecho Bate-Fecha"] },
+        v_cima_4f: { precoM2: 270, custoKitFixo: 290, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana em Cima (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos Laterais (${lf}x${af}m)`, `2x Vidros Móveis Centrais (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Kit Alumínio Vitrô 4F Chapéu e Trilho Inf - ${lv}m`, "4x Roldanas vitrô", `2x Perfis Veda Pó, 1x Perfil Cadeirinha, 2x Perfis U - Cortar: ${af}m`, "Fecho Central Vidro-Vidro"] },
+        p_baixo_3f: { precoM2: 300, custoKitFixo: 350, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 2, divisorLargura: 3, transpasseMovel: 0.03, nomeTxt: "Porta Roldana Embaixo (3F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `2x Vidros Móveis (${lm}x${af}m)`, `Perfil Superior Guia e Trilho Inf Triplo - ${lv}m`, "4x Roldanas Inferiores com Regulagem", `2x Perfis Mão Amiga e Perfil U Meia-meia - Cortar: ${af}m`, `Perfil U 67 batente - Cortar: ${af}m`] },
+        p_baixo_4f: { precoM2: 310, custoKitFixo: 420, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 3, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Porta Roldana Embaixo (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `3x Vidros Móveis (${lm}x${af}m)`, `Perfil Superior Guia e Trilho Inf canais - ${lv}m`, "6x Roldanas Inferiores com Regulagem", `3x Perfis Mão Amiga e Perfil U Meia-meia - Cortar: ${af}m`, `Perfil U 67 batente - Cortar: ${af}m`] },
+        v_baixo_2f: { precoM2: 250, custoKitFixo: 160, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana Embaixo (2F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x${af}m)`, `Perfil Guia Superior e Trilho Inf Duplo - ${lv}m`, "2x Roldanas vitrô", `Perfil U Meia-meia e U 67 - Cortar: ${af}m`, "Fecho Bate-Fecha"] },
+        v_baixo_4f: { precoM2: 260, custoKitFixo: 240, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana Embaixo (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos Laterais (${lf}x${af}m)`, `2x Vidros Móveis Centrais (${lm}x${af}m)`, `Perfil Superior Guia e Trilho Inf Duplo - ${lv}m`, "4x Roldanas vitrô", `2x Perfis Veda Pó, 1x Perfil Cadeirinha, 2x Perfis U - Cortar: ${af}m`, "Fecho Vidro-Vidro"] },
+        p_pivotante: { precoM2: 290, custoKitFixo: 260, descontoFixo: 0.015, descontoMovel: 0.015, folhasFixas: 0, folhasMoveis: 1, divisorLargura: 1, transpasseMovel: -0.015, nomeTxt: "Porta Pivotante", gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Pivotante (${lm}x${af}m)`, "Kit Ferragem Pivotante (Dobradiça sup/inf, pivôs, bucha)", "Kit Fechadura central com cilindro + Puxador duplo", `Cantoneiras de Alumínio em L para vedação total - Total: ${vl}m`] },
+        v_pivotante: { precoM2: 260, custoKitFixo: 190, descontoFixo: 0.015, descontoMovel: 0.015, folhasFixas: 0, folhasMoveis: 1, divisorLargura: 1, transpasseMovel: -0.015, nomeTxt: "Vitrô Pivotante", gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Vitrô Pivotante (${lm}x${af}m)`, "1x Kit 6 Completo para Vitrô Pivotante (Ferragens/Pivôs)", `Cantoneiras de Alumínio em L para vedação total - Total: ${vl}m`] },
+        vidro_fixo: { precoM2: 240, custoKitFixo: 120, descontoFixo: 0.03, descontoMovel: 0.03, folhasFixas: 1, folhasMoveis: 0, divisorLargura: 1, transpasseMovel: -0.03, nomeTxt: "Vidro Fixo de Embutir", gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Fixo Final (${lf}x${af}m)`, `Perfil U 67 em toda a volta - Total: ${vl}m`, `Borracha de vedação em toda a volta - Total: ${vl}m`] }
+    };
+</script>
+<script>
+    function adicionarItemAoCarrinho() {
+        const tipo = document.getElementById('tipoVidro').value;
+        const largura = parseFloat(document.getElementById('largura').value);
+        const altura = parseFloat(document.getElementById('altura').value);
+        const obs = document.getElementById('observacoes').value.trim();
+        if (isNaN(largura) || isNaN(altura) || largura <= 0 || altura <= 0) { alert("Medidas inválidas."); return; }
+        const conf = tabelasInstalacao[tipo];
+        let af = (altura - conf.descontoFixo).toFixed(3);
+        let am = (altura - conf.descontoMovel).toFixed(3);
+        let base = largura / conf.divisorLargura;
+        let lf = base.toFixed(3);
+        let lm = (base + conf.transpasseMovel).toFixed(3);
+        if (tipo === 'v_pivotante') { am = (altura - 0.015).toFixed(3); lm = (largura - 0.015).toFixed(3); }
+        if (tipo === 'vidro_fixo') { af = (altura - 0.030).toFixed(3); lf = (largura - 0.030).toFixed(3); }
+        const valorItem = (largura * altura * conf.precoM2) + conf.custoKitFixo;
+        const vaoLinear = ((largura * 2) + (altura * 2)).toFixed(2);
+        carrinhoDeItens.push({ id: Date.now(), nomeModelo: conf.nomeTxt, largura, altura, obs, valorItem, isPivotante: (tipo==='p_pivotante'||tipo==='v_pivotante'), isApenasFixo: (tipo==='vidro_fixo'), qtdFixo: conf.folhasFixas, lf, af, qtdMovel: conf.folhasMoveis, lm, am, listaMateriais: conf.gerarPecas(af, largura.toFixed(2), lf, lm, vaoLinear) });
+        document.getElementById('observacoes').value = "";
+        atualizarExibicaoCarrinho();
+    }
+    function removerItemDoCarrinho(idItem) {
+        carrinhoDeItens = carrinhoDeItens.filter(i => i.id !== idItem);
+        atualizarExibicaoCarrinho();
+    }
+    function atualizarExibicaoCarrinho() {
+        const container = document.getElementById('containerItensCarrinho');
+        container.innerHTML = ""; let totalGeral = 0;
+        carrinhoDeItens.forEach((item, index) => {
+            totalGeral += item.valorItem;
+            const div = document.createElement('div'); div.className = 'bloco-item-carrinho';
+            let htmlMat = ""; const m = item.listaMateriais || [];
+            m.forEach(mat => { htmlMat += `<li><input type="checkbox"><span>${mat}</span></li>`; });
+            let linhaVidros = `<strong>Vidros:</strong> ${item.qtdFixo} Fixo(s) de ${item.lf}x${item.af}m | ${item.qtdMovel} Móvel(is) de ${item.lm}x${item.am}m`;
+            if (item.nomeModelo === "Porta Pivotante") linhaVidros = `<strong>Vidro:</strong> 1 Folha Pivotante de ${item.lm}x${item.am}m`;
+            if (item.nomeModelo === "Vitrô Pivotante") linhaVidros = `<strong>Vidro:</strong> 1 Folha Vitrô Pivotante de ${item.lm}x${item.am}m`;
+            if (item.isApenasFixo) linhaVidros = `<strong>Vidro Fixo:</strong> 1 Folha Fixo de ${item.lf}x${item.af}m`;
+            div.innerHTML = `<div class="topo-item"><strong>Item #${index + 1}: ${item.nomeModelo} (${item.largura.toFixed(2)}x${item.altura.toFixed(2)}m)</strong><button class="btn-excluir" onclick="removerItemDoCarrinho(${item.id})">Excluir</button></div><div class="bloco-medidas">${linhaVidros}<br><strong>Valor:</strong> R$ ${item.valorItem.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>${item.obs ? `<div class="bloco-obs">${item.obs}</div>` : ''}<ul class="pecas-lista">${htmlMat}</ul>`;
+            div.querySelectorAll('.pecas-lista li').forEach(li => {
+                const box = li.querySelector('input[type="checkbox"]');
+                li.onclick = (e) => { if (e.target !== box) box.checked = !box.checked; if (box.checked) li.classList.add('item-separado'); else li.classList.remove('item-separado'); };
+            });
+            container.appendChild(div);
+        });
+        document.getElementById('resCliente').innerText = document.getElementById('nomeCliente').value;
+        document.getElementById('resCpf').innerText = document.getElementById('cpfCliente').value;
+        document.getElementById('resTel').innerText = document.getElementById('telCliente').value;
+        document.getElementById('resEnd').innerText = document.getElementById('endCliente').value;
+        const d = document.getElementById('dataOrcamento').value.split('-');
+        document.getElementById('resData').innerText = d.length === 3 ? `${d[2]}/${d[1]}/${d[0]}` : "--";
+        document.getElementById('resPrecoGeral').innerText = totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        document.getElementById('resultado').style.display = carrinhoDeItens.length > 0 ? 'block' : 'none';
+    }
+    function dispararImpressao() { window.print(); }
+    
+    // NOVA FUNÇÃO: Copia o resumo limpo diretamente para a memória do computador/celular
+    function enviarWhatsApp() {
+        const nome = document.getElementById('nomeCliente').value || "Cliente";
+        const d = document.getElementById('dataOrcamento').value.split('-');
+        const dataFormatada = d.length === 3 ? `${d[2]}/${d[1]}/${d[0]}` : "--";
+        let totalGeral = 0;
+        
+        let textoMsg = `*ORÇAMENTO - VIDRAÇARIA*\nData: ${dataFormatada}\nCliente: ${nome}\n----------------------------------\n`;
+        carrinhoDeItens.forEach((item, index) => {
+            totalGeral += item.valorItem;
+            textoMsg += `*Item ${index + 1}:* ${item.nomeModelo}\nVão: ${item.largura.toFixed(2)}m x ${item.altura.toFixed(2)}m\n`;
+            if (item.obs) textoMsg += `Nota: _${item.obs}_\n`;
+            textoMsg += `Valor: R$ ${item.valorItem.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\n`;
+        });
+        textoMsg += `----------------------------------\n*VALOR TOTAL GERAL: R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}*`;
+        
+        // Copia o texto para a Área de Transferência
+        navigator.clipboard.writeText(textoMsg).then(() => {
+            alert("Orçamento copiado com sucesso!\n\nAgora basta abrir o WhatsApp do cliente e colar (Ctrl + V).");
+        }).catch(() => {
+            alert("Erro ao copiar automaticamente. Verifique as permissões da página.");
+        });
+    }
+
+    async function salvarOrcamentoFirebase() {
+        const cpf = document.getElementById('cpfCliente').value.trim();
+        if (!cpf || carrinhoDeItens.length === 0) { alert("Preencha CPF e adicione itens!"); return; }
+        try {
+            const r = await fetch(LINK_FIREBASE.replace(".json", `orcamentos_vidro/${cpf}.json`), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nomeCliente: document.getElementById('nomeCliente').value, cpfCliente: cpf, telCliente: document.getElementById('telCliente').value, endCliente: document.getElementById('endCliente').value, dataOrcamento: document.getElementById('dataOrcamento').value, itens: carrinhoDeItens }) });
+            if (r.ok) alert("Salvo!"); else alert("Erro.");
+        } catch (e) { alert("Erro."); }
+    }
+    async function buscarOrcamentoFirebase() {
+        const cpf = document.getElementById('buscaCpf').value.trim();
+        if (!cpf) { alert("Digite o CPF."); return; }
+        try {
+            const r = await fetch(LINK_FIREBASE.replace(".json", `orcamentos_vidro/${cpf}.json`)); const d = await r.json();
+            if (d) {
+                document.getElementById('nomeCliente').value = d.nomeCliente; document.getElementById('cpfCliente').value = d.cpfCliente;
+                document.getElementById('telCliente').value = d.telCliente || ""; document.getElementById('endCliente').value = d.endCliente || "";
+                document.getElementById('dataOrcamento').value = d.dataOrcamento || ""; carrinhoDeItens = d.itens || []; atualizarExibicaoCarrinho();
+            } else alert("Não encontrado.");
+        } catch (e) { alert("Erro."); }
+    }
+</script>
+</body>
+</html>
+
