@@ -1,14 +1,13 @@
-﻿
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Vidraçaria Pro</title>
+    <title>Vidraçaria Pro</title>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --dark: #1e293b; --light: #f8fafc; --border: #cbd5e1; --danger: #dc2626; --whats: #25d366; }
         body { font-family: sans-serif; background: #f1f5f9; color: var(--dark); padding: 15px; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; }
         #telaBloqueio { position: fixed; top:0; left:0; width:100%; height:100%; background:#1e293b; display:flex; justify-content:center; align-items:center; z-index:9999; }
         .caixa-senha { background:#fff; padding:30px; border-radius:12px; text-align:center; width:90%; max-width:400px; }
         h1 { text-align: center; color: var(--primary); }
@@ -35,11 +34,19 @@
         .pecas-lista input[type="checkbox"] { width: auto; }
         .item-separado { text-decoration: line-through; color: #94a3b8; }
         .topo-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
+        .layout-projeto { display: flex; gap: 20px; align-items: center; margin: 12px 0; background: #fff; padding: 10px; border-radius: 6px; border: 1px dashed var(--border); }
+        .desenho-vao { width: 160px; height: 100px; border: 2px solid #475569; display: flex; position: relative; background: #f8fafc; }
+        .folha-linha { flex: 1; border-right: 1px dashed #94a3b8; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: #64748b; }
+        .folha-linha:last-child { border-right: none; }
+        .fechadura-desenho { position: absolute; top: 45%; left: calc(50% - 4px); width: 8px; height: 10px; background: #000; border-radius: 2px; }
+        .pivo-desenho-sup { position: absolute; top: 2px; left: 15px; width: 6px; height: 6px; background: #000; }
+        .pivo-desenho-inf { position: absolute; bottom: 2px; left: 15px; width: 6px; height: 6px; background: #000; }
+        .dados-projeto-texto { font-size: 14px; line-height: 1.5; color: #334155; }
         @media print {
             h1, .secao-busca, h3, .form-group, .grid-2col, .btn-principal, .grid-botoes-salvar, .pecas-lista input[type="checkbox"], #telaBloqueio, .btn-excluir { display: none !important; }
             .resultado { display: block !important; border: none; }
             .bloco-item-carrinho { border: 1px solid #000; page-break-inside: avoid; }
-            .bloco-medidas, .bloco-obs { background: #fff !important; border: 1px solid #000; color: #000; }
+            .bloco-medidas, .bloco-obs, .layout-projeto { background: #fff !important; border: 1px solid #000; color: #000; }
             .item-separado { text-decoration: none !important; color: #000 !important; }
         }
     </style>
@@ -79,18 +86,21 @@
             <option value="p_cima_4f">Porta Roldana em Cima (4F)</option>
             <option value="v_cima_2f">Vitrô Roldana em Cima (2F)</option>
             <option value="v_cima_4f">Vitrô Roldana em Cima (4F)</option>
+            <option value="p_baixo_2f">Porta Roldana Embaixo (2F - 1F + 1M)</option>
             <option value="p_baixo_3f">Porta Roldana Embaixo (3F)</option>
             <option value="p_baixo_4f">Porta Roldana Embaixo (4F)</option>
             <option value="v_baixo_2f">Vitrô Roldana Embaixo (2F)</option>
-            <option value="v_baixo_4f">Vitrô Roldana Embaixo (4F)</option>
+            <option value="v_baixo_3f">Vitrô Roldana Embaixo (3F - 1F + 2M)</option>
+            <option value="v_baixo_4f">Vitrô Roldana Embaixo (4F - 1F + 3M)</option>
             <option value="p_pivotante">Porta Pivotante (1 Folha)</option>
-            <option value="v_pivotante">Vitrô Pivotante (Kit 6)</option>
+            <option value="v_basculante_v">Vitrô Basculante Vertical (Kit 6)</option>
+            <option value="v_basculante_h">Vitrô Basculante Horizontal (Kit 6)</option>
             <option value="vidro_fixo">Vidro Fixo de Embutir</option>
         </select>
     </div>
     <div class="grid-2col">
-        <div class="form-group"><label>Largura do Vão (m):</label><input type="number" id="largura" step="0.01" value="2.00"></div>
-        <div class="form-group"><label>Altura do Vão (m):</label><input type="number" id="altura" step="0.01" value="2.10"></div>
+        <div class="form-group"><label>Largura (m):</label><input type="number" id="largura" step="0.01" value="2.00"></div>
+        <div class="form-group"><label>Altura (m):</label><input type="number" id="altura" step="0.01" value="2.10"></div>
     </div>
     <div class="form-group"><label>Observações:</label><textarea id="observacoes"></textarea></div>
     <button class="btn-principal" onclick="adicionarItemAoCarrinho()">1. Adicionar ao Orçamento</button>
@@ -119,20 +129,22 @@
     const LINK_FIREBASE = "https://academia-2d8b2-default-rtdb.firebaseio.com/.json";
     let carrinhoDeItens = [];
     const tabelasInstalacao = {
-        p_cima_2f: { precoM2: 320, custoKitFixo: 280, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Porta Roldana em Cima (2F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Trilho Superior Chapéu e Capa - ${lv}m`, "2x Roldanas, Perfil Clique, 1x Freio", `Perfil U Meia-meia e U 67 - Cortar: ${af}m`, "1x Fechadura Vidro-Alvenaria + Guia"] },
-        p_cima_4f: { precoM2: 340, custoKitFixo: 450, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Porta Roldana em Cima (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos Laterais (${lf}x${af}m)`, `2x Vidros Móveis Centrais (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Trilho Superior Chapéu e Capa - ${lv}m`, "4x Roldanas, Perfil Clique, 4x Freios", `2x Perfis Veda Pó, 1x Perfil Cadeirinha - Cortar: ${af}m`, `2x Perfis U Meia-meia - Cortar: ${af}m`, "Fechadura Vidro-Vidro + Contra"] },
-        v_cima_2f: { precoM2: 260, custoKitFixo: 180, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana em Cima (2F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Kit Alumínio Vitrô Chapéu e Trilho Inf - ${lv}m`, "2x Roldanas vitrô", `Perfil U Meia-meia e U 67 - Cortar: ${af}m`, "1x Fecho Bate-Fecha"] },
-        v_cima_4f: { precoM2: 270, custoKitFixo: 290, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana em Cima (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos Laterais (${lf}x${af}m)`, `2x Vidros Móveis Centrais (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Kit Alumínio Vitrô 4F Chapéu e Trilho Inf - ${lv}m`, "4x Roldanas vitrô", `2x Perfis Veda Pó, 1x Perfil Cadeirinha, 2x Perfis U - Cortar: ${af}m`, "Fecho Central Vidro-Vidro"] },
-        p_baixo_3f: { precoM2: 300, custoKitFixo: 350, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 2, divisorLargura: 3, transpasseMovel: 0.03, nomeTxt: "Porta Roldana Embaixo (3F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `2x Vidros Móveis (${lm}x${af}m)`, `Perfil Superior Guia e Trilho Inf Triplo - ${lv}m`, "4x Roldanas Inferiores com Regulagem", `2x Perfis Mão Amiga e Perfil U Meia-meia - Cortar: ${af}m`, `Perfil U 67 batente - Cortar: ${af}m`] },
-        p_baixo_4f: { precoM2: 310, custoKitFixo: 420, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 3, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Porta Roldana Embaixo (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `3x Vidros Móveis (${lm}x${af}m)`, `Perfil Superior Guia e Trilho Inf canais - ${lv}m`, "6x Roldanas Inferiores com Regulagem", `3x Perfis Mão Amiga e Perfil U Meia-meia - Cortar: ${af}m`, `Perfil U 67 batente - Cortar: ${af}m`] },
-        v_baixo_2f: { precoM2: 250, custoKitFixo: 160, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana Embaixo (2F)", gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x${af}m)`, `Perfil Guia Superior e Trilho Inf Duplo - ${lv}m`, "2x Roldanas vitrô", `Perfil U Meia-meia e U 67 - Cortar: ${af}m`, "Fecho Bate-Fecha"] },
-        v_baixo_4f: { precoM2: 260, custoKitFixo: 240, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana Embaixo (4F)", gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos Laterais (${lf}x${af}m)`, `2x Vidros Móveis Centrais (${lm}x${af}m)`, `Perfil Superior Guia e Trilho Inf Duplo - ${lv}m`, "4x Roldanas vitrô", `2x Perfis Veda Pó, 1x Perfil Cadeirinha, 2x Perfis U - Cortar: ${af}m`, "Fecho Vidro-Vidro"] },
-        p_pivotante: { precoM2: 290, custoKitFixo: 260, descontoFixo: 0.015, descontoMovel: 0.015, folhasFixas: 0, folhasMoveis: 1, divisorLargura: 1, transpasseMovel: -0.015, nomeTxt: "Porta Pivotante", gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Pivotante (${lm}x${af}m)`, "Kit Ferragem Pivotante (Dobradiça sup/inf, pivôs, bucha)", "Kit Fechadura central com cilindro + Puxador duplo", `Cantoneiras de Alumínio em L para vedação total - Total: ${vl}m`] },
-        v_pivotante: { precoM2: 260, custoKitFixo: 190, descontoFixo: 0.015, descontoMovel: 0.015, folhasFixas: 0, folhasMoveis: 1, divisorLargura: 1, transpasseMovel: -0.015, nomeTxt: "Vitrô Pivotante", gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Vitrô Pivotante (${lm}x${af}m)`, "1x Kit 6 Completo para Vitrô Pivotante (Ferragens/Pivôs)", `Cantoneiras de Alumínio em L para vedação total - Total: ${vl}m`] },
-        vidro_fixo: { precoM2: 240, custoKitFixo: 120, descontoFixo: 0.03, descontoMovel: 0.03, folhasFixas: 1, folhasMoveis: 0, divisorLargura: 1, transpasseMovel: -0.03, nomeTxt: "Vidro Fixo de Embutir", gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Fixo Final (${lf}x${af}m)`, `Perfil U 67 em toda a volta - Total: ${vl}m`, `Borracha de vedação em toda a volta - Total: ${vl}m`] }
+        p_cima_2f: { precoM2: 320, custoKitFixo: 280, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Porta Roldana em Cima (2F)", trilhoTxt: "Trilho Suspenso (Chapéu)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Trilho Superior - ${lv}m`, "2x Roldanas, Capa, Freio", `Perfis U - Cortar: ${af}m`, "Fechadura + Guia"] },
+        p_cima_4f: { precoM2: 340, custoKitFixo: 450, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Porta Roldana em Cima (4F)", trilhoTxt: "Trilho Suspenso (Chapéu)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="folha-linha">Fixo</div><div class="fechadura-desenho" style="left: calc(50% - 4px); top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos (${lf}x${af}m)`, `2x Vidros Móveis (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Trilho e Capa - ${lv}m`, "4x Roldanas, 4x Freios", `Perfis Veda Pó e Cadeirinha - Cortar: ${af}m`, "Fechadura Vidro-Vidro"] },
+        v_cima_2f: { precoM2: 260, custoKitFixo: 180, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana em Cima (2F)", trilhoTxt: "Trilho Suspenso (Chapéu)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Kit Vitrô Chapéu - ${lv}m`, "2x Roldanas vitrô, Perfis U - Cortar: ${af}m", "1x Fecho Bate-Fecha"] },
+        v_cima_4f: { precoM2: 270, custoKitFixo: 290, descontoFixo: 0.06, descontoMovel: 0.02, folhasFixas: 2, folhasMoveis: 2, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana em Cima (4F)", trilhoTxt: "Trilho Suspenso (Chapéu)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="folha-linha">Fixo</div><div class="fechadura-desenho" style="left: calc(50% - 4px); top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`2x Vidros Fixos (${lf}x${af}m)`, `2x Vidros Móveis (${lm}x ${(parseFloat(af)+0.04).toFixed(3)}m)`, `Kit Vitrô 4F - ${lv}m`, "4x Roldanas, Perfis Veda Pó, Cadeirinha, U", "Fecho Central"] },
+        p_baixo_2f: { precoM2: 290, custoKitFixo: 240, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Porta Roldana Embaixo (2F)", trilhoTxt: "Trilho Inferior (Pista Dupla)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x${af}m)`, `Perfil Superior Guia e Trilho Inf - ${lv}m`, "2x Roldanas com Regulagem", `Perfil U Meia fixo e U 67 batente - Cortar: ${af}m`] },
+        p_baixo_3f: { precoM2: 300, custoKitFixo: 350, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 2, divisorLargura: 3, transpasseMovel: 0.03, nomeTxt: "Porta Roldana Embaixo (3F)", trilhoTxt: "Trilho Inferior (Pista Tripla)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `2x Vidros Móveis (${lm}x${af}m)`, `Trilho Inf Triplo - ${lv}m`, "4x Roldanas, 2x Perfis Mão Amiga", `Perfil U batente - Cortar: ${af}m`] },
+        p_baixo_4f: { precoM2: 310, custoKitFixo: 420, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 3, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Porta Roldana Embaixo (4F)", trilhoTxt: "Trilho Inferior com canais", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `3x Vidros Móveis (${lm}x${af}m)`, `Trilho Inf canais - ${lv}m`, "6x Roldanas, 3x Perfis Mão Amiga", `Perfil U 67 - Cortar: ${af}m`] },
+        v_baixo_2f: { precoM2: 250, custoKitFixo: 160, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 1, divisorLargura: 2, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana Embaixo (2F)", trilhoTxt: "Trilho Inferior (Pista Dupla)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `1x Vidro Móvel (${lm}x${af}m)`, `Trilho Inf Duplo - ${lv}m`, "2x Roldanas vitrô, Perfil U Meia, U 67", "Fecho Bate-Fecha"] },
+        v_baixo_3f: { precoM2: 255, custoKitFixo: 200, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 2, divisorLargura: 3, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana Embaixo (3F)", trilhoTxt: "Trilho Inferior (Pista Tripla)", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `2x Vidros Móveis (${lm}x${af}m)`, `Trilho Inf Triplo - ${lv}m`, "4x Roldanas vitrô, 2x Mão Amiga", "Fecho Central"] },
+        v_baixo_4f: { precoM2: 260, custoKitFixo: 240, descontoFixo: 0.02, descontoMovel: 0.02, folhasFixas: 1, folhasMoveis: 3, divisorLargura: 4, transpasseMovel: 0.03, nomeTxt: "Vitrô Roldana Embaixo (4F)", trilhoTxt: "Trilho Inferior Largo com canais", desenhoHtml: '<div class="folha-linha">Fixo</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="folha-linha">Móvel</div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 50%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Vidro Fixo (${lf}x${af}m)`, `3x Vidros Móveis Centrais (${lm}x${af}m)`, `Trilho Inf Largo - ${lv}m`, "6x Roldanas vitrô, 3x Mão Amiga", "Fecho Vidro-Vidro"] },
+        p_pivotante: { precoM2: 290, custoKitFixo: 260, descontoFixo: 0.015, descontoMovel: 0.015, folhasFixas: 0, folhasMoveis: 1, divisorLargura: 1, transpasseMovel: -0.015, nomeTxt: "Porta Pivotante", trilhoTxt: "Kit Pivotante (Sem Trilho)", desenhoHtml: '<div class="folha-linha">Pivotante</div><div class="pivo-desenho-sup" style="left: 4px;"></div><div class="pivo-desenho-inf" style="left: 4px;"></div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 48%;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Pivotante (${lm}x${af}m)`, "Kit Ferragem Pivotante (Dobradiças, pivôs)", "Fechadura + Puxador", `Cantoneiras em L para vedação - Total: ${vl}m`] },
+        v_basculante_v: { precoM2: 260, custoKitFixo: 190, descontoFixo: 0.015, descontoMovel: 0.015, folhasFixas: 0, folhasMoveis: 1, divisorLargura: 1, transpasseMovel: -0.015, nomeTxt: "Vitrô Pivotante Vertical", trilhoTxt: "Kit 6 Pivotante Vertical", desenhoHtml: '<div class="folha-linha">Pivot Vert</div><div class="pivo-desenho-sup" style="left: calc(50% - 3px);"></div><div class="pivo-desenho-inf" style="left: calc(50% - 3px);"></div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 2px; height: 6px; width: 6px;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Vitrô (${lm}x${af}m)`, "1x Kit 6 Completo Vertical (Ferragens/Pivôs)", `Cantoneiras em L para vedação - Total: ${vl}m`] },
+        v_basculante_h: { precoM2: 260, custoKitFixo: 190, descontoFixo: 0.015, descontoMovel: 0.015, folhasFixas: 0, folhasMoveis: 1, divisorLargura: 1, transpasseMovel: -0.015, nomeTxt: "Vitrô Pivotante Horizontal", trilhoTxt: "Kit 6 Pivotante Horizontal", desenhoHtml: '<div class="folha-linha">Pivot Horiz</div><div class="pivo-desenho-sup" style="left: 2px; top: calc(50% - 3px);"></div><div class="pivo-desenho-inf" style="left: auto; right: 2px; top: calc(50% - 3px);"></div><div class="fechadura-desenho" style="left: auto; right: 2px; top: 2px; height: 6px; width: 6px;"></div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Vitrô (${lm}x${af}m)`, "1x Kit 6 Completo Horizontal", `Cantoneiras em L para vedação - Total: ${vl}m`] },
+        vidro_fixo: { precoM2: 240, custoKitFixo: 120, descontoFixo: 0.03, descontoMovel: 0.03, folhasFixas: 1, folhasMoveis: 0, divisorLargura: 1, transpasseMovel: -0.03, nomeTxt: "Vidro Fixo de Embutir", trilhoTxt: "Perfil U 67 Perimetral", desenhoHtml: '<div class="folha-linha" style="background: #e2e8f0;">Fixo Inteiro</div>', gerarPecas: (af, lv, lf, lm, vl) => [`1x Folha Vidro Fixo Final (${lf}x${af}m)`, `Perfil U 67 em toda a volta - Total: ${vl}m`, `Borracha de vedação - Total: ${vl}m`] }
     };
-</script>
-<script>
+
     function adicionarItemAoCarrinho() {
         const tipo = document.getElementById('tipoVidro').value;
         const largura = parseFloat(document.getElementById('largura').value);
@@ -143,16 +155,16 @@
         let af = (altura - conf.descontoFixo).toFixed(3);
         let am = (altura - conf.descontoMovel).toFixed(3);
         let base = largura / conf.divisorLargura;
-        let lf = base.toFixed(3);
-        let lm = (base + conf.transpasseMovel).toFixed(3);
-        if (tipo === 'v_pivotante') { am = (altura - 0.015).toFixed(3); lm = (largura - 0.015).toFixed(3); }
+        let lf = base.toFixed(3); let lm = (base + conf.transpasseMovel).toFixed(3);
+        if (tipo === 'v_basculante_v' || tipo === 'v_basculante_h') { am = (altura - 0.015).toFixed(3); lm = (largura - 0.015).toFixed(3); }
         if (tipo === 'vidro_fixo') { af = (altura - 0.030).toFixed(3); lf = (largura - 0.030).toFixed(3); }
         const valorItem = (largura * altura * conf.precoM2) + conf.custoKitFixo;
         const vaoLinear = ((largura * 2) + (altura * 2)).toFixed(2);
-        carrinhoDeItens.push({ id: Date.now(), nomeModelo: conf.nomeTxt, largura, altura, obs, valorItem, isPivotante: (tipo==='p_pivotante'||tipo==='v_pivotante'), isApenasFixo: (tipo==='vidro_fixo'), qtdFixo: conf.folhasFixas, lf, af, qtdMovel: conf.folhasMoveis, lm, am, listaMateriais: conf.gerarPecas(af, largura.toFixed(2), lf, lm, vaoLinear) });
+        carrinhoDeItens.push({ id: Date.now(), nomeModelo: conf.nomeTxt, trilhoModelo: conf.trilhoTxt, desenhoInterno: conf.desenhoHtml, largura, altura, obs, valorItem, isPivotante: (tipo==='p_pivotante'||tipo==='v_basculante_v'||tipo==='v_basculante_h'), isApenasFixo: (tipo==='vidro_fixo'), qtdFixo: conf.folhasFixas, lf, af, qtdMovel: conf.folhasMoveis, lm, am, listaMateriais: conf.gerarPecas(af, largura.toFixed(2), lf, lm, vaoLinear) });
         document.getElementById('observacoes').value = "";
         atualizarExibicaoCarrinho();
     }
+
     function removerItemDoCarrinho(idItem) {
         carrinhoDeItens = carrinhoDeItens.filter(i => i.id !== idItem);
         atualizarExibicaoCarrinho();
@@ -166,10 +178,9 @@
             let htmlMat = ""; const m = item.listaMateriais || [];
             m.forEach(mat => { htmlMat += `<li><input type="checkbox"><span>${mat}</span></li>`; });
             let linhaVidros = `<strong>Vidros:</strong> ${item.qtdFixo} Fixo(s) de ${item.lf}x${item.af}m | ${item.qtdMovel} Móvel(is) de ${item.lm}x${item.am}m`;
-            if (item.nomeModelo === "Porta Pivotante") linhaVidros = `<strong>Vidro:</strong> 1 Folha Pivotante de ${item.lm}x${item.am}m`;
-            if (item.nomeModelo === "Vitrô Pivotante") linhaVidros = `<strong>Vidro:</strong> 1 Folha Vitrô Pivotante de ${item.lm}x${item.am}m`;
+            if (item.nomeModelo === "Porta Pivotante" || item.nomeModelo === "Vitrô Pivotante Vertical" || item.nomeModelo === "Vitrô Pivotante Horizontal") linhaVidros = `<strong>Vidro:</strong> 1 Folha Pivotante de ${item.lm}x${item.am}m`;
             if (item.isApenasFixo) linhaVidros = `<strong>Vidro Fixo:</strong> 1 Folha Fixo de ${item.lf}x${item.af}m`;
-            div.innerHTML = `<div class="topo-item"><strong>Item #${index + 1}: ${item.nomeModelo} (${item.largura.toFixed(2)}x${item.altura.toFixed(2)}m)</strong><button class="btn-excluir" onclick="removerItemDoCarrinho(${item.id})">Excluir</button></div><div class="bloco-medidas">${linhaVidros}<br><strong>Valor:</strong> R$ ${item.valorItem.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>${item.obs ? `<div class="bloco-obs">${item.obs}</div>` : ''}<ul class="pecas-lista">${htmlMat}</ul>`;
+            div.innerHTML = `<div class="topo-item"><strong>Item #${index + 1}: ${item.nomeModelo}</strong><button class="btn-excluir" onclick="removerItemDoCarrinho(${item.id})">Excluir</button></div><div class="layout-projeto" style="position:relative; padding-top:20px; padding-left:45px;"><div style="position:absolute; top:2px; left:95px; font-size:12px; font-weight:bold;">${item.largura.toFixed(2)}m</div><div style="position:absolute; top:60px; left:2px; font-size:12px; font-weight:bold; transform:rotate(-90deg);">${item.altura.toFixed(2)}m</div><div class="desenho-vao">${item.desenhoInterno}</div><div class="dados-projeto-texto" style="margin-left:15px;"><strong>Sistema:</strong> ${item.trilhoModelo}</div></div><div class="bloco-medidas">${linhaVidros}<br><strong>Valor:</strong> R$ ${item.valorItem.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>${item.obs ? `<div class="bloco-obs">${item.obs}</div>` : ''}<ul class="pecas-lista">${htmlMat}</ul>`; 
             div.querySelectorAll('.pecas-lista li').forEach(li => {
                 const box = li.querySelector('input[type="checkbox"]');
                 li.onclick = (e) => { if (e.target !== box) box.checked = !box.checked; if (box.checked) li.classList.add('item-separado'); else li.classList.remove('item-separado'); };
@@ -186,31 +197,21 @@
         document.getElementById('resultado').style.display = carrinhoDeItens.length > 0 ? 'block' : 'none';
     }
     function dispararImpressao() { window.print(); }
-    
-    // NOVA FUNÇÃO: Copia o resumo limpo diretamente para a memória do computador/celular
     function enviarWhatsApp() {
         const nome = document.getElementById('nomeCliente').value || "Cliente";
         const d = document.getElementById('dataOrcamento').value.split('-');
         const dataFormatada = d.length === 3 ? `${d[2]}/${d[1]}/${d[0]}` : "--";
         let totalGeral = 0;
-        
         let textoMsg = `*ORÇAMENTO - VIDRAÇARIA*\nData: ${dataFormatada}\nCliente: ${nome}\n----------------------------------\n`;
         carrinhoDeItens.forEach((item, index) => {
             totalGeral += item.valorItem;
-            textoMsg += `*Item ${index + 1}:* ${item.nomeModelo}\nVão: ${item.largura.toFixed(2)}m x ${item.altura.toFixed(2)}m\n`;
+            textoMsg += `*Item ${index + 1}:* ${item.nomeModelo}\nVão: ${item.largura.toFixed(2)}m x ${item.altura.toFixed(2)}m\nSistema: ${item.trilhoModelo}\n`;
             if (item.obs) textoMsg += `Nota: _${item.obs}_\n`;
             textoMsg += `Valor: R$ ${item.valorItem.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\n`;
         });
         textoMsg += `----------------------------------\n*VALOR TOTAL GERAL: R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}*`;
-        
-        // Copia o texto para a Área de Transferência
-        navigator.clipboard.writeText(textoMsg).then(() => {
-            alert("Orçamento copiado com sucesso!\n\nAgora basta abrir o WhatsApp do cliente e colar (Ctrl + V).");
-        }).catch(() => {
-            alert("Erro ao copiar automaticamente. Verifique as permissões da página.");
-        });
+        navigator.clipboard.writeText(textoMsg).then(() => { alert("Orçamento copiado! Abra o WhatsApp do cliente e cole (Ctrl+V)."); }).catch(() => { alert("Erro ao copiar."); });
     }
-
     async function salvarOrcamentoFirebase() {
         const cpf = document.getElementById('cpfCliente').value.trim();
         if (!cpf || carrinhoDeItens.length === 0) { alert("Preencha CPF e adicione itens!"); return; }
@@ -234,4 +235,3 @@
 </script>
 </body>
 </html>
-
